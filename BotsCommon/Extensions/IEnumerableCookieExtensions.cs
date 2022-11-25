@@ -3,7 +3,7 @@ using System.Net;
 
 namespace BotsCommon
 {
-    internal static class IEnumerableCookieExtensions
+    public static class IEnumerableCookieExtensions
     {
         public static CookieContainer ToCookieContainer(this IEnumerable<Cookie> self)
         {
