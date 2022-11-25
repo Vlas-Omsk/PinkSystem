@@ -1,0 +1,41 @@
+using System;
+using System.Text.RegularExpressions;
+
+namespace BotsCommon.IO
+{
+    public sealed class ProxyDataReader : IDataReader<Proxy>
+    {
+        private readonly IDataReader<string> _reader;
+
+        public ProxyDataReader(IDataReader<string> reader)
+        {
+            _reader = reader;
+        }
+
+        public ProxyScheme ProxyScheme { get; set; } = ProxyScheme.Http;
+        public Regex Format { get; set; } = new Regex(@"((?<username>.*?):(?<password>.*?)@)?(?<host>.*?):(?<port>.*)", RegexOptions.Compiled);
+        public int Length => _reader.Length;
+        public int Index => _reader.Index;
+
+        public override Proxy Read()
+        {
+            var match = Format.Match(_reader.Read());
+
+            string host = null;
+            int? port = null;
+            string username = null;
+            string password = null;
+
+            if (match.Groups.TryGetValue("host", out Group hostGroup))
+                host = hostGroup.Value;
+            if (match.Groups.TryGetValue("port", out Group portGroup))
+                port = portGroup.Success ? int.Parse(portGroup.Value) : null;
+            if (match.Groups.TryGetValue("username", out Group usernameGroup))
+                username = usernameGroup.Success ? usernameGroup.Value : null;
+            if (match.Groups.TryGetValue("password", out Group passwordGroup))
+                password = passwordGroup.Success ? passwordGroup.Value : null;
+
+            return new Proxy(ProxyScheme, host, port, username, password);
+        }
+    }
+}
