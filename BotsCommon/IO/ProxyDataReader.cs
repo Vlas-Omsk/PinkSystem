@@ -1,5 +1,6 @@
 using System;
 using System.Text.RegularExpressions;
+using PinkNet;
 
 namespace BotsCommon.IO
 {
@@ -17,7 +18,7 @@ namespace BotsCommon.IO
         public int Length => _reader.Length;
         public int Index => _reader.Index;
 
-        public override Proxy Read()
+        public Proxy Read()
         {
             var match = Format.Match(_reader.Read());
 
@@ -36,6 +37,11 @@ namespace BotsCommon.IO
                 password = passwordGroup.Success ? passwordGroup.Value : null;
 
             return new Proxy(ProxyScheme, host, port, username, password);
+        }
+
+        public void Reset()
+        {
+            _reader.Reset();
         }
     }
 }
