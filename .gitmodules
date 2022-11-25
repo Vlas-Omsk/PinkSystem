@@ -1,0 +1,6 @@
+[submodule "PinkNet"]
+	path = PinkNet
+	url = https://github.com/Vlas-Omsk/PinkNet
+[submodule "PinkLogging"]
+	path = PinkLogging
+	url = https://github.com/Vlas-Omsk/PinkLogging
