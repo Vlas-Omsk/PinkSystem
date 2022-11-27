@@ -100,7 +100,7 @@ namespace BotsCommon.Bots
                 using var reader = new StreamLinesDataReader(new StreamReader(cookiePath));
                 var cookies = new NetscapeCookieReader(reader);
 
-                var apiAdapter = _apiAdapterFactory.Create(cookies, _proxiesReader.Read(), _userAgentsReader.Read());
+                var apiAdapter = _apiAdapterFactory.Create(cookies, _proxiesReader?.Read(), _userAgentsReader.Read());
                 var tasks = Enumerable.Repeat(Task.CompletedTask, 5).ToArray();
 
                 if (_like)
@@ -152,8 +152,10 @@ namespace BotsCommon.Bots
         {
             var message =
                 $"{_cookiesPathsReader.GetProgress():0.00}% ({_cookiesPathsReader.Index} / {_cookiesPathsReader.Length}) " +
-                $"Proxy: {_proxiesReader.Index} / {_proxiesReader.Length} " +
                 $"UserAgent: {_userAgentsReader.Index} / {_userAgentsReader.Length}";
+
+            if (_proxiesReader != null)
+                message += $" Proxy: {_proxiesReader.Index} / {_proxiesReader.Length}";
 
             if (_repliesReader != null)
                 message += $" Comment: {_repliesReader.Index} / {_repliesReader.Length}";

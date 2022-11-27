@@ -8,6 +8,10 @@ namespace BotsCommon.IO
         {
         }
 
+        public StreamLinesDataReader(string path) : base(new StreamReader(path))
+        {
+        }
+
         protected override string ReadOverride(string line)
         {
             return line;

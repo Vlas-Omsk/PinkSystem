@@ -8,6 +8,10 @@ namespace BotsCommon.IO
         {
         }
 
+        public StreamLinesDataWriter(string path) : base(new StreamWriter(path))
+        {
+        }
+
         protected override string WriteOverride(string data)
         {
             return data;

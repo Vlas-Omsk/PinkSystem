@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore.Storage;
 
 namespace BotsCommon.Database
 {
-    public sealed class MigrationsRunner
+    public sealed class MigrationsRunner : IDisposable
     {
         private const string _versionPropertyName = "Version";
 
@@ -18,6 +18,11 @@ namespace BotsCommon.Database
         {
             _dbContext = dbContext;
             _history = history;
+        }
+
+        ~MigrationsRunner()
+        {
+            Dispose();
         }
 
         public void Run()
@@ -89,6 +94,13 @@ namespace BotsCommon.Database
 
             foreach (var command in commands)
                 command.ExecuteNonQuery(relationalConnection);
+        }
+
+        public void Dispose()
+        {
+            GC.SuppressFinalize(this);
+
+            _dbContext.Dispose();
         }
     }
 }

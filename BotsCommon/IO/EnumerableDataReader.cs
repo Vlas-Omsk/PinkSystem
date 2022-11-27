@@ -2,7 +2,7 @@ using System;
 
 namespace BotsCommon.IO
 {
-    public sealed class EnumerableDataReader<T> : IDataReader<T>
+    public sealed class EnumerableDataReader<T> : IDataReader<T>, IDisposable
     {
         private readonly IEnumerator<T> _enumerator;
         private readonly object _lock = new object();
@@ -15,6 +15,11 @@ namespace BotsCommon.IO
         {
             _enumerator = enumerable.GetEnumerator();
             Length = length;
+        }
+
+        ~EnumerableDataReader()
+        {
+            Dispose();
         }
 
         public int Length { get; }
@@ -38,6 +43,14 @@ namespace BotsCommon.IO
         {
             lock (_lock)
                 _enumerator.Reset();
+        }
+
+        public void Dispose()
+        {
+            GC.SuppressFinalize(this);
+
+            lock (_lock)
+                _enumerator.Dispose();
         }
     }
 }

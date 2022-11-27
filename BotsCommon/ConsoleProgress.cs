@@ -13,6 +13,8 @@ namespace BotsCommon
         public ConsoleProgress(string prefix)
         {
             _prefix = prefix;
+
+            Report(null);
         }
 
         public void Report(string current)
