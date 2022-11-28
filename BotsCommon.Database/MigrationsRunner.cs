@@ -27,14 +27,13 @@ namespace BotsCommon.Database
 
         public void Run()
         {
-            var migrationsSqlGenerator = _dbContext.GetService<IMigrationsSqlGenerator>();
             var relationalConnection = _dbContext.GetService<IRelationalConnection>();
+            var migrationsSqlGenerator = _dbContext.GetService<IMigrationsSqlGenerator>();
 
             Property versionProperty;
-
             try
             {
-                versionProperty = _dbContext.Properties.Find(_versionPropertyName);
+                versionProperty = _dbContext.Properties?.Find(_versionPropertyName);
             }
             catch
             {
@@ -68,14 +67,14 @@ namespace BotsCommon.Database
                 versionProperty = new Property()
                 {
                     Name = _versionPropertyName,
-                    Value = lastItem.Version
+                    Value = lastItem?.Version
                 };
-                _dbContext.Properties.Add(versionProperty);
+                _dbContext.Add(versionProperty);
             }
             else
             {
-                versionProperty.Value = lastItem.Version;
-                _dbContext.Properties.Update(versionProperty);
+                versionProperty.Value = lastItem?.Version;
+                _dbContext.Update(versionProperty);
             }
 
             _dbContext.SaveChanges();

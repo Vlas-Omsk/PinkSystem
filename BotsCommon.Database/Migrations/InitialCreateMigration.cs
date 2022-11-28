@@ -12,7 +12,7 @@ namespace BotsCommon.Database.Migrations
                 columns: x => new
                 {
                     Name = x.Column<string>(),
-                    Value = x.Column<string>()
+                    Value = x.Column<string>(nullable: true)
                 },
                 constraints: x =>
                 {

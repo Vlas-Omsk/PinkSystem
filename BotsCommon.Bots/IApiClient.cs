@@ -2,7 +2,7 @@ using System;
 
 namespace BotsCommon.Bots
 {
-    public interface IApiAdapter
+    public interface IApiClient
     {
         Task AddLike(string postId);
         Task CreateRepost(string postId);

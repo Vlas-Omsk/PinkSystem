@@ -10,6 +10,6 @@ namespace BotsCommon.Database
         {
         }
 
-        public DbSet<Property> Properties { get; private set; }
+        public DbSet<Property> Properties { get; internal set; }
     }
 }
