@@ -49,6 +49,8 @@ namespace BotsCommon.Database
 
             foreach (var item in _history)
             {
+                lastItem = item;
+
                 if (flag == false)
                 {
                     if (item.Version == versionProperty.Value)
@@ -58,8 +60,6 @@ namespace BotsCommon.Database
                 }
 
                 RunMigration(migrationsSqlGenerator, relationalConnection, item.Type, item.Migration);
-
-                lastItem = item;
             }
 
             if (versionProperty == null)
