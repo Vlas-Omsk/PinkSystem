@@ -13,6 +13,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PinkNet", "PinkNet\PinkNet\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PinkLogging", "PinkLogging\PinkLogging\PinkLogging.csproj", "{699D670D-F8EE-4DA8-80FD-47A6B65A6134}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BotsCommon.Json", "BotsCommon.Json\BotsCommon.Json.csproj", "{7F5CEA89-7D51-4A5E-87D7-2A100E0A9F4F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PinkJson2", "PinkJson\PinkJson2\PinkJson2.csproj", "{FFE1B770-121A-4C3B-9CC3-DCB3F9E1CF66}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -42,5 +46,13 @@ Global
 		{699D670D-F8EE-4DA8-80FD-47A6B65A6134}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{699D670D-F8EE-4DA8-80FD-47A6B65A6134}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{699D670D-F8EE-4DA8-80FD-47A6B65A6134}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7F5CEA89-7D51-4A5E-87D7-2A100E0A9F4F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7F5CEA89-7D51-4A5E-87D7-2A100E0A9F4F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7F5CEA89-7D51-4A5E-87D7-2A100E0A9F4F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7F5CEA89-7D51-4A5E-87D7-2A100E0A9F4F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FFE1B770-121A-4C3B-9CC3-DCB3F9E1CF66}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FFE1B770-121A-4C3B-9CC3-DCB3F9E1CF66}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FFE1B770-121A-4C3B-9CC3-DCB3F9E1CF66}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FFE1B770-121A-4C3B-9CC3-DCB3F9E1CF66}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

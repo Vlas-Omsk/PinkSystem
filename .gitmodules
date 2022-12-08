@@ -4,3 +4,7 @@
 [submodule "PinkLogging"]
 	path = PinkLogging
 	url = https://github.com/Vlas-Omsk/PinkLogging
+[submodule "PinkJson"]
+	path = PinkJson
+	url = https://github.com/Vlas-Omsk/PinkJson
+	branch = release/PinkJson2

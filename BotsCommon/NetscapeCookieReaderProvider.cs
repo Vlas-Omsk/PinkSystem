@@ -1,23 +1,34 @@
 using System;
 using System.Net;
-using BotsCommon.IO;
 
 namespace BotsCommon
 {
-    public sealed class NetscapeCookieReader
+    public sealed class NetscapeCookieReaderProvider : ICookieReaderProvider
     {
-        private readonly IDataReader<string> _reader;
-
-        public NetscapeCookieReader(IDataReader<string> reader)
+        public bool IsFileFormatSupported(string path)
         {
-            _reader = reader;
+            using var reader = new StreamReader(path);
+
+            var line = reader.ReadLine();
+
+            if (line == null)
+                return false;
+
+            var parts = line.Split("\t");
+
+            if (parts.Length != 7)
+                return false;
+
+            return true;
         }
 
-        public IEnumerable<Cookie> GetAllCookies(string domain = null, bool? overrideSecure = null, bool useExpirationTimestamp = false)
+        public IEnumerable<Cookie> ReadAllCookies(string path, string domain = null, bool useExpirationTimestamp = false)
         {
             string line;
 
-            while ((line = _reader.Read()) != null)
+            using var reader = new StreamReader(path);
+
+            while ((line = reader.ReadLine()) != null)
             {
                 var parts = line.Split("\t");
 
@@ -35,7 +46,7 @@ namespace BotsCommon
                 {
                     Domain = cookieDomain,
                     Path = parts[2],
-                    Secure = overrideSecure ?? bool.Parse(parts[3]),
+                    Secure = bool.Parse(parts[3]),
                     Name = name,
                     Value = parts[6]
                 };
