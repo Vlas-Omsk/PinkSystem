@@ -1,6 +1,5 @@
 using System;
 using System.Net;
-using System.Web;
 using BotsCommon.IO;
 
 namespace BotsCommon
@@ -14,11 +13,8 @@ namespace BotsCommon
             _reader = reader;
         }
 
-        public IEnumerable<Cookie> GetAllCookies(string domain)
+        public IEnumerable<Cookie> GetAllCookies(string domain = null, bool? overrideSecure = null, bool useExpirationTimestamp = false)
         {
-            if (domain == null)
-                yield break;
-
             string line;
 
             while ((line = _reader.Read()) != null)
@@ -27,7 +23,7 @@ namespace BotsCommon
 
                 var cookieDomain = parts[0];
 
-                if (!cookieDomain.EndsWith(domain))
+                if (domain != null && !cookieDomain.EndsWith(domain))
                     continue;
 
                 var name = parts[5];
@@ -35,15 +31,19 @@ namespace BotsCommon
                 if (string.IsNullOrEmpty(name))
                     continue;
 
-                yield return new Cookie()
+                var cookie = new Cookie()
                 {
                     Domain = cookieDomain,
                     Path = parts[2],
-                    Secure = bool.Parse(parts[3]),
-                    Expires = TimeConverter.FromUnixTimestamp(long.Parse(parts[4])),
-                    Name = HttpUtility.UrlEncode(name),
-                    Value = HttpUtility.UrlEncode(parts[6])
+                    Secure = overrideSecure ?? bool.Parse(parts[3]),
+                    Name = name,
+                    Value = parts[6]
                 };
+
+                if (useExpirationTimestamp)
+                    cookie.Expires = TimeConverter.FromUnixTimestamp(long.Parse(parts[4]));
+
+                yield return cookie;
             }
         }
     }
