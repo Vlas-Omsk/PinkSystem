@@ -4,17 +4,20 @@ using BotsCommon.IO;
 
 namespace BotsCommon
 {
-    public sealed class CookieReader
+    public sealed class CookiesReader
     {
         private readonly IDataReader<string> _filePathsReader;
         private readonly List<ICookieReaderProvider> _providers = new List<ICookieReaderProvider>();
 
-        public CookieReader(IDataReader<string> filePaths)
+        public CookiesReader(IDataReader<string> filePaths)
         {
             _filePathsReader = filePaths;
         }
 
-        public IEnumerable<Cookie> ReadFile(string domain = null, bool useExpirationTimestamp = false)
+        public string Domain { get; set; }
+        public bool UseExpirationTimestamp { get; set; }
+
+        public IEnumerable<Cookie> ReadFile()
         {
             var path = _filePathsReader.Read();
 
@@ -23,7 +26,7 @@ namespace BotsCommon
 
             foreach (var provider in _providers)
                 if (provider.IsFileFormatSupported(path))
-                    return provider.ReadAllCookies(path, domain, useExpirationTimestamp);
+                    return provider.ReadAllCookies(path, Domain, UseExpirationTimestamp);
 
             throw new NotSupportedException("File format not supported " + path);
         }
