@@ -24,9 +24,16 @@ namespace BotsCommon
             if (path == null)
                 return null;
 
-            foreach (var provider in _providers)
-                if (provider.IsFileFormatSupported(path))
-                    return provider.ReadAllCookies(path, Domain, UseExpirationTimestamp);
+            try
+            {
+                foreach (var provider in _providers)
+                    if (provider.IsFileFormatSupported(path))
+                        return provider.ReadAllCookies(path, Domain, UseExpirationTimestamp).ToArray();
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Error while processing cookie file " + path, ex);
+            }
 
             throw new NotSupportedException("File format not supported " + path);
         }
