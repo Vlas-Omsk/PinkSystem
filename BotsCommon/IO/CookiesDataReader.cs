@@ -1,15 +1,14 @@
 using System;
 using System.Net;
-using BotsCommon.IO;
 
-namespace BotsCommon
+namespace BotsCommon.IO
 {
-    public sealed class CookiesReader
+    public sealed class CookiesDataReader : IDataReader<IEnumerable<Cookie>>
     {
         private readonly IDataReader<string> _filePathsReader;
         private readonly List<ICookieReaderProvider> _providers = new List<ICookieReaderProvider>();
 
-        public CookiesReader(IDataReader<string> filePaths)
+        public CookiesDataReader(IDataReader<string> filePaths)
         {
             _filePathsReader = filePaths;
         }
@@ -17,7 +16,15 @@ namespace BotsCommon
         public string Domain { get; set; }
         public bool UseExpirationTimestamp { get; set; }
 
-        public IEnumerable<Cookie> ReadFile()
+        public int Index => _filePathsReader.Index;
+        public int Length => _filePathsReader.Length;
+
+        public void AddProvider(ICookieReaderProvider provider)
+        {
+            _providers.Add(provider);
+        }
+
+        public IEnumerable<Cookie> Read()
         {
             var path = _filePathsReader.Read();
 
@@ -38,9 +45,9 @@ namespace BotsCommon
             throw new NotSupportedException("File format not supported " + path);
         }
 
-        public void AddProvider(ICookieReaderProvider provider)
+        public void Reset()
         {
-            _providers.Add(provider);
+            _filePathsReader.Reset();
         }
     }
 }
