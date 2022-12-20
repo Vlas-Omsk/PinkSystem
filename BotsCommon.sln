@@ -7,8 +7,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BotsCommon", "BotsCommon\Bo
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BotsCommon.Database", "BotsCommon.Database\BotsCommon.Database.csproj", "{D470CF6D-5C45-451E-AD61-1CD0B214C0CE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BotsCommon.Bots", "BotsCommon.Bots\BotsCommon.Bots.csproj", "{0BCE1B2E-08F5-430E-B36D-1E774C9A294D}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PinkNet", "PinkNet\PinkNet\PinkNet.csproj", "{AE244179-63B6-468A-B48E-DECA4FA699B7}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PinkLogging", "PinkLogging\PinkLogging\PinkLogging.csproj", "{699D670D-F8EE-4DA8-80FD-47A6B65A6134}"
