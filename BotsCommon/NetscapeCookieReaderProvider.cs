@@ -1,5 +1,6 @@
 using System;
 using System.Net;
+using System.Web;
 
 namespace BotsCommon
 {
@@ -48,7 +49,7 @@ namespace BotsCommon
                     Path = parts[2],
                     Secure = bool.Parse(parts[3]),
                     Name = name,
-                    Value = parts[6]
+                    Value = HttpUtility.UrlEncode(parts[6])
                 };
 
                 if (useExpirationTimestamp)
