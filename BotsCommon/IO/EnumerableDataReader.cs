@@ -24,6 +24,7 @@ namespace BotsCommon.IO
 
         public int Length { get; }
         public int Index { get; private set; }
+        public bool ResetOnEnd { get; set; }
 
         public T Read()
         {
@@ -31,6 +32,13 @@ namespace BotsCommon.IO
             {
                 if (_enumerator.MoveNext())
                 {
+                    Index++;
+                    return _enumerator.Current;
+                }
+                else if (ResetOnEnd)
+                {
+                    Reset();
+                    _enumerator.MoveNext();
                     Index++;
                     return _enumerator.Current;
                 }
