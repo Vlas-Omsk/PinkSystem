@@ -2,7 +2,7 @@ using System;
 using System.Net;
 using System.Web;
 
-namespace BotsCommon
+namespace BotsCommon.Net
 {
     public sealed class NetscapeCookieReaderProvider : ICookieReaderProvider
     {

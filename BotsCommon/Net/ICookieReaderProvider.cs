@@ -1,7 +1,7 @@
 using System;
 using System.Net;
 
-namespace BotsCommon
+namespace BotsCommon.Net
 {
     public interface ICookieReaderProvider
     {
