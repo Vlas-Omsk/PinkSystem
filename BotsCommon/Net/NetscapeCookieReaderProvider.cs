@@ -1,6 +1,6 @@
 using System;
+using System.Diagnostics;
 using System.Net;
-using System.Web;
 
 namespace BotsCommon.Net
 {
@@ -43,13 +43,19 @@ namespace BotsCommon.Net
                 if (string.IsNullOrEmpty(name))
                     continue;
 
+                if (cookieDomain[0] == '[' && cookieDomain[cookieDomain.Length - 1] == ']')
+                {
+                    Debug.Print("Skipped cookie with ipv6 domain.");
+                    continue;
+                }
+
                 var cookie = new Cookie()
                 {
                     Domain = cookieDomain,
                     Path = parts[2],
                     Secure = bool.Parse(parts[3]),
                     Name = name,
-                    Value = HttpUtility.UrlEncode(parts[6])
+                    Value = '"' + parts[6] + '"'
                 };
 
                 if (useExpirationTimestamp)
