@@ -2,7 +2,7 @@ using System;
 using System.Net;
 using PinkJson2;
 
-namespace BotsCommon
+namespace BotsCommon.Net
 {
     public sealed class JsonCookieReaderProvider : ICookieReaderProvider
     {
