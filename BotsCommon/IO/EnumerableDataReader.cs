@@ -1,8 +1,6 @@
-using System;
-
-namespace BotsCommon.IO
+﻿namespace BotsCommon.IO
 {
-    public sealed class EnumerableDataReader<T> : IDataReader<T>, IDisposable
+    public sealed class EnumerableDataReader<T> : IDataReader<T>
     {
         private readonly IEnumerator<T> _enumerator;
         private readonly object _lock = new object();
@@ -24,7 +22,6 @@ namespace BotsCommon.IO
 
         public int Length { get; }
         public int Index { get; private set; }
-        public bool ResetOnEnd { get; set; }
 
         public T Read()
         {
@@ -32,13 +29,6 @@ namespace BotsCommon.IO
             {
                 if (_enumerator.MoveNext())
                 {
-                    Index++;
-                    return _enumerator.Current;
-                }
-                else if (ResetOnEnd)
-                {
-                    Reset();
-                    _enumerator.MoveNext();
                     Index++;
                     return _enumerator.Current;
                 }

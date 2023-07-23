@@ -1,5 +1,3 @@
-using System;
-
 namespace BotsCommon
 {
     public static class PathUtils

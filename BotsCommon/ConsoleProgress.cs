@@ -1,5 +1,3 @@
-using System;
-
 namespace BotsCommon
 {
     public sealed class ConsoleProgress : IProgress<string>

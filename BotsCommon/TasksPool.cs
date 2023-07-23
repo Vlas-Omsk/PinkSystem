@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace BotsCommon
+﻿namespace BotsCommon
 {
     public sealed class TasksPool : IDisposable
     {

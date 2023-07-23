@@ -1,5 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <ItemGroup>
+    <ProjectReference Include="..\PinkJson\PinkJson2\PinkJson2.csproj" />
     <ProjectReference Include="..\PinkNet\PinkNet\PinkNet.csproj" />
   </ItemGroup>
   <PropertyGroup>

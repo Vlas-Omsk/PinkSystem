@@ -1,8 +1,6 @@
-using System;
-
-namespace BotsCommon.IO
+﻿namespace BotsCommon.IO
 {
-    public interface IDataReader<out T>
+    public interface IDataReader<out T> : IDisposable
     {
         int Length { get; }
         int Index { get; }

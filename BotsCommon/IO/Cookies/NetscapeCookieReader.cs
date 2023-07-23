@@ -1,11 +1,13 @@
-using System;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Net;
 
-namespace BotsCommon.Net
+namespace BotsCommon.IO.Cookies
 {
-    public sealed class NetscapeCookieReaderProvider : ICookieReaderProvider
+    public sealed class NetscapeCookieReader : ICookieReader
     {
+        public string Domain { get; set; }
+        public bool UseExpirationTimestamp { get; set; }
+
         public bool IsFileFormatSupported(string path)
         {
             using var reader = new StreamReader(path);
@@ -23,7 +25,7 @@ namespace BotsCommon.Net
             return true;
         }
 
-        public IEnumerable<Cookie> ReadAllCookies(string path, string domain = null, bool useExpirationTimestamp = false)
+        public IEnumerable<Cookie> ReadAllCookies(string path)
         {
             string line;
 
@@ -35,7 +37,7 @@ namespace BotsCommon.Net
 
                 var cookieDomain = parts[0];
 
-                if (domain != null && !cookieDomain.EndsWith(domain))
+                if (Domain != null && !cookieDomain.EndsWith(Domain))
                     continue;
 
                 var name = parts[5];
@@ -58,8 +60,8 @@ namespace BotsCommon.Net
                     Value = '"' + parts[6] + '"'
                 };
 
-                if (useExpirationTimestamp)
-                    cookie.Expires = TimeConverter.FromUnixTimestamp(long.Parse(parts[4]));
+                if (UseExpirationTimestamp)
+                    cookie.Expires = new UnixTimestamp(long.Parse(parts[4])).DateTime;
 
                 yield return cookie;
             }

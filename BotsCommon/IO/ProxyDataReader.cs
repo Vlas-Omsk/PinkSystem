@@ -1,5 +1,4 @@
-using System;
-using System.Text.RegularExpressions;
+﻿using System.Text.RegularExpressions;
 using PinkNet;
 
 namespace BotsCommon.IO
@@ -36,12 +35,17 @@ namespace BotsCommon.IO
             if (match.Groups.TryGetValue("password", out Group passwordGroup))
                 password = passwordGroup.Success ? passwordGroup.Value : null;
 
-            return new Proxy(ProxyScheme, host, port, username, password);
+            return new Proxy(ProxyScheme, host, port ?? Proxy.GetDefaultPort(ProxyScheme), username, password);
         }
 
         public void Reset()
         {
             _reader.Reset();
+        }
+
+        public void Dispose()
+        {
+            _reader.Dispose();
         }
     }
 }

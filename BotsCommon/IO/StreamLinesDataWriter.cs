@@ -1,6 +1,4 @@
-using System;
-
-namespace BotsCommon.IO
+﻿namespace BotsCommon.IO
 {
     public sealed class StreamLinesDataWriter : StreamDataWriter<string>
     {

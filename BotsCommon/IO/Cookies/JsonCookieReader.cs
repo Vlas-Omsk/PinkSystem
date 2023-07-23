@@ -1,11 +1,13 @@
-using System;
+﻿using PinkJson2;
 using System.Net;
-using PinkJson2;
 
-namespace BotsCommon.Net
+namespace BotsCommon.IO.Cookies
 {
-    public sealed class JsonCookieReaderProvider : ICookieReaderProvider
+    public sealed class JsonCookieReaderProvider : ICookieReader
     {
+        public string Domain { get; set; }
+        public bool UseExpirationTimestamp { get; set; }
+
         public bool IsFileFormatSupported(string path)
         {
             if (Path.GetExtension(path) == ".json")
@@ -28,7 +30,7 @@ namespace BotsCommon.Net
             return false;
         }
 
-        public IEnumerable<Cookie> ReadAllCookies(string path, string domain = null, bool useExpirationTimestamp = false)
+        public IEnumerable<Cookie> ReadAllCookies(string path)
         {
             using var reader = new StreamReader(path);
             var json = Json.Parse(reader);
@@ -37,7 +39,7 @@ namespace BotsCommon.Net
             {
                 var cookieDomain = cookieJson["domain"].Get<string>();
 
-                if (domain != null && !cookieDomain.EndsWith(domain))
+                if (Domain != null && !cookieDomain.EndsWith(Domain))
                     continue;
 
                 var cookieName = cookieJson["name"].Get<string>();
@@ -54,8 +56,8 @@ namespace BotsCommon.Net
                     Value = cookieJson["value"].Get<string>()
                 };
 
-                if (useExpirationTimestamp)
-                    cookie.Expires = TimeConverter.FromUnixTimestamp(cookieJson["expirationDate"].Get<double>());
+                if (UseExpirationTimestamp)
+                    cookie.Expires = new UnixTimestamp(cookieJson["expirationDate"].Get<double>()).DateTime;
 
                 yield return cookie;
             }

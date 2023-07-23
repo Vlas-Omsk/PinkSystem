@@ -1,8 +1,6 @@
-using System;
-
-namespace BotsCommon.IO
+﻿namespace BotsCommon.IO
 {
-    public interface IDataWriter<in T>
+    public interface IDataWriter<in T> : IDisposable
     {
         void Write(T data);
         void Flush();

@@ -1,11 +1,9 @@
-using System;
-
-namespace BotsCommon.IO
+﻿namespace BotsCommon.IO
 {
-    public abstract class StreamDataReader<T> : IDataReader<T>, IDisposable
+    public abstract class StreamDataReader<T> : IDataReader<T>
     {
         private readonly StreamReader _reader;
-        private readonly object _lock = new object();
+        private readonly object _lock = new();
 
         public StreamDataReader(StreamReader reader)
         {
@@ -14,14 +12,8 @@ namespace BotsCommon.IO
                 Length = reader.GetLinesCount();
         }
 
-        ~StreamDataReader()
-        {
-            Dispose();
-        }
-
         public int Length { get; private set; }
         public int Index { get; private set; }
-        public bool ResetOnEnd { get; set; }
 
         public T Read()
         {
@@ -29,9 +21,6 @@ namespace BotsCommon.IO
 
             lock (_lock)
             {
-                if (ResetOnEnd && _reader.EndOfStream)
-                    Reset();
-
                 line = _reader.ReadLine();
 
                 if (line != null)
@@ -54,8 +43,6 @@ namespace BotsCommon.IO
 
         public void Dispose()
         {
-            GC.SuppressFinalize(this);
-
             _reader.Dispose();
         }
     }

@@ -1,8 +1,6 @@
-using System;
-
-namespace BotsCommon.IO
+﻿namespace BotsCommon.IO
 {
-    public abstract class StreamDataWriter<T> : IDataWriter<T>, IDisposable
+    public abstract class StreamDataWriter<T> : IDataWriter<T>
     {
         private readonly StreamWriter _writer;
         private readonly object _lock = new object();

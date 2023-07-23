@@ -1,5 +1,4 @@
-﻿using System;
-using BotsCommon.IO;
+﻿using BotsCommon.IO;
 
 namespace BotsCommon
 {
