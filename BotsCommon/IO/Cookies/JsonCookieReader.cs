@@ -33,7 +33,7 @@ namespace BotsCommon.IO.Cookies
         public IEnumerable<Cookie> ReadAllCookies(string path)
         {
             using var reader = new StreamReader(path);
-            var json = Json.Parse(reader);
+            var json = Json.Parse(reader).ToJson();
 
             foreach (var cookieJson in json.AsArray())
             {
