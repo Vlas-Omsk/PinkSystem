@@ -51,14 +51,30 @@ namespace BotsCommon.IO.Cookies
                     continue;
                 }
 
-                var cookie = new Cookie()
+                Cookie cookie;
+
+                try
                 {
-                    Domain = cookieDomain,
-                    Path = parts[2],
-                    Secure = bool.Parse(parts[3]),
-                    Name = name,
-                    Value = '"' + parts[6] + '"'
-                };
+                    cookie = new Cookie()
+                    {
+                        Domain = cookieDomain,
+                        Path = parts[2],
+                        Secure = bool.Parse(parts[3]),
+                        Name = name,
+                        Value = parts[6]
+                    };
+                }
+                catch
+                {
+                    cookie = new Cookie()
+                    {
+                        Domain = cookieDomain,
+                        Path = parts[2],
+                        Secure = bool.Parse(parts[3]),
+                        Name = name,
+                        Value = '"' + parts[6] + '"'
+                    };
+                }
 
                 if (UseExpirationTimestamp)
                     cookie.Expires = new UnixTimestamp(long.Parse(parts[4])).DateTime;
