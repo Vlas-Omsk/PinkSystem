@@ -1,4 +1,3 @@
-using System;
 using BotsCommon.Database.Entities;
 using BotsCommon.Database.Migrations;
 using Microsoft.EntityFrameworkCore.Infrastructure;

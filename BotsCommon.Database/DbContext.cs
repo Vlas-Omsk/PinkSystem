@@ -1,4 +1,3 @@
-using System;
 using BotsCommon.Database.Entities;
 using Microsoft.EntityFrameworkCore;
 
