@@ -9,5 +9,25 @@ namespace BotsCommon
 
             return fileName;
         }
+
+        public static bool IsExecutableExists(string path)
+        {
+            if (OperatingSystem.IsWindows() && !path.EndsWith(".exe"))
+                path += ".exe";
+
+            if (File.Exists(path))
+                return true;
+
+            string[] pathVariable;
+
+            if (OperatingSystem.IsWindows())
+                pathVariable = Environment.GetEnvironmentVariable("PATH").Split(';');
+            else if (OperatingSystem.IsLinux())
+                pathVariable = Environment.GetEnvironmentVariable("PATH").Split(':');
+            else
+                throw new PlatformNotSupportedException();
+
+            return pathVariable.Any(x => File.Exists(Path.Combine(x, path)));
+        }
     }
 }
