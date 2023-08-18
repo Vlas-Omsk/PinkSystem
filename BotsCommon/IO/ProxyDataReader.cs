@@ -19,7 +19,12 @@ namespace BotsCommon.IO
 
         public Proxy Read()
         {
-            var match = Format.Match(_reader.Read());
+            var data = _reader.Read();
+
+            if (data == null)
+                return null;
+
+            var match = Format.Match(data);
 
             string host = null;
             int? port = null;
