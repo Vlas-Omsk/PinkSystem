@@ -13,7 +13,7 @@ namespace BotsCommon.IO
         }
 
         public ProxyScheme ProxyScheme { get; set; } = ProxyScheme.Http;
-        public Regex Format { get; set; } = new Regex(@"((?<username>.*?):(?<password>.*?)@)?(?<host>.*?):(?<port>.*)", RegexOptions.Compiled);
+        public Regex Format { get; set; } = new Regex(@"((?<username>.*?):(?<password>.*?)@)?(((?<host>.*?):(?<port>.*?))|(?<host>.*?))$", RegexOptions.Compiled);
         public int Length => _reader.Length;
         public int Index => _reader.Index;
 
