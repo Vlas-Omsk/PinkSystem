@@ -44,9 +44,27 @@
 
         public void WaitAny()
         {
-            var index = Task.WaitAny(_tasks);
+            _ = WaitAnyInternal();
+        }
 
-            UnwrapTask(_tasks[index]);
+        public T WaitAnyAndGetValue<T>()
+        {
+            var task = WaitAnyInternal();
+
+            if (task == Task.CompletedTask)
+                return default;
+
+            return ((Task<T>)task).Result;
+        }
+
+        private Task WaitAnyInternal()
+        {
+            var index = Task.WaitAny(_tasks);
+            var task = _tasks[index];
+
+            UnwrapTask(task);
+
+            return task;
         }
 
         public void WaitAll()
