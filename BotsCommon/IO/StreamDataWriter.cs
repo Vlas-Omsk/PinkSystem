@@ -37,7 +37,7 @@
         {
             GC.SuppressFinalize(this);
 
-            _writer.Dispose();
+            _writer?.Dispose();
         }
     }
 }
