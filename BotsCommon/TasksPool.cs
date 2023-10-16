@@ -42,14 +42,14 @@
             }
         }
 
-        public void WaitAny()
+        public Task WaitAny()
         {
-            _ = WaitAnyInternal();
+            return WaitAnyInternal();
         }
 
-        public T WaitAnyAndGetValue<T>()
+        public async Task<T> WaitAnyAndGetValue<T>()
         {
-            var task = WaitAnyInternal();
+            var task = await WaitAnyInternal();
 
             if (task == Task.CompletedTask)
                 return default;
@@ -57,26 +57,25 @@
             return ((Task<T>)task).Result;
         }
 
-        private Task WaitAnyInternal()
+        private async Task<Task> WaitAnyInternal()
         {
-            var index = Task.WaitAny(_tasks);
-            var task = _tasks[index];
+            var task = await Task.WhenAny(_tasks);
 
             UnwrapTask(task);
 
             return task;
         }
 
-        public void WaitAll()
+        public Task WaitAll()
         {
-            Task.WaitAll(_tasks);
+            return Task.WhenAll(_tasks);
         }
 
-        public void CancelAll()
+        public async Task CancelAll()
         {
             _cancellationTokenSource.Cancel();
 
-            WaitAll();
+            await WaitAll();
 
             _cancellationTokenSource = new CancellationTokenSource();
         }
@@ -85,7 +84,7 @@
         {
             GC.SuppressFinalize(this);
 
-            CancelAll();
+            CancelAll().Wait();
         }
 
         private static void UnwrapTask(Task task)
