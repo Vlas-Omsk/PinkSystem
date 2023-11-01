@@ -1,7 +1,7 @@
 ﻿using System.Text.RegularExpressions;
 using PinkNet;
 
-namespace BotsCommon.IO
+namespace BotsCommon.IO.Data
 {
     public sealed class ProxyDataReader : IDataReader<Proxy>
     {

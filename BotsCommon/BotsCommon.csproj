@@ -1,5 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <ItemGroup>
+    <PackageReference Include="MimeTypeMapOfficial" Version="1.0.17" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\PinkJson\PinkJson2\PinkJson2.csproj" />
     <ProjectReference Include="..\PinkNet\PinkNet\PinkNet.csproj" />
   </ItemGroup>

@@ -1,4 +1,4 @@
-﻿namespace BotsCommon.IO
+﻿namespace BotsCommon.IO.Data
 {
     public sealed class UsageLimitedDataReader<T> : IDataReader<T>
     {

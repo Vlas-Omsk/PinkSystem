@@ -1,4 +1,4 @@
-﻿namespace BotsCommon.IO
+﻿namespace BotsCommon.IO.Data
 {
     public sealed class RepeatDataReader<T> : IDataReader<T>
     {
