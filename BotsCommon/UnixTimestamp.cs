@@ -15,6 +15,9 @@
             DateTime = dateTime;
             TimeSpan = dateTime
                 .Subtract(new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc));
+
+            if (TimeSpan.Ticks < 0)
+                TimeSpan = TimeSpan.Zero;
         }
 
         public DateTime DateTime { get; }
