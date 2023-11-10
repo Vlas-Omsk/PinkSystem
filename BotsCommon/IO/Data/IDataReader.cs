@@ -2,7 +2,7 @@
 {
     public interface IDataReader<out T> : IDisposable
     {
-        int Length { get; }
+        int? Length { get; }
         int Index { get; }
 
         T Read();

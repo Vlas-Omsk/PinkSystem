@@ -12,7 +12,7 @@
                 Length = reader.GetLinesCount();
         }
 
-        public int Length { get; private set; }
+        public int? Length { get; private set; }
         public int Index { get; private set; }
 
         public T Read()

@@ -18,7 +18,7 @@
             _limiter = limiter;
         }
 
-        public int Length => _reader.Length;
+        public int? Length => _reader.Length;
         public int Index => _reader.Index;
 
         public T Read()

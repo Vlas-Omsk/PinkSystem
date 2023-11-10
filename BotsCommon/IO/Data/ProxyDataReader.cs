@@ -14,7 +14,7 @@ namespace BotsCommon.IO.Data
 
         public ProxyScheme ProxyScheme { get; set; } = ProxyScheme.Http;
         public Regex Format { get; set; } = new Regex(@"((?<username>.*?):(?<password>.*?)@)?(((?<host>.*?):(?<port>.*?))|(?<host>.*?))$", RegexOptions.Compiled);
-        public int Length => _reader.Length;
+        public int? Length => _reader.Length;
         public int Index => _reader.Index;
 
         public Proxy Read()

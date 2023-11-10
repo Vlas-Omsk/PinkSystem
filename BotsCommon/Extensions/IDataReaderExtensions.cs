@@ -6,7 +6,9 @@ namespace BotsCommon
     {
         public static float GetProgress<T>(this IDataReader<T> self)
         {
-            return (float)self.Index / self.Length * 100;
+            return self.Length.HasValue ?
+                (float)self.Index / self.Length.Value * 100 :
+                float.PositiveInfinity;
         }
     }
 }

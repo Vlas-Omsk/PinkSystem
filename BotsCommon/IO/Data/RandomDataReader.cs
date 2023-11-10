@@ -9,12 +9,15 @@
             _dataReader = dataReader;
         }
 
-        public int Length => _dataReader.Length;
+        public int? Length => _dataReader.Length;
         public int Index => _dataReader.Index;
 
         public T Read()
         {
-            var skipCount = Random.Shared.Next(0, _dataReader.Length - _dataReader.Index);
+            if (!_dataReader.Length.HasValue)
+                throw new Exception("Length must be non null");
+
+            var skipCount = Random.Shared.Next(0, _dataReader.Length.Value - _dataReader.Index);
 
             for (var i = 0; i < skipCount; i++)
                 _dataReader.Read();
