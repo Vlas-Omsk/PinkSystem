@@ -3,7 +3,8 @@
     public sealed class EnumerableDataReader<T> : IDataReader<T>
     {
         private readonly IEnumerator<T> _enumerator;
-        private readonly object _lock = new object();
+        private readonly object _lock = new();
+        private int _index;
 
         public EnumerableDataReader(IEnumerable<T> enumerable) : this(enumerable, null)
         {
@@ -21,7 +22,19 @@
         }
 
         public int? Length { get; }
-        public int Index { get; private set; }
+        public int Index
+        {
+            get
+            {
+                lock (_lock)
+                    return _index;
+            }
+            set
+            {
+                lock (_lock)
+                    _index = value;
+            }
+        }
 
         public T Read()
         {

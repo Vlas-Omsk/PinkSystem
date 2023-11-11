@@ -4,6 +4,7 @@
     {
         private readonly StreamReader _reader;
         private readonly object _lock = new();
+        private int _index;
 
         public StreamDataReader(StreamReader reader)
         {
@@ -13,7 +14,19 @@
         }
 
         public int? Length { get; private set; }
-        public int Index { get; private set; }
+        public int Index
+        {
+            get
+            {
+                lock (_lock)
+                    return _index;
+            }
+            set
+            {
+                lock (_lock)
+                    _index = value;
+            }
+        }
 
         public T Read()
         {
