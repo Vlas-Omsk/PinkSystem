@@ -75,7 +75,16 @@
         {
             _cancellationTokenSource.Cancel();
 
-            await WaitAll();
+            try
+            {
+                await WaitAll();
+            }
+            catch (AggregateException ex) when (ex.InnerExceptions.All(x => x is OperationCanceledException))
+            {
+            }
+            catch (OperationCanceledException)
+            {
+            }
 
             _cancellationTokenSource = new CancellationTokenSource();
         }
