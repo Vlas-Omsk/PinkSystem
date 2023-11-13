@@ -1,5 +1,7 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 
+#nullable enable
+
 namespace BotsCommon
 {
     internal delegate bool TryParseDelegate<T>(string str, [NotNullWhen(true)] out T? value);
