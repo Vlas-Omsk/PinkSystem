@@ -183,135 +183,168 @@ namespace BotsCommon
             );
         }
 
-        public static string ReadInput(string? value)
+        private sealed class ReadInputHandler
         {
-            var length = 0;
+            private string _value;
+            private int _cursorStartPos;
+            private int _position;
+            private int _offset;
 
-            if (value != null)
+            public ReadInputHandler(string? value)
             {
-                length = value.Length;
+                _cursorStartPos = Console.CursorLeft;
 
-                Console.Write(value);
-            }
-            else
-            {
-                value = string.Empty;
-            }
-
-            var position = length;
-
-            while (true)
-            {
-                var key = Console.ReadKey(intercept: true);
-
-                switch (key.Key)
+                if (value != null)
                 {
-                    case ConsoleKey.Backspace:
-                        {
-                            if (position == 0)
-                                break;
-
-                            position--;
-                            length--;
-
-                            var leftStr = value[(position + 1)..];
-
-                            value = value[..position] + leftStr;
-
-                            var left = --Console.CursorLeft;
-
-                            Console.Write(leftStr + " ");
-                            Console.CursorLeft = left;
-                        }
-                        break;
-                    case ConsoleKey.Delete:
-                        {
-                            if (position == length)
-                                break;
-
-                            length--;
-
-                            var leftStr = value[(position + 1)..];
-
-                            value = value[..position] + leftStr;
-
-                            var left = Console.CursorLeft;
-
-                            Console.Write(leftStr + " ");
-                            Console.CursorLeft = left;
-                        }
-                        break;
-                    case ConsoleKey.RightArrow:
-                        {
-                            if (position == length)
-                                break;
-
-                            position++;
-                            Console.CursorLeft++;
-                        }
-                        break;
-                    case ConsoleKey.LeftArrow:
-                        {
-                            if (position == 0)
-                                break;
-
-                            position--;
-                            Console.CursorLeft--;
-                        }
-                        break;
-                    case ConsoleKey.Home:
-                    case ConsoleKey.UpArrow:
-                        {
-                            Console.CursorLeft -= position;
-                            position = 0;
-                        }
-                        break;
-                    case ConsoleKey.End:
-                    case ConsoleKey.DownArrow:
-                        {
-                            Console.CursorLeft += length - position;
-                            position = length;
-                        }
-                        break;
-                    case ConsoleKey.Escape:
-                        {
-                            Console.CursorLeft -= position;
-                            position = 0;
-                            length = 0;
-
-                            var left = Console.CursorLeft;
-
-                            Console.Write(new string(' ', value.Length));
-                            Console.CursorLeft = left;
-
-                            value = string.Empty;
-                        }
-                        break;
-                    case ConsoleKey.Enter:
-                        Console.WriteLine();
-                        return value;
-                    default:
-                        {
-                            var ch = key.KeyChar;
-
-                            if (key.Modifiers.HasFlag(ConsoleModifiers.Shift))
-                                ch = char.ToUpper(ch);
-
-                            position++;
-                            length++;
-
-                            var leftStr = ch + value[(position - 1)..];
-
-                            value = value[..(position - 1)] + leftStr;
-
-                            var left = Console.CursorLeft + 1;
-
-                            Console.Write(leftStr);
-                            Console.CursorLeft = left;
-                        }
-                        break;
+                    _value = value;
+                }
+                else
+                {
+                    _value = string.Empty;
                 }
             }
+
+            private void UpdateValue()
+            {
+                _offset = _position - (Console.WindowWidth - 1 - _cursorStartPos);
+
+                if (_offset < 0)
+                    _offset = 0;
+
+                var left = _value[_offset..];
+
+                if (left.Length < Console.WindowWidth - 1 - _cursorStartPos)
+                    left += new string(' ', (Console.WindowWidth - 1 - _cursorStartPos) - left.Length);
+
+                if (left.Length >= Console.WindowWidth - 1 - _cursorStartPos)
+                    left = left[..(Console.WindowWidth - 1 - _cursorStartPos)];
+
+                Console.CursorLeft = _cursorStartPos;
+                Console.Write(left);
+                Console.CursorLeft = _cursorStartPos + (_position - _offset);
+            }
+
+            public void RemovePrev()
+            {
+                if (_position == 0)
+                    return;
+
+                _position--;
+                _value = _value[.._position] + _value[(_position + 1)..];
+
+                UpdateValue();
+            }
+
+            public void RemoveNext()
+            {
+                if (_position == _value.Length)
+                    return;
+
+                _value = _value[.._position] + _value[(_position + 1)..];
+
+                UpdateValue();
+            }
+
+            public void MoveCursorRight()
+            {
+                if (_position == _value.Length)
+                    return;
+
+                _position++;
+
+                UpdateValue();
+            }
+
+            public void MoveCursorLeft()
+            {
+                if (_position == 0)
+                    return;
+
+                _position--;
+
+                UpdateValue();
+            }
+
+            public void MoveCursorToHome()
+            {
+                _position = 0;
+
+                UpdateValue();
+            }
+
+            public void MoveCursorToEnd()
+            {
+                _position = _value.Length;
+
+                UpdateValue();
+            }
+
+            public void Clear()
+            {
+                _position = 0;
+                _value = string.Empty;
+
+                UpdateValue();
+            }
+
+            public void Add(ConsoleKeyInfo key)
+            {
+                var ch = key.KeyChar;
+
+                if (key.Modifiers.HasFlag(ConsoleModifiers.Shift))
+                    ch = char.ToUpper(ch);
+
+                _position++;
+                _value = _value[..(_position - 1)] + ch + _value[(_position - 1)..];
+
+                UpdateValue();
+            }
+
+            public string Read()
+            {
+                while (true)
+                {
+                    var key = Console.ReadKey(intercept: true);
+
+                    switch (key.Key)
+                    {
+                        case ConsoleKey.Backspace:
+                            RemovePrev();
+                            break;
+                        case ConsoleKey.Delete:
+                            RemoveNext();
+                            break;
+                        case ConsoleKey.RightArrow:
+                            MoveCursorRight();
+                            break;
+                        case ConsoleKey.LeftArrow:
+                            MoveCursorLeft();
+                            break;
+                        case ConsoleKey.Home:
+                        case ConsoleKey.UpArrow:
+                            MoveCursorToHome();
+                            break;
+                        case ConsoleKey.End:
+                        case ConsoleKey.DownArrow:
+                            MoveCursorToEnd();
+                            break;
+                        case ConsoleKey.Escape:
+                            Clear();
+                            break;
+                        case ConsoleKey.Enter:
+                            Console.WriteLine();
+                            return _value;
+                        default:
+                            Add(key);
+                            break;
+                    }
+                }
+            }
+        }
+
+        public static string ReadInput(string? value)
+        {
+            return new ReadInputHandler(value).Read();
         }
     }
 }
