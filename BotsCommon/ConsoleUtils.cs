@@ -193,15 +193,10 @@ namespace BotsCommon
             public ReadInputHandler(string? value)
             {
                 _cursorStartPos = Console.CursorLeft;
+                _value = value ?? string.Empty;
+                _position = _value.Length;
 
-                if (value != null)
-                {
-                    _value = value;
-                }
-                else
-                {
-                    _value = string.Empty;
-                }
+                UpdateValue();
             }
 
             private void UpdateValue()
@@ -220,7 +215,7 @@ namespace BotsCommon
                     left = left[..(Console.WindowWidth - 1 - _cursorStartPos)];
 
                 Console.CursorLeft = _cursorStartPos;
-                Console.Write(left);
+                Console.Write(left.Replace('\t', ' '));
                 Console.CursorLeft = _cursorStartPos + (_position - _offset);
             }
 
