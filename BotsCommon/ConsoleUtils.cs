@@ -1,4 +1,6 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
+using System.Reflection;
 
 #nullable enable
 
@@ -40,6 +42,10 @@ namespace BotsCommon
             if (availableValues != null)
                 Console.WriteLine($"Available values: {availableValues}");
 
+            if (supportNullValue)
+                Console.WriteLine("Leave field blank if you do not want to use this.");
+
+            Console.WriteLine("Press Esc to clear your input.");
             Console.WriteLine();
 
             var defaultValueString = defaultValue?.ToString();
@@ -73,7 +79,21 @@ namespace BotsCommon
                 name,
                 question,
                 defaultValue?.ToString(),
-                string.Join(", ", Enum.GetValues<T>().Select(x => $"{x} ({x.GetHashCode()})")),
+                "\r\n    " + string.Join("\r\n    ", Enum.GetValues<T>().Select(x =>
+                {
+                    var name = x.ToString();
+                    var result = name;
+
+                    var descriptionAttribute = typeof(T)
+                        .GetRuntimeFields()
+                        .First(x => x.Name == name)
+                        .GetCustomAttribute<DescriptionAttribute>();
+
+                    if (descriptionAttribute != null)
+                        result += " - " + descriptionAttribute.Description;
+
+                    return $"{result} ({x.GetHashCode()})";
+                })),
                 supportNullValue,
                 (string str, [NotNullWhen(true)] out T? value) =>
                 {
@@ -259,7 +279,7 @@ namespace BotsCommon
                             position = 0;
                             length = 0;
 
-                            var left = Console.CursorLeft + 1;
+                            var left = Console.CursorLeft;
 
                             Console.Write(new string(' ', value.Length));
                             Console.CursorLeft = left;
