@@ -2,7 +2,8 @@
 {
     public sealed class EnumerableDataReader<T> : IDataReader<T>
     {
-        private readonly IEnumerator<T> _enumerator;
+        private readonly IEnumerable<T> _enumerable;
+        private IEnumerator<T> _enumerator;
         private readonly object _lock = new();
         private int _index;
 
@@ -12,6 +13,7 @@
 
         public EnumerableDataReader(IEnumerable<T> enumerable, int? length)
         {
+            _enumerable = enumerable;
             _enumerator = enumerable.GetEnumerator();
             Length = length;
         }
@@ -55,7 +57,8 @@
             lock (_lock)
             {
                 Index = 0;
-                _enumerator.Reset();
+                _enumerator.Dispose();
+                _enumerator = _enumerable.GetEnumerator();
             }
         }
 
