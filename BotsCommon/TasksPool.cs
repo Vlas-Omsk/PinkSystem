@@ -93,7 +93,13 @@
         {
             GC.SuppressFinalize(this);
 
-            CancelAll().Wait();
+            try
+            {
+                CancelAll().Wait();
+            }
+            catch
+            {
+            }
         }
 
         private static void UnwrapTask(Task task)
