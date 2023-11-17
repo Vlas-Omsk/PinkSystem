@@ -48,6 +48,10 @@ namespace BotsCommon.States
                         else
                             Console.Title = state;
                     }
+                    else if (_prefix != null)
+                    {
+                        Console.Title = _prefix;
+                    }
 
                     await Task.Delay(2000, _cancellationTokenSource.Token);
                 }
