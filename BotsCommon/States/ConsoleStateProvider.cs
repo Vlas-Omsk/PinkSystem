@@ -52,7 +52,7 @@ namespace BotsCommon.States
                             Console.Title = state;
                     }
 
-                    await Task.Delay(5000, _cancellationTokenSource.Token);
+                    await Task.Delay(2000, _cancellationTokenSource.Token);
                 }
             });
         }
