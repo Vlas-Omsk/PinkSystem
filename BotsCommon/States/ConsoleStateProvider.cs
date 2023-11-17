@@ -15,9 +15,6 @@ namespace BotsCommon.States
         {
             _prefix = prefix;
 
-            if (_prefix != null)
-                Console.Title = _prefix;
-
             _task = Task.Run(async () =>
             {
                 while (true)
