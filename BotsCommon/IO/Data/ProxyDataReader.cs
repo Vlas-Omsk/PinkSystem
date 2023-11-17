@@ -24,23 +24,30 @@ namespace BotsCommon.IO.Data
             if (data == null)
                 return null;
 
-            var match = Format.Match(data);
+            try
+            {
+                var match = Format.Match(data);
 
-            string host = null;
-            int? port = null;
-            string username = null;
-            string password = null;
+                string host = null;
+                int? port = null;
+                string username = null;
+                string password = null;
 
-            if (match.Groups.TryGetValue("host", out Group hostGroup))
-                host = hostGroup.Value;
-            if (match.Groups.TryGetValue("port", out Group portGroup))
-                port = portGroup.Success ? int.Parse(portGroup.Value) : null;
-            if (match.Groups.TryGetValue("username", out Group usernameGroup))
-                username = usernameGroup.Success ? usernameGroup.Value : null;
-            if (match.Groups.TryGetValue("password", out Group passwordGroup))
-                password = passwordGroup.Success ? passwordGroup.Value : null;
+                if (match.Groups.TryGetValue("host", out Group hostGroup))
+                    host = hostGroup.Value;
+                if (match.Groups.TryGetValue("port", out Group portGroup))
+                    port = portGroup.Success ? int.Parse(portGroup.Value) : null;
+                if (match.Groups.TryGetValue("username", out Group usernameGroup))
+                    username = usernameGroup.Success ? usernameGroup.Value : null;
+                if (match.Groups.TryGetValue("password", out Group passwordGroup))
+                    password = passwordGroup.Success ? passwordGroup.Value : null;
 
-            return new Proxy(ProxyScheme, host, port ?? Proxy.GetDefaultPort(ProxyScheme), username, password);
+                return new Proxy(ProxyScheme, host, port ?? Proxy.GetDefaultPort(ProxyScheme), username, password);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Proxy was not in correct format '{data}'", ex);
+            }
         }
 
         public void Reset()
