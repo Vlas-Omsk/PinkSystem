@@ -9,7 +9,7 @@ namespace BotsCommon.States
         private readonly string? _prefix;
         private readonly Task? _task;
         private readonly CancellationTokenSource _cancellationTokenSource = new();
-        private string? _state;
+        private StateContainer? _container;
 
         public ConsoleStateProvider(string? prefix, Action<string> callback)
         {
@@ -20,43 +20,62 @@ namespace BotsCommon.States
 
             _task = Task.Run(async () =>
             {
-                while (!_cancellationTokenSource.IsCancellationRequested)
+                while (true)
                 {
-                    if (_state != null)
-                        callback(_state);
+                    _cancellationTokenSource.Token.ThrowIfCancellationRequested();
 
-                    await Task.Delay(5000);
+                    if (_container != null)
+                    {
+                        // Required for thread safety.
+                        var container = _container;
+
+                        var builder = new StringBuilder();
+
+                        foreach (var category in container.Get())
+                        {
+                            if (category.Key != null)
+                                builder.Append(category.Key + ": (");
+
+                            builder.Append(category.Value);
+
+                            if (category.Key != null)
+                                builder.Append(") ");
+                        }
+
+                        var state = builder.ToString();
+
+                        callback(state);
+
+                        if (_prefix != null)
+                            Console.Title = $"{_prefix} | {state}";
+                        else
+                            Console.Title = state;
+                    }
+
+                    await Task.Delay(5000, _cancellationTokenSource.Token);
                 }
             });
         }
 
         public void Set(StateContainer container)
         {
-            var builder = new StringBuilder();
+            _container = container;
 
-            foreach (var category in container.Get())
-            {
-                if (category.Key != null)
-                    builder.Append(category.Key + ": (");
-
-                builder.Append(category.Value);
-
-                if (category.Key != null)
-                    builder.Append(") ");
-            }
-
-            _state = builder.ToString();
-
-            if (_prefix != null)
-                Console.Title = $"{_prefix} | {_state}";
-            else
-                Console.Title = _state;
+            if (_task?.IsFaulted == true)
+                throw _task.Exception!;
         }
 
         public void Dispose()
         {
             _cancellationTokenSource.Cancel();
-            _task?.GetAwaiter().GetResult();
+
+            try
+            {
+                _task?.GetAwaiter().GetResult();
+            }
+            catch (OperationCanceledException)
+            {
+            }
         }
     }
 }
