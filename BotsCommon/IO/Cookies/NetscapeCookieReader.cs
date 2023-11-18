@@ -77,7 +77,7 @@ namespace BotsCommon.IO.Cookies
                 }
 
                 if (UseExpirationTimestamp)
-                    cookie.Expires = new UnixTimestamp(long.Parse(parts[4])).DateTime;
+                    cookie.Expires = UnixTimestamp.FromSeconds(long.Parse(parts[4])).DateTime;
 
                 yield return cookie;
             }
