@@ -8,6 +8,11 @@ namespace BotsCommon
 {
     internal delegate bool TryParseDelegate<T>(string str, [NotNullWhen(true)] out T? value);
 
+    public sealed record ReadInputValue(
+        string? Value,
+        bool Cancelled
+    );
+
     public static class ConsoleUtils
     {
         public static void WriteColored(string str, ConsoleColor? foregroundColor = null, ConsoleColor? backgroundColor = null)
@@ -54,7 +59,7 @@ namespace BotsCommon
             {
                 Console.Write($"{name}{(supportNullValue ? " (Optional)" : string.Empty)}: ");
 
-                var str = ReadInput(defaultValueString);
+                var str = ReadInput(defaultValueString).Value;
 
                 defaultValueString = null;
 
@@ -295,7 +300,7 @@ namespace BotsCommon
                 UpdateValue();
             }
 
-            public string Read()
+            public ReadInputValue Read()
             {
                 while (true)
                 {
@@ -328,7 +333,11 @@ namespace BotsCommon
                             break;
                         case ConsoleKey.Enter:
                             Console.WriteLine();
-                            return _value;
+                            return new ReadInputValue(_value, false);
+                        case ConsoleKey.Z:
+                            if (key.Modifiers.HasFlag(ConsoleModifiers.Control))
+                                return new ReadInputValue(null, true);
+                            break;
                         default:
                             Add(key);
                             break;
@@ -337,7 +346,7 @@ namespace BotsCommon
             }
         }
 
-        public static string ReadInput(string? value)
+        public static ReadInputValue ReadInput(string? value)
         {
             return new ReadInputHandler(value).Read();
         }
