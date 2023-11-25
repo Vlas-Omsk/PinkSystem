@@ -78,13 +78,16 @@ namespace BotsCommon
             }
         }
 
-        public static T? RequestEnumValue<T>(string name, string question, T? defaultValue, bool supportNullValue) where T : struct, Enum
+        public static T? RequestEnumValue<T>(string name, string question, T? defaultValue, bool supportNullValue, IEnumerable<T>? values = null) where T : struct, Enum
         {
+            if (values == null)
+                values = Enum.GetValues<T>();
+
             return RequestValue(
                 name,
                 question,
                 defaultValue?.ToString(),
-                "\r\n    " + string.Join("\r\n    ", Enum.GetValues<T>().Select(x =>
+                "\r\n    " + string.Join("\r\n    ", values.Select(x =>
                 {
                     var name = x.ToString();
                     var result = name;
@@ -102,7 +105,8 @@ namespace BotsCommon
                 supportNullValue,
                 (string str, [NotNullWhen(true)] out T? value) =>
                 {
-                    if (Enum.TryParse<T>(str, true, out var nonNullValue))
+                    if (Enum.TryParse<T>(str, true, out var nonNullValue) &&
+                        values.Contains(nonNullValue))
                     {
                         value = nonNullValue;
                         return true;
