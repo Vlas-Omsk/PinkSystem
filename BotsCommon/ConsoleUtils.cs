@@ -338,11 +338,10 @@ namespace BotsCommon
                         case ConsoleKey.Enter:
                             Console.WriteLine();
                             return new ReadInputValue(_value, false);
-                        case ConsoleKey.Z:
-                            if (key.Modifiers.HasFlag(ConsoleModifiers.Control))
-                                return new ReadInputValue(null, true);
-                            break;
                         default:
+                            if (key.Key == ConsoleKey.Z &&
+                                key.Modifiers.HasFlag(ConsoleModifiers.Control))
+                                return new ReadInputValue(null, true);
                             Add(key);
                             break;
                     }
