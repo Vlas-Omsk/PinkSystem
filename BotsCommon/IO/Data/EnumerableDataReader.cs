@@ -18,11 +18,6 @@
             Length = length;
         }
 
-        ~EnumerableDataReader()
-        {
-            Dispose();
-        }
-
         public int? Length { get; }
         public int Index
         {
@@ -64,8 +59,6 @@
 
         public void Dispose()
         {
-            GC.SuppressFinalize(this);
-
             lock (_lock)
                 _enumerator.Dispose();
         }
