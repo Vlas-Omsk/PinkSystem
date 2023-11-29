@@ -170,17 +170,24 @@ namespace BotsCommon
             );
         }
 
-        public static int? RequestIntValue(string name, string question, int? defaultValue, bool supportNullValue)
+        public static int? RequestIntValue(string name, string question, int? defaultValue, bool supportNullValue, int? min = null, int? max = null)
         {
             return RequestValue<int?>(
                 name,
                 question,
                 defaultValue.HasValue ? defaultValue.Value.ToString() : null,
-                null,
+                (min.HasValue || max.HasValue) ?
+                    (
+                        $"{(min.HasValue ? "Minimum: " + min.Value : null)} " +
+                        $"{(max.HasValue ? "Maximum: " + max.Value : null)}"
+                    ).Trim() :
+                    null,
                 supportNullValue,
                 (string str, [NotNullWhen(true)] out int? value) =>
                 {
-                    if (int.TryParse(str, out var nonNullValue))
+                    if (int.TryParse(str, out var nonNullValue) &&
+                        (!min.HasValue || nonNullValue >= min.Value) &&
+                        (!max.HasValue || nonNullValue <= max.Value))
                     {
                         value = nonNullValue;
                         return true;
