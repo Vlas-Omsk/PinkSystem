@@ -45,12 +45,19 @@ namespace BotsCommon
             Console.WriteLine(question);
 
             if (availableValues != null)
-                Console.WriteLine($"Available values: {availableValues}");
+            {
+                WriteColored($"Available values: {availableValues}", foregroundColor: ConsoleColor.DarkGray);
+                Console.WriteLine();
+            }
 
             if (supportNullValue)
-                Console.WriteLine("Leave field blank if you do not want to use this.");
+            {
+                WriteColored("Leave field blank if you do not want to use this.", foregroundColor: ConsoleColor.DarkGray);
+                Console.WriteLine();
+            }
 
-            Console.WriteLine("Press Esc to clear your input.");
+            WriteColored("Press Esc to clear your input.", foregroundColor: ConsoleColor.DarkGray);
+            Console.WriteLine();
             Console.WriteLine();
 
             var defaultValueString = defaultValue?.ToString();
