@@ -87,14 +87,14 @@ namespace BotsCommon
 
         public static T? RequestEnumValue<T>(string name, string question, T? defaultValue, bool supportNullValue, IEnumerable<T>? values = null) where T : struct, Enum
         {
+            IDictionary<T, string> valuesDictionary;
+
             if (values == null)
                 values = Enum.GetValues<T>();
 
-            return RequestValue(
-                name,
-                question,
-                defaultValue?.ToString(),
-                "\r\n    " + string.Join("\r\n    ", values.Select(x =>
+            valuesDictionary = values.ToDictionary(
+                x => x,
+                x =>
                 {
                     var name = x.ToString();
                     var result = name;
@@ -107,13 +107,38 @@ namespace BotsCommon
                     if (descriptionAttribute != null)
                         result += " - " + descriptionAttribute.Description;
 
-                    return $"{result} ({x.GetHashCode()})";
-                })),
+                    return result;
+                }
+            );
+
+            return RequestEnumValue(name, question, defaultValue, supportNullValue, valuesDictionary);
+        }
+
+        public static T? RequestEnumValue<T>(string name, string question, T? defaultValue, bool supportNullValue, IDictionary<T, string> values) where T : struct, Enum
+        {
+            return RequestValue(
+                name,
+                question,
+                defaultValue?.ToString(),
+                "\r\n    " + string.Join("\r\n    ", values.Select(x => $"{x.Value} ({x.Key.GetHashCode()})")),
                 supportNullValue,
                 (string str, [NotNullWhen(true)] out T? value) =>
                 {
-                    if (Enum.TryParse<T>(str, true, out var nonNullValue) &&
-                        values.Contains(nonNullValue))
+                    T nonNullValue;
+
+                    if (values.Any(x => x.Value.Equals(str, StringComparison.OrdinalIgnoreCase)))
+                    {
+                        nonNullValue = values.First(x => x.Value.Equals(str, StringComparison.OrdinalIgnoreCase)).Key;
+
+                        if (values.Any(x => x.Key.Equals(nonNullValue)))
+                        {
+                            value = nonNullValue;
+                            return true;
+                        }
+                    }
+
+                    if (Enum.TryParse(str, true, out nonNullValue) &&
+                        values.Any(x => x.Key.Equals(nonNullValue)))
                     {
                         value = nonNullValue;
                         return true;
