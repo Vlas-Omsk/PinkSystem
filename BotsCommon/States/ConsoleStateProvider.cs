@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using System.Threading;
 
 #nullable enable
 
@@ -19,8 +20,6 @@ namespace BotsCommon.States
             {
                 while (true)
                 {
-                    _cancellationTokenSource.Token.ThrowIfCancellationRequested();
-
                     if (_container != null)
                     {
                         // Required for thread safety.
@@ -53,7 +52,15 @@ namespace BotsCommon.States
                         Console.Title = _prefix;
                     }
 
-                    await Task.Delay(1000, _cancellationTokenSource.Token);
+                    _cancellationTokenSource.Token.ThrowIfCancellationRequested();
+
+                    try
+                    {
+                        await Task.Delay(1000, _cancellationTokenSource.Token);
+                    }
+                    catch (OperationCanceledException)
+                    {
+                    }
                 }
             });
         }
