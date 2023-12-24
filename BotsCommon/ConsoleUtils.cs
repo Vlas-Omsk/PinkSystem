@@ -150,13 +150,13 @@ namespace BotsCommon
             );
         }
 
-        public static string? RequestStringValue(string name, string question, string? defaultValue, bool supportNullValue)
+        public static string? RequestStringValue(string name, string question, string? defaultValue, string? availableValues, bool supportNullValue)
         {
             return RequestValue(
                 name,
                 question,
                 defaultValue,
-                null,
+                availableValues,
                 supportNullValue,
                 (string str, [NotNullWhen(true)] out string? value) =>
                 {
