@@ -27,10 +27,10 @@ namespace BotsCommon.States
 
                         var builder = new StringBuilder();
 
-                        foreach (var category in container.Get())
+                        foreach (var category in container.Get().OrderBy(x => x.Key))
                         {
                             if (category.Key != null)
-                                builder.Append(category.Key + ": (");
+                                builder.Append(", " + category.Key + ": (");
 
                             builder.Append(category.Value);
 
