@@ -43,13 +43,13 @@ namespace BotsCommon.States
                         callback(state);
 
                         if (_prefix != null)
-                            Console.Title = $"{_prefix} | {state}";
+                            System.Console.Title = $"{_prefix} | {state}";
                         else
-                            Console.Title = state;
+                            System.Console.Title = state;
                     }
                     else if (_prefix != null)
                     {
-                        Console.Title = _prefix;
+                        System.Console.Title = _prefix;
                     }
 
                     _cancellationTokenSource.Token.ThrowIfCancellationRequested();
