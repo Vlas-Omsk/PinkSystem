@@ -13,9 +13,19 @@ namespace BotsCommon
         bool Cancelled
     );
 
+    public sealed record RequestOption<T>(
+        string Name,
+        string? Description,
+        T Value
+    );
+
     public static class ConsoleUtils
     {
-        public static void WriteColored(string str, ConsoleColor? foregroundColor = null, ConsoleColor? backgroundColor = null)
+        public static void WriteColored(
+            string str,
+            ConsoleColor? foregroundColor = null, 
+            ConsoleColor? backgroundColor = null
+        )
         {
             var savedForegroundColor = Console.ForegroundColor;
             var savedBackgroundColor = Console.BackgroundColor;
@@ -46,7 +56,7 @@ namespace BotsCommon
 
             if (availableValues != null)
             {
-                WriteColored($"Available values: {availableValues}", foregroundColor: ConsoleColor.DarkGray);
+                WriteColored(availableValues, foregroundColor: ConsoleColor.DarkGray);
                 Console.WriteLine();
             }
 
@@ -85,72 +95,60 @@ namespace BotsCommon
             }
         }
 
-        public static T? RequestEnumValue<T>(string name, string question, T? defaultValue, bool supportNullValue, IEnumerable<T>? values = null) where T : struct, Enum
-        {
-            IDictionary<T, string> valuesDictionary;
-
-            if (values == null)
-                values = Enum.GetValues<T>();
-
-            valuesDictionary = values.ToDictionary(
-                x => x,
-                x =>
-                {
-                    var name = x.ToString();
-                    var result = name;
-
-                    var descriptionAttribute = typeof(T)
-                        .GetRuntimeFields()
-                        .First(x => x.Name == name)
-                        .GetCustomAttribute<DescriptionAttribute>();
-
-                    if (descriptionAttribute != null)
-                        result += " - " + descriptionAttribute.Description;
-
-                    return result;
-                }
-            );
-
-            return RequestEnumValue(name, question, defaultValue, supportNullValue, valuesDictionary);
-        }
-
-        public static T? RequestEnumValue<T>(string name, string question, T? defaultValue, bool supportNullValue, IDictionary<T, string> values) where T : struct, Enum
+        public static T? RequestOptionsValue<T>(
+            string name,
+            string question,
+            T? defaultValue,
+            bool supportNullValue,
+            IEnumerable<RequestOption<T>> options
+        )
         {
             return RequestValue(
                 name,
                 question,
                 defaultValue?.ToString(),
-                "\r\n    " + string.Join("\r\n    ", values.Select(x => $"{x.Value} ({x.Key.GetHashCode()})")),
+                "\r\n    " +
+                string.Join(
+                    "\r\n    ",
+                    options.Select((x, i) =>
+                    {
+                        var result = $"{i + 1}: {x.Name}";
+
+                        if (x.Description != null)
+                            result += $" - {x.Description}";
+
+                        return result;
+                    })
+                ),
                 supportNullValue,
                 (string str, [NotNullWhen(true)] out T? value) =>
                 {
-                    T nonNullValue;
+                    var option = options.FirstOrDefault(
+                        x => x.Name.Equals(str, StringComparison.OrdinalIgnoreCase)
+                    );
 
-                    if (values.Any(x => x.Value.Equals(str, StringComparison.OrdinalIgnoreCase)))
+                    if (option == null && int.TryParse(str, out var index))
+                        option = options.Skip(index - 1).FirstOrDefault();
+
+                    if (option != null)
                     {
-                        nonNullValue = values.First(x => x.Value.Equals(str, StringComparison.OrdinalIgnoreCase)).Key;
-
-                        if (values.Any(x => x.Key.Equals(nonNullValue)))
-                        {
-                            value = nonNullValue;
-                            return true;
-                        }
-                    }
-
-                    if (Enum.TryParse(str, true, out nonNullValue) &&
-                        values.Any(x => x.Key.Equals(nonNullValue)))
-                    {
-                        value = nonNullValue;
+                        value = option.Value!;
                         return true;
                     }
 
-                    value = null;
+                    value = default;
                     return false;
                 }
             );
         }
 
-        public static string? RequestStringValue(string name, string question, string? defaultValue, string? availableValues, bool supportNullValue)
+        public static string? RequestStringValue(
+            string name,
+            string question,
+            string? defaultValue,
+            string? availableValues,
+            bool supportNullValue
+        )
         {
             return RequestValue(
                 name,
@@ -166,13 +164,18 @@ namespace BotsCommon
             );
         }
 
-        public static bool? RequestBoolValue(string name, string question, bool? defaultValue, bool supportNullValue)
+        public static bool? RequestBoolValue(
+            string name,
+            string question,
+            bool? defaultValue,
+            bool supportNullValue
+        )
         {
             return RequestValue(
                 name,
                 question,
                 defaultValue.HasValue ? (defaultValue.Value ? "yes" : "no") : null,
-                "yes, no",
+                "Available values: (y)es, (n)o",
                 supportNullValue,
                 (string str, [NotNullWhen(true)] out bool? value) =>
                 {
@@ -202,7 +205,14 @@ namespace BotsCommon
             );
         }
 
-        public static int? RequestIntValue(string name, string question, int? defaultValue, bool supportNullValue, int? min = null, int? max = null)
+        public static int? RequestIntValue(
+            string name,
+            string question,
+            int? defaultValue,
+            bool supportNullValue,
+            int? min = null,
+            int? max = null
+        )
         {
             return RequestValue<int?>(
                 name,
