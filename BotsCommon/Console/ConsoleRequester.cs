@@ -72,7 +72,9 @@ namespace BotsCommon.Console
                 for (var i = 0; i < System.Console.WindowHeight; i++)
                     System.Console.WriteLine();
 
-                System.Console.SetCursorPosition(0, 0);
+                var top = Math.Max(0, System.Console.CursorTop - System.Console.WindowHeight);
+
+                System.Console.SetCursorPosition(0, top);
             }
 
             var spaceCount = 0;
