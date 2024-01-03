@@ -4,6 +4,7 @@
     {
         private readonly IDataReader<T> _reader;
         private readonly object _lock = new();
+        private readonly List<T> _items;
 
         public RandomDataReader(IDataReader<T> dataReader)
         {
@@ -18,12 +19,25 @@
             if (!_reader.Length.HasValue)
                 throw new Exception("Length must be non null");
 
+            var skipCount = Random.Shared.Next(0, (_reader.Length.Value - _reader.Index) + _items.Count);
+
             lock (_lock)
             {
-                var skipCount = Random.Shared.Next(0, _reader.Length.Value - _reader.Index);
+                if (skipCount < _items.Count)
+                {
+                    var item = _items[skipCount];
+
+                    _items.RemoveAt(skipCount);
+
+                    return item;
+                }
 
                 for (var i = 0; i < skipCount; i++)
-                    _reader.Read();
+                {
+                    var item = _reader.Read();
+
+                    _items.Add(item);
+                }
 
                 return _reader.Read();
             }
