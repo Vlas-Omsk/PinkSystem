@@ -4,7 +4,7 @@
     {
         private readonly IDataReader<T> _reader;
         private readonly object _lock = new();
-        private readonly List<T> _items;
+        private readonly List<T> _items = new();
 
         public RandomDataReader(IDataReader<T> dataReader)
         {
@@ -32,7 +32,7 @@
                     return item;
                 }
 
-                for (var i = 0; i < skipCount; i++)
+                for (var i = 0; i < skipCount - _items.Count; i++)
                 {
                     var item = _reader.Read();
 
