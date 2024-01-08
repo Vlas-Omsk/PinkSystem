@@ -34,10 +34,17 @@
 
             lock (_lock)
             {
-                line = _reader.ReadLine().TrimStart(new char[] { '\uFEFF', '\u200B' });
+                line = _reader.ReadLine();
 
                 if (line != null)
+                {
                     Index++;
+
+                    line = line.TrimStart(new char[] {
+                        '\uFEFF',
+                        '\u200B'
+                    });
+                }
             }
 
             return ReadOverride(line);
