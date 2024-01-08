@@ -34,7 +34,7 @@
 
             lock (_lock)
             {
-                line = _reader.ReadLine();
+                line = _reader.ReadLine().TrimStart(new char[] { '\uFEFF', '\u200B' });
 
                 if (line != null)
                     Index++;
