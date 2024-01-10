@@ -61,7 +61,12 @@
         {
             var task = await Task.WhenAny(_tasks);
 
-            UnwrapTask(task);
+            if (task.IsFaulted)
+            {
+                await WaitAll();
+
+                throw task.Exception;
+            }
 
             return task;
         }
@@ -100,12 +105,6 @@
             catch
             {
             }
-        }
-
-        private static void UnwrapTask(Task task)
-        {
-            if (task.IsFaulted)
-                throw task.Exception;
         }
     }
 }
