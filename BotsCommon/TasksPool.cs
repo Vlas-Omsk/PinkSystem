@@ -1,6 +1,6 @@
 ﻿namespace BotsCommon
 {
-    public sealed class TasksPool : IDisposable
+    public sealed class TasksPool : IDisposable, IAsyncDisposable
     {
         private readonly Task[] _tasks;
         private readonly object _lock = new object();
@@ -97,6 +97,19 @@
             try
             {
                 CancelAll().Wait();
+            }
+            catch
+            {
+            }
+        }
+
+        public async ValueTask DisposeAsync()
+        {
+            GC.SuppressFinalize(this);
+
+            try
+            {
+                await CancelAll();
             }
             catch
             {
