@@ -62,11 +62,7 @@
             var task = await Task.WhenAny(_tasks);
 
             if (task.IsFaulted)
-            {
                 await WaitAll();
-
-                throw task.Exception;
-            }
 
             return task;
         }
