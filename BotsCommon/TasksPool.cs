@@ -67,9 +67,24 @@
             return task;
         }
 
-        public Task WaitAll()
+        public async Task WaitAll()
         {
-            return Task.WhenAll(_tasks);
+            try
+            {
+                await Task.WhenAll(_tasks);
+            }
+            catch
+            {
+                var exceptions = _tasks
+                    .Where(t => t.Exception != null)
+                    .Select(t => t.Exception)
+                    .ToArray();
+
+                if (exceptions.Length == 1)
+                    throw exceptions[0];
+                else
+                    throw new AggregateException(exceptions);
+            }
         }
 
         public async Task CancelAll()
