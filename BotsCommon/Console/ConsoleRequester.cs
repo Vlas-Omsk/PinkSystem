@@ -355,5 +355,43 @@ namespace BotsCommon.Console
                 }
             );
         }
+
+        public long? RequestLongValue(
+            string name,
+            string question,
+            long? defaultValue,
+            bool supportNullValue,
+            long? min = null,
+            long? max = null
+        )
+        {
+            return RequestValue(
+                name,
+                question,
+                defaultValue.HasValue ? defaultValue.Value.ToString() : null,
+                min.HasValue || max.HasValue ?
+                    (
+                        $"{(min.HasValue ? "Minimum: " + min.Value : null)} " +
+                        $"{(max.HasValue ? "Maximum: " + max.Value : null)}"
+                    ).Trim() :
+                    null,
+                supportNullValue,
+                (string str, [NotNullWhen(true)] out long? value, [NotNullWhen(true)] out string? name) =>
+                {
+                    if (long.TryParse(str, out var nonNullValue) &&
+                        (!min.HasValue || nonNullValue >= min.Value) &&
+                        (!max.HasValue || nonNullValue <= max.Value))
+                    {
+                        value = nonNullValue;
+                        name = nonNullValue.ToString();
+                        return true;
+                    }
+
+                    value = null;
+                    name = null;
+                    return false;
+                }
+            );
+        }
     }
 }
