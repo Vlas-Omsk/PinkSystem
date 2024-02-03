@@ -164,12 +164,6 @@ namespace BotsCommon.Console
                 {
                     if (supportNullValue == true)
                     {
-                        _steps.RemoveAll(x =>
-                            x.Name == name &&
-                            !x.IsSectionEnter &&
-                            !x.IsSectionExit
-                        );
-
                         _steps.Add(new Step
                         {
                             Name = name,
@@ -184,12 +178,6 @@ namespace BotsCommon.Console
 
                 if (!tryParse(str, out var value, out var valueName))
                     continue;
-
-                _steps.RemoveAll(x =>
-                    x.Name == name &&
-                    !x.IsSectionEnter &&
-                    !x.IsSectionExit
-                );
 
                 _steps.Add(new Step
                 {
