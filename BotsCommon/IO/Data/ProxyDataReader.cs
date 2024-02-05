@@ -34,13 +34,13 @@ namespace BotsCommon.IO.Data
                 string password = null;
 
                 if (match.Groups.TryGetValue("host", out Group hostGroup))
-                    host = hostGroup.Value;
+                    host = hostGroup.ThrowIfNotSuccuess().Value;
                 if (match.Groups.TryGetValue("port", out Group portGroup))
-                    port = portGroup.Success ? int.Parse(portGroup.Value) : null;
+                    port = int.Parse(portGroup.ThrowIfNotSuccuess().Value);
                 if (match.Groups.TryGetValue("username", out Group usernameGroup))
-                    username = usernameGroup.Success ? usernameGroup.Value : null;
+                    username = usernameGroup.ThrowIfNotSuccuess().Value;
                 if (match.Groups.TryGetValue("password", out Group passwordGroup))
-                    password = passwordGroup.Success ? passwordGroup.Value : null;
+                    password = passwordGroup.ThrowIfNotSuccuess().Value;
 
                 return new Proxy(ProxyScheme, host, port ?? Proxy.GetDefaultPort(ProxyScheme), username, password);
             }
