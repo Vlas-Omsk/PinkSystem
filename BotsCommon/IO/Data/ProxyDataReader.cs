@@ -7,13 +7,15 @@ namespace BotsCommon.IO.Data
     {
         private readonly IDataReader<string> _reader;
 
-        public ProxyDataReader(IDataReader<string> reader)
+        public ProxyDataReader(IDataReader<string> reader, ProxyScheme scheme, Regex format)
         {
             _reader = reader;
+            Scheme = scheme;
+            Format = format;
         }
 
-        public ProxyScheme ProxyScheme { get; set; } = ProxyScheme.Http;
-        public Regex Format { get; set; } = new Regex(@"((?<username>.*?):(?<password>.*?)@)?(((?<host>.*?):(?<port>.*?))|(?<host>.*?))$", RegexOptions.Compiled);
+        public ProxyScheme Scheme { get; set; }
+        public Regex Format { get; set; }
         public int? Length => _reader.Length;
         public int Index => _reader.Index;
 
@@ -42,7 +44,7 @@ namespace BotsCommon.IO.Data
                 if (match.Groups.TryGetValue("password", out Group passwordGroup))
                     password = passwordGroup.ThrowIfNotSuccuess().Value;
 
-                return new Proxy(ProxyScheme, host, port ?? Proxy.GetDefaultPort(ProxyScheme), username, password);
+                return new Proxy(Scheme, host, port ?? Proxy.GetDefaultPort(Scheme), username, password);
             }
             catch (Exception ex)
             {
