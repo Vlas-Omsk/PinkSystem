@@ -1,4 +1,6 @@
-﻿namespace BotsCommon
+﻿using System.Threading.Tasks;
+
+namespace BotsCommon
 {
     public sealed class TasksPool : IDisposable, IAsyncDisposable
     {
@@ -85,6 +87,13 @@
                 else
                     throw new AggregateException(exceptions);
             }
+        }
+
+        public async Task<IEnumerable<T>> WaitAllAndGetValues<T>()
+        {
+            await WaitAll();
+
+            return _tasks.Select(x => ((Task<T>)x).Result);
         }
 
         public async Task CancelAll()
