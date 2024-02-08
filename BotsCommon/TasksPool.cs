@@ -1,6 +1,4 @@
-﻿using System.Threading.Tasks;
-
-namespace BotsCommon
+﻿namespace BotsCommon
 {
     public sealed class TasksPool : IDisposable, IAsyncDisposable
     {
@@ -93,7 +91,7 @@ namespace BotsCommon
         {
             await WaitAll();
 
-            return _tasks.Select(x => ((Task<T>)x).Result);
+            return _tasks.Where(x => x is Task<T>).Select(x => ((Task<T>)x).Result);
         }
 
         public async Task CancelAll()
