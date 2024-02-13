@@ -1,21 +1,23 @@
-﻿namespace BotsCommon.IO.Content
+﻿using CommunityToolkit.HighPerformance;
+
+namespace BotsCommon.IO.Content
 {
     public class ByteArrayContentReader : IContentReader
     {
-        private readonly byte[] _bytes;
+        private readonly ReadOnlyMemory<byte> _bytes;
 
-        public ByteArrayContentReader(byte[] bytes, string mimeType)
+        public ByteArrayContentReader(ReadOnlyMemory<byte> bytes, string mimeType)
         {
             _bytes = bytes;
             MimeType = mimeType;
         }
 
-        public long? Length => _bytes.LongLength;
+        public long? Length => _bytes.Length;
         public string MimeType { get; }
 
         public Stream CreateStream()
         {
-            return new MemoryStream(_bytes);
+            return _bytes.AsStream();
         }
     }
 }
