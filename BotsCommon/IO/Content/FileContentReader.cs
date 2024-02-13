@@ -7,7 +7,7 @@ namespace BotsCommon.IO.Content
         private readonly string _path;
         private readonly FileInfo _info;
 
-        public long Length => _info.Length;
+        public long? Length => _info.Length;
         public string MimeType { get; }
 
         public FileContentReader(string path)
