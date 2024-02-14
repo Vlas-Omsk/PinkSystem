@@ -1,12 +1,19 @@
 ﻿#nullable enable
 
+using System.Collections.Immutable;
+
 namespace BotsCommon.States
 {
     public sealed class StateFactory : IStateFactory
     {
         private readonly object _lock = new();
         private readonly List<KeyValuePair<string?, State>> _states = new();
-        private readonly List<IStateProvider> _providers = new();
+        private readonly ImmutableArray<IStateProvider> _providers;
+
+        public StateFactory(IEnumerable<IStateProvider> providers)
+        {
+            _providers = providers.ToImmutableArray();
+        }
 
         public IState Create(string? category)
         {
@@ -40,12 +47,6 @@ namespace BotsCommon.States
 
                 return keyValue.Value.Value;
             }
-        }
-
-        public void AddProvider(IStateProvider provider)
-        {
-            lock (_lock)
-                _providers.Add(provider);
         }
 
         internal void NotifyUpdate()

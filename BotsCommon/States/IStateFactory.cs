@@ -6,6 +6,5 @@ namespace BotsCommon.States
     {
         IState Create(string? category);
         IState GetOrCreate(string? category);
-        void AddProvider(IStateProvider provider);
     }
 }
