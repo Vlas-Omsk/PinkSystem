@@ -15,14 +15,14 @@ namespace BotsCommon.IO.Content
             
         }
 
-        private static byte[] GetBytesFromData(IEnumerable<JsonEnumerableItem> data, TypeConverter typeConverter)
+        private static ReadOnlyMemory<byte> GetBytesFromData(IEnumerable<JsonEnumerableItem> data, TypeConverter typeConverter)
         {
             using (var memoryStream = new MemoryStream(0))
             {
                 using (var streamWriter = new StreamWriter(memoryStream, new UTF8Encoding(false), 1024, true))
                     data.ToStream(streamWriter, typeConverter);
 
-                return memoryStream.ToArray();
+                return memoryStream.AsReadOnlyMemory();
             }
         }
     }
