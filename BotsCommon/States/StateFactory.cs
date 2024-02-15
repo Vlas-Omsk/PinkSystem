@@ -7,7 +7,7 @@ namespace BotsCommon.States
     public sealed class StateFactory : IStateFactory
     {
         private readonly object _lock = new();
-        private readonly List<KeyValuePair<string?, State>> _states = new();
+        private readonly Dictionary<string, State> _states = new();
         private readonly ImmutableArray<IStateProvider> _providers;
 
         public StateFactory(IEnumerable<IStateProvider> providers)
@@ -15,7 +15,7 @@ namespace BotsCommon.States
             _providers = providers.ToImmutableArray();
         }
 
-        public IState Create(string? category)
+        public IState Create(string category)
         {
             State? state;
 
@@ -26,26 +26,20 @@ namespace BotsCommon.States
                 
                 state = new State(this);
 
-                _states.Add(new KeyValuePair<string?, State>(category, state));
+                _states.Add(category, state);
             }
 
             return state;
         }
 
-        public IState GetOrCreate(string? category)
+        public IState GetOrCreate(string category)
         {
             lock (_lock)
             {
-                var keyValue = _states.Cast<KeyValuePair<string?, State>?>().FirstOrDefault(x => x!.Value.Key == category);
+                if (!_states.TryGetValue(category, out var state))
+                    _states.Add(category, state = new State(this));
 
-                if (keyValue == null)
-                {
-                    keyValue = new KeyValuePair<string?, State>(category, new State(this));
-
-                    _states.Add(keyValue.Value);
-                }
-
-                return keyValue.Value.Value;
+                return state;
             }
         }
 

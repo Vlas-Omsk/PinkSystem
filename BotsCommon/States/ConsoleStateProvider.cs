@@ -7,16 +7,16 @@ namespace BotsCommon.States
     public sealed class ConsoleStateProvider : IStateProvider
     {
         private readonly string? _prefix;
-        private readonly IConsoleWriter _writer;
+        private readonly IConsole _console;
         private readonly TimeSpan _updateInterval;
         private readonly Task? _task;
         private readonly CancellationTokenSource _cancellationTokenSource = new();
         private StateContainer? _container;
 
-        public ConsoleStateProvider(string? prefix, IConsoleWriter writer, TimeSpan updateInterval)
+        public ConsoleStateProvider(string? prefix, IConsole console, TimeSpan updateInterval)
         {
             _prefix = prefix;
-            _writer = writer;
+            _console = console;
             _updateInterval = updateInterval;
 
             _task = Task.Run(HandleUpdates);
@@ -43,20 +43,17 @@ namespace BotsCommon.States
 
                     foreach (var category in _container.Get().OrderBy(x => x.Key))
                     {
-                        if (category.Key != null)
-                            builder.Append(", " + category.Key + ": (");
+                        if (builder.Length > 0)
+                            builder.Append(", ");
 
-                        builder.Append(category.Value);
-
-                        if (category.Key != null)
-                            builder.Append(") ");
+                        builder.Append(category.Key + ": (" + category.Value + ")");
                     }
 
                     var state = builder.ToString();
 
                     if (lastCursorTop != System.Console.CursorTop ||
                         lastState != state)
-                        _writer.Write(state);
+                        _console.Write(state);
 
                     Thread.Sleep(100);
 
@@ -64,13 +61,13 @@ namespace BotsCommon.States
                     lastState = state;
 
                     if (_prefix != null)
-                        System.Console.Title = $"{_prefix} | {state}";
+                        _console.SetTitle($"{_prefix} | {state}");
                     else
-                        System.Console.Title = state;
+                        _console.SetTitle(state);
                 }
                 else if (_prefix != null)
                 {
-                    System.Console.Title = _prefix;
+                    _console.SetTitle(_prefix);
                 }
 
                 _cancellationTokenSource.Token.ThrowIfCancellationRequested();

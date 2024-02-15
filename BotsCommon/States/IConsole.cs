@@ -1,7 +1,8 @@
 ﻿namespace BotsCommon.States
 {
-    public interface IConsoleWriter
+    public interface IConsole
     {
         void Write(string message);
+        void SetTitle(string title);
     }
 }
