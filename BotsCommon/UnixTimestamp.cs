@@ -4,7 +4,10 @@
     {
         Ticks,
         Milliseconds,
-        Seconds
+        Seconds,
+        Minutes,
+        Hours,
+        Days
     }
 
     public sealed class UnixTimestamp
@@ -24,6 +27,28 @@
         public long MillisecondsLong => (long)Math.Round(TimeSpan.TotalMilliseconds);
         public double Seconds => TimeSpan.TotalSeconds;
         public long SecondsLong => (long)Math.Round(TimeSpan.TotalSeconds);
+        public double Minutes => TimeSpan.TotalMinutes;
+        public long MinutesLong => (long)Math.Round(TimeSpan.TotalMinutes);
+        public double Hours => TimeSpan.TotalHours;
+        public long HoursLong => (long)Math.Round(TimeSpan.TotalHours);
+        public double Days => TimeSpan.TotalDays;
+        public long DaysLong => (long)Math.Round(TimeSpan.TotalDays);
+
+        public override bool Equals(object obj)
+        {
+            if (obj == null || GetType() != obj.GetType())
+                return false;
+
+            if (obj is UnixTimestamp unixTimestamp)
+                return Ticks == unixTimestamp.Ticks;
+
+            return base.Equals(obj);
+        }
+
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
+        }
 
         public static UnixTimestamp operator -(UnixTimestamp left, UnixTimestamp right)
         {
@@ -32,6 +57,9 @@
                 UnixTimestampPercision.Ticks => FromTicks(left.Ticks - right.Ticks),
                 UnixTimestampPercision.Milliseconds => FromMilliseconds(left.MillisecondsLong - right.MillisecondsLong),
                 UnixTimestampPercision.Seconds => FromSeconds(left.SecondsLong - right.SecondsLong),
+                UnixTimestampPercision.Minutes => FromMinutes(left.MinutesLong - right.MinutesLong),
+                UnixTimestampPercision.Hours => FromHours(left.HoursLong - right.HoursLong),
+                UnixTimestampPercision.Days => FromDays(left.DaysLong - right.DaysLong),
                 _ => throw new NotSupportedException(),
             };
         }
@@ -43,8 +71,34 @@
                 UnixTimestampPercision.Ticks => FromTicks(left.Ticks + right.Ticks),
                 UnixTimestampPercision.Milliseconds => FromMilliseconds(left.MillisecondsLong + right.MillisecondsLong),
                 UnixTimestampPercision.Seconds => FromSeconds(left.SecondsLong + right.SecondsLong),
+                UnixTimestampPercision.Minutes => FromMinutes(left.MinutesLong + right.MinutesLong),
+                UnixTimestampPercision.Hours => FromHours(left.HoursLong + right.HoursLong),
+                UnixTimestampPercision.Days => FromDays(left.DaysLong + right.DaysLong),
                 _ => throw new NotSupportedException(),
             };
+        }
+
+        public static bool operator >(UnixTimestamp left, UnixTimestamp right)
+        {
+            return left.Ticks > right.Ticks;
+        }
+
+        public static bool operator <(UnixTimestamp left, UnixTimestamp right)
+        {
+            return left.Ticks > right.Ticks;
+        }
+
+        public static bool operator ==(UnixTimestamp left, UnixTimestamp right)
+        {
+            if (object.Equals(left, null) || object.Equals(right, null))
+                return object.Equals(left, right);
+
+            return left.Equals(right);
+        }
+
+        public static bool operator !=(UnixTimestamp left, UnixTimestamp right)
+        {
+            return !(left == right);
         }
 
         private static UnixTimestampPercision GetMaxPercision(params UnixTimestampPercision[] percisions)
@@ -88,6 +142,30 @@
             return new UnixTimestamp(
                 TimeSpan.FromSeconds(seconds),
                 UnixTimestampPercision.Seconds
+            );
+        }
+
+        public static UnixTimestamp FromMinutes(double minutes)
+        {
+            return new UnixTimestamp(
+                TimeSpan.FromMinutes(minutes),
+                UnixTimestampPercision.Minutes
+            );
+        }
+
+        public static UnixTimestamp FromHours(double hours)
+        {
+            return new UnixTimestamp(
+                TimeSpan.FromHours(hours),
+                UnixTimestampPercision.Hours
+            );
+        }
+
+        public static UnixTimestamp FromDays(double days)
+        {
+            return new UnixTimestamp(
+                TimeSpan.FromDays(days),
+                UnixTimestampPercision.Days
             );
         }
     }
