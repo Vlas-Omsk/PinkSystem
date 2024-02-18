@@ -85,7 +85,7 @@
 
         public static bool operator <(UnixTimestamp left, UnixTimestamp right)
         {
-            return left.Ticks > right.Ticks;
+            return left.Ticks < right.Ticks;
         }
 
         public static bool operator ==(UnixTimestamp left, UnixTimestamp right)
