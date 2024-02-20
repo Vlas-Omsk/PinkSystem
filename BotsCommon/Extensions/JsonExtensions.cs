@@ -26,7 +26,7 @@ namespace BotsCommon
             return stringWriter.ToString();
         }
 
-        public static JToken SelectTokenReuired(this JToken self, string path)
+        public static JToken SelectTokenRequired(this JToken self, string path)
         {
             return self.SelectToken(path, new JsonSelectSettings()
             {
