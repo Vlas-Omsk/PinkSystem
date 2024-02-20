@@ -1,7 +1,3 @@
 [submodule "PinkNet"]
 	path = PinkNet
 	url = https://github.com/Vlas-Omsk/PinkNet
-[submodule "PinkJson"]
-	path = PinkJson
-	url = https://github.com/Vlas-Omsk/PinkJson
-	branch = release/PinkJson2

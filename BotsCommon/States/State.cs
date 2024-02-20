@@ -11,9 +11,9 @@ namespace BotsCommon.States
             _factory = factory;
         }
 
-        public string? Value { get; private set; }
+        public IEnumerable<KeyValuePair<string, string>>? Value { get; private set; }
 
-        public void Set(string value)
+        public void Set(IEnumerable<KeyValuePair<string, string>> value)
         {
             Value = value;
             _factory.NotifyUpdate();

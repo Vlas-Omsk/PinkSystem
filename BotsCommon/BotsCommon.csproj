@@ -2,9 +2,9 @@
   <ItemGroup>
     <PackageReference Include="CommunityToolkit.HighPerformance" Version="8.2.2" />
     <PackageReference Include="MimeTypeMapOfficial" Version="1.0.17" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\PinkJson\PinkJson2\PinkJson2.csproj" />
     <ProjectReference Include="..\PinkNet\PinkNet\PinkNet.csproj" />
   </ItemGroup>
   <PropertyGroup>

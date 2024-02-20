@@ -46,7 +46,7 @@ namespace BotsCommon.States
                         if (builder.Length > 0)
                             builder.Append(", ");
 
-                        builder.Append(category.Key + ": (" + category.Value + ")");
+                        builder.Append(category.Key + ": (" + string.Join(", ", category.Value.Select(x => $"{x.Key}: {x.Value}")) + ")");
                     }
 
                     var state = builder.ToString();

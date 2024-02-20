@@ -2,7 +2,7 @@
 {
     public static class MemoryStreamExtensions
     {
-        public static ReadOnlyMemory<byte> AsReadOnlyMemory(this MemoryStream self)
+        public static ReadOnlyMemory<byte> ToReadOnlyMemory(this MemoryStream self)
         {
             return new ReadOnlyMemory<byte>(
                 self.GetBuffer() ?? Array.Empty<byte>(),

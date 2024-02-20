@@ -1,4 +1,5 @@
-﻿using PinkJson2;
+﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System.Net;
 
 namespace BotsCommon.IO.Cookies
@@ -32,17 +33,19 @@ namespace BotsCommon.IO.Cookies
 
         public IEnumerable<Cookie> ReadAllCookies(string path)
         {
-            using var reader = new StreamReader(path);
-            var json = Json.Parse(reader).ToJson();
+            using var streamReader = new StreamReader(path);
+            using var reader = new JsonTextReader(streamReader);
 
-            foreach (var cookieJson in json.AsArray())
+            var json = JToken.Load(reader);
+
+            foreach (var cookieJson in json)
             {
-                var cookieDomain = cookieJson["domain"].Get<string>();
+                var cookieDomain = cookieJson["domain"].Value<string>();
 
                 if (Domain != null && !cookieDomain.EndsWith(Domain))
                     continue;
 
-                var cookieName = cookieJson["name"].Get<string>();
+                var cookieName = cookieJson["name"].Value<string>();
 
                 if (string.IsNullOrEmpty(cookieName))
                     continue;
@@ -50,14 +53,14 @@ namespace BotsCommon.IO.Cookies
                 var cookie = new Cookie()
                 {
                     Domain = cookieDomain,
-                    Path = cookieJson["path"].Get<string>(),
-                    Secure = cookieJson["secure"].Get<bool>(),
+                    Path = cookieJson["path"].Value<string>(),
+                    Secure = cookieJson["secure"].Value<bool>(),
                     Name = cookieName,
-                    Value = cookieJson["value"].Get<string>()
+                    Value = cookieJson["value"].Value<string>()
                 };
 
                 if (UseExpirationTimestamp)
-                    cookie.Expires = UnixTimestamp.FromSeconds(cookieJson["expirationDate"].Get<double>()).DateTime;
+                    cookie.Expires = UnixTimestamp.FromSeconds(cookieJson["expirationDate"].Value<double>()).DateTime;
 
                 yield return cookie;
             }

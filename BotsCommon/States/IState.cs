@@ -4,6 +4,6 @@ namespace BotsCommon.States
 {
     public interface IState
     {
-        void Set(string value);
+        void Set(IEnumerable<KeyValuePair<string, string>> value);
     }
 }

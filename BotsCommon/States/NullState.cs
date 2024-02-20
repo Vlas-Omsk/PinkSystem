@@ -10,7 +10,7 @@ namespace BotsCommon.States
 
         public string? Value { get; } = null;
 
-        public void Set(string value)
+        public void Set(IEnumerable<KeyValuePair<string, string>> value)
         {
         }
 

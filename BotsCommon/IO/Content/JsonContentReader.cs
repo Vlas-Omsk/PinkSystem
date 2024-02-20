@@ -1,29 +1,27 @@
-﻿using PinkJson2;
-using System.Text;
+﻿using Newtonsoft.Json;
 
 namespace BotsCommon.IO.Content
 {
     public sealed class JsonContentReader : ByteArrayContentReader
     {
-        public JsonContentReader(IEnumerable<JsonEnumerableItem> data) : this(data, TypeConverter.Default)
-        {
-        }
-
-        public JsonContentReader(IEnumerable<JsonEnumerableItem> data, TypeConverter typeConverter) :
-            base(GetBytesFromData(data, typeConverter), "application/json; charset=UTF-8")
+        public JsonContentReader(object obj) :
+            base(GetBytesFromData(obj), "application/json; charset=UTF-8")
         {
             
         }
 
-        private static ReadOnlyMemory<byte> GetBytesFromData(IEnumerable<JsonEnumerableItem> data, TypeConverter typeConverter)
+        private static ReadOnlyMemory<byte> GetBytesFromData(object obj)
         {
-            using (var memoryStream = new MemoryStream(0))
-            {
-                using (var streamWriter = new StreamWriter(memoryStream, new UTF8Encoding(false), 1024, true))
-                    data.ToStream(streamWriter, typeConverter);
+            var memoryStream = new MemoryStream(0);
+            var streamWriter = new StreamWriter(memoryStream);
 
-                return memoryStream.AsReadOnlyMemory();
-            }
+            using var writer = new JsonTextWriter(streamWriter);
+
+            var serializer = new JsonSerializer();
+
+            serializer.Serialize(writer, obj);
+
+            return memoryStream.ToReadOnlyMemory();
         }
     }
 }

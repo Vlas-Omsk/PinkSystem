@@ -1,21 +1,18 @@
 ﻿using BotsCommon.IO.Content;
-using PinkJson2;
+using Newtonsoft.Json;
 
 namespace BotsCommon
 {
     public static class IContentReaderExtensions
     {
-        public static IEnumerable<JsonEnumerableItem> ReadAsJson(this IContentReader self)
+        public static JsonTextReader ReadAsJsonStream(this IContentReader self)
         {
-            using var stream = self.CreateStream();
-
-            return Json.Parse(stream).ToArray();
+            return new JsonTextReader(new StreamReader(self.CreateStream()));
         }
 
         public static string ReadAsString(this IContentReader self)
         {
-            using var stream = self.CreateStream();
-            using var streamReader = new StreamReader(stream);
+            using var streamReader = new StreamReader(self.CreateStream());
 
             return streamReader.ReadToEnd();
         }
