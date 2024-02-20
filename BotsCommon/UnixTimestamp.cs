@@ -106,19 +106,14 @@
             return percisions.Max();
         }
 
-        public static UnixTimestamp Now => FromUtcDateTime(DateTime.UtcNow, UnixTimestampPercision.Ticks);
-
-        public static UnixTimestamp FromUtcDateTime(DateTime dateTime, UnixTimestampPercision percision)
-        {
-            return new UnixTimestamp(
-                dateTime - new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                percision
-            );
-        }
+        public static UnixTimestamp Now => FromDateTime(DateTime.UtcNow, UnixTimestampPercision.Ticks);
 
         public static UnixTimestamp FromDateTime(DateTime dateTime, UnixTimestampPercision percision)
         {
-            return FromUtcDateTime(dateTime.ToUniversalTime(), percision);
+            return new UnixTimestamp(
+                dateTime.ToUniversalTime() - new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                percision
+            );
         }
 
         public static UnixTimestamp FromTicks(long ticks)
