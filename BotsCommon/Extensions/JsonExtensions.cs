@@ -4,6 +4,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Globalization;
 using System.Text;
+using System.Xml.Linq;
 
 namespace BotsCommon
 {
@@ -25,12 +26,12 @@ namespace BotsCommon
             return stringWriter.ToString();
         }
 
-        public static JToken SelectPath(this JToken self, params object[] path)
+        public static JToken SelectTokenReuired(this JToken self, string path)
         {
-            foreach (var name in path)
-                self = self[name] ?? throw new Exception($"Cannot find '{name}' in json by path '{string.Join('.', path)}'");
-
-            return self;
+            return self.SelectToken(path, new JsonSelectSettings()
+            {
+                ErrorWhenNoMatch = true,
+            }) ?? throw new Exception($"Cannot find '{path}' in json");
         }
 
         public static T ValueRequired<T>(this JToken self)
