@@ -103,6 +103,9 @@ namespace BotsCommon.Values
 
         public bool IsPrimitiveType(Type type)
         {
+            if (type.IsGenericType)
+                type = type.GetGenericTypeDefinition();
+
             var hash = MemoizationHelper.GetHashCode(type);
 
             if (_isPrimitiveTypeCache.TryGetValue(hash, out var result))
@@ -292,12 +295,18 @@ namespace BotsCommon.Values
 
         public void AddPrimitiveType(Type type)
         {
+            if (type.IsGenericType)
+                type = type.GetGenericTypeDefinition();
+
             _isPrimitiveTypeCache.Clear();
             _primitiveTypes.Add(type);
         }
 
         public void RemovePrimitiveType(Type type)
         {
+            if (type.IsGenericType)
+                type = type.GetGenericTypeDefinition();
+
             _isPrimitiveTypeCache.Clear();
             _primitiveTypes.Remove(type);
         }
