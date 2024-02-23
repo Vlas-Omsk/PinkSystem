@@ -162,5 +162,10 @@ namespace BotsCommon
         {
             return (JValue)self;
         }
+
+        public static JProperty AsProperty(this JToken self)
+        {
+            return (JProperty)self;
+        }
     }
 }
