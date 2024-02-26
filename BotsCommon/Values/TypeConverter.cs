@@ -1,10 +1,14 @@
-﻿using System.Collections.Concurrent;
+﻿using System.Collections;
+using System.Collections.Concurrent;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 
 namespace BotsCommon.Values
 {
     public sealed class TypeConverter : ICloneable
     {
+        private static readonly ConcurrentDictionary<int, bool> _isArrayTypeCache = new ConcurrentDictionary<int, bool>();
+        private static readonly ConcurrentDictionary<int, bool> _isAssignableToCache = new ConcurrentDictionary<int, bool>();
         private readonly static MethodInfo _enumTryParseMethodInfo;
         private readonly static TypeConversion _dateTimeTypeConversion = new TypeConversion(
             typeof(DateTime),
@@ -101,21 +105,11 @@ namespace BotsCommon.Values
 
         public static TypeConverter Default { get; set; } = new TypeConverter();
 
-        public bool IsPrimitiveType(Type type)
+        public object ChangeType(object value, Type targetType)
         {
-            if (type.IsGenericType)
-                type = type.GetGenericTypeDefinition();
+            if (!TryChangeType(value, targetType, out var result))
+                throw new ArgumentException($"Cannot convert value of type {value.GetType()} to type {targetType}");
 
-            var hash = MemoizationHelper.GetHashCode(type);
-
-            if (_isPrimitiveTypeCache.TryGetValue(hash, out var result))
-                return result;
-
-            result =
-                type.IsPrimitiveType() ||
-                _primitiveTypes.Contains(type);
-
-            _isPrimitiveTypeCache.TryAdd(hash, result);
             return result;
         }
 
@@ -137,7 +131,7 @@ namespace BotsCommon.Values
 
             var valueType = value.GetType();
 
-            if (valueType.IsEqualsOrAssignableTo(targetType))
+            if (IsEqualsOrAssignableToCached(valueType, targetType))
             {
                 result = value;
                 return true;
@@ -165,14 +159,6 @@ namespace BotsCommon.Values
                 result = null;
                 return false;
             }
-        }
-
-        public object ChangeType(object value, Type targetType)
-        {
-            if (!TryChangeType(value, targetType, out var result))
-                throw new ArgumentException($"Cannot convert value of type {value.GetType()} to type {targetType}");
-
-            return result;
         }
 
         private bool TryConvert(Type type, object obj, Type targetType, out object targetObj)
@@ -282,15 +268,34 @@ namespace BotsCommon.Values
 
             var objType = obj.GetType();
 
-            if (objType != targetType && !objType.IsAssignableToCached(targetType))
+            if (objType != targetType && !IsAssignableToCached(objType, targetType))
                 throw new InvalidObjectTypeException(targetType);
         }
 
-        public void Register(TypeConversion typeConversion)
+        public void AddConversion(TypeConversion typeConversion)
         {
             _tryConvertCache.Clear();
 
             _registeredTypes.Add(typeConversion);
+        }
+
+        public bool IsPrimitiveType(Type type)
+        {
+            if (type.IsGenericType)
+                type = type.GetGenericTypeDefinition();
+
+            var hash = MemoizationHelper.GetHashCode(type);
+
+            if (_isPrimitiveTypeCache.TryGetValue(hash, out var result))
+                return result;
+
+            result =
+                type.IsPrimitive ||
+                type.IsEnum ||
+                _primitiveTypes.Contains(type);
+
+            _isPrimitiveTypeCache.TryAdd(hash, result);
+            return result;
         }
 
         public void AddPrimitiveType(Type type)
@@ -310,6 +315,69 @@ namespace BotsCommon.Values
             _isPrimitiveTypeCache.Clear();
             _primitiveTypes.Remove(type);
         }
+
+        public bool IsArrayType(Type type)
+        {
+            var hash = MemoizationHelper.GetHashCode(type);
+
+            if (_isArrayTypeCache.TryGetValue(hash, out var result))
+                return result;
+
+            result =
+                type.GetInterface(nameof(IEnumerable)) != null &&
+                type != typeof(string);
+
+            _isArrayTypeCache.TryAdd(hash, result);
+            return result;
+        }
+
+        public bool IsValueType(Type type)
+        {
+            return (type.IsValueType && !type.IsPrimitive) || type == typeof(string);
+        }
+
+        public bool IsAnonymousType(Type type)
+        {
+            return
+                Attribute.IsDefined(type, typeof(CompilerGeneratedAttribute), false) &&
+                (type.IsGenericType || IsEmptyAnonymousType(type)) &&
+                type.Name.Contains("AnonymousType") &&
+                (type.Name.StartsWith("<>") || type.Name.StartsWith("VB$")) &&
+                (type.Attributes & TypeAttributes.NotPublic) == TypeAttributes.NotPublic;
+        }
+
+        public bool IsEmptyAnonymousType(Type type)
+        {
+            var name = type.Name;
+            while (char.IsDigit(name[name.Length - 1]))
+                name = name.Substring(0, name.Length - 1);
+            return name == "<>f__AnonymousType";
+        }
+
+        private static bool IsEqualsOrAssignableToCached(Type type, Type targetType)
+        {
+            return
+                type == targetType ||
+                IsAssignableToCached(type, targetType);
+        }
+
+        private static bool IsAssignableToCached(Type sourceType, Type targetType)
+        {
+            var hash = MemoizationHelper.GetHashCode(sourceType, targetType);
+
+            if (_isAssignableToCache.TryGetValue(hash, out var result))
+                return result;
+
+            result = sourceType.IsAssignableTo(targetType);
+
+            _isAssignableToCache.TryAdd(hash, result);
+            return result;
+        }
+
+
+#if !NET5_0_OR_GREATER
+        public static bool IsAssignableTo(this Type sourceType, Type targetType) => targetType?.IsAssignableFrom(sourceType) ?? false;
+#endif
 
         public TypeConverter Clone()
         {

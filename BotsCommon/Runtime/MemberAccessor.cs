@@ -7,9 +7,9 @@ namespace BotsCommon.Runtime
 {
     public sealed class MemberAccessor
     {
-        private Func<object, object>? _getter;
-        private Action<object, object>? _setter;
-        private Func<object, object[], object>? _invoker;
+        private Func<object?, object?>? _getter;
+        private Action<object?, object?>? _setter;
+        private Func<object?, object?[], object?>? _invoker;
 
         public MemberAccessor(MemberInfo memberInfo)
         {
@@ -18,7 +18,7 @@ namespace BotsCommon.Runtime
 
         public MemberInfo MemberInfo { get; }
 
-        public object GetValue(object obj)
+        public object? GetValue(object? obj)
         {
             if (_getter == null)
                 CompileGetter();
@@ -26,7 +26,7 @@ namespace BotsCommon.Runtime
             return _getter!.Invoke(obj);
         }
 
-        public void SetValue(object obj, object value)
+        public void SetValue(object? obj, object? value)
         {
             if (_setter == null)
                 CompileSetter();
@@ -34,12 +34,12 @@ namespace BotsCommon.Runtime
             _setter!.Invoke(obj, value);
         }
 
-        public object Invoke(object obj, params object[] parameters)
+        public object? Invoke(object? obj, params object?[] args)
         {
             if (_invoker == null)
                 CompileInvoker();
 
-            return _invoker!.Invoke(obj, parameters);
+            return _invoker!.Invoke(obj, args);
         }
 
         private void CompileGetter()
@@ -52,7 +52,7 @@ namespace BotsCommon.Runtime
             var exMemberAccess = Expression.MakeMemberAccess(exConvertedInstance, MemberInfo);
             var exConvertedResult = Expression.Convert(exMemberAccess, typeof(object));
 
-            var lambda = Expression.Lambda<Func<object, object>>(exConvertedResult, exInstance);
+            var lambda = Expression.Lambda<Func<object?, object?>>(exConvertedResult, exInstance);
 
             _getter = lambda.Compile();
         }
@@ -69,7 +69,7 @@ namespace BotsCommon.Runtime
             var exConvertedValue = Expression.Convert(exValue, GetUnderlyingType(MemberInfo));
             var exAssign = Expression.Assign(exMemberAccess, exConvertedValue);
 
-            var lambda = Expression.Lambda<Action<object, object>>(exAssign, exInstance, exValue);
+            var lambda = Expression.Lambda<Action<object?, object?>>(exAssign, exInstance, exValue);
 
             _setter = lambda.Compile();
         }
@@ -106,13 +106,13 @@ namespace BotsCommon.Runtime
             if (MemberInfo is ConstructorInfo constructor)
                 exResult = Expression.New(constructor, exParametersArray);
             else if (MemberInfo is MethodInfo method)
-                exResult = Expression.Call(exConvertedInstance, method, exParametersArray);
+                exResult = Expression.Call(methodBase.IsStatic ? null : exConvertedInstance, method, exParametersArray);
             else
                 throw new InvalidOperationException($"{nameof(MemberInfo)} must be of type {nameof(ConstructorInfo)} or {nameof(MethodInfo)}");
 
             var exConvertedResult = Expression.Convert(exResult, typeof(object));
 
-            var lambda = Expression.Lambda<Func<object, object[], object>>(exConvertedResult, exInstance, exParameters);
+            var lambda = Expression.Lambda<Func<object?, object?[], object?>>(exConvertedResult, exInstance, exParameters);
 
             _invoker = lambda.Compile();
         }
