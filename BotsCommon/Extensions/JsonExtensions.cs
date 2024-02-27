@@ -29,9 +29,9 @@ namespace BotsCommon
         private sealed class JsonReaderStream : Stream
         {
             private readonly JsonReader _reader;
-            private readonly long _position;
             private readonly MemoryStream _memory;
             private readonly JsonWriter _writer;
+            private long _position;
 
             public JsonReaderStream(JsonReader reader)
             {
@@ -94,6 +94,8 @@ namespace BotsCommon
                 {
                     _memory.Position = 0;
                 }
+
+                _position += count;
 
                 return count;
             }

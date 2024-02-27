@@ -1,4 +1,6 @@
-﻿namespace BotsCommon
+﻿using System.Text.RegularExpressions;
+
+namespace BotsCommon
 {
     public static class StringExtension
     {
@@ -206,6 +208,18 @@
         {
             for (var i = 0; i < value.Length; i++)
                 writer.Write(value[i].ToUnicode());
+        }
+
+        public static string MakeIndent(this string value, int indentSize)
+        {
+            var lines = value.Split(new char[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+
+            var indent = new string(' ', indentSize);
+
+            return indent + string.Join(
+                Environment.NewLine + indent,
+                lines
+            );
         }
     }
 }

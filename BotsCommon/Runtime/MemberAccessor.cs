@@ -49,7 +49,7 @@ namespace BotsCommon.Runtime
             var exInstance = Expression.Parameter(typeof(object), "instance");
 
             var exConvertedInstance = Expression.Convert(exInstance, targetType);
-            var exMemberAccess = Expression.MakeMemberAccess(exConvertedInstance, MemberInfo);
+            var exMemberAccess = Expression.MakeMemberAccess(IsStatic(MemberInfo) ? null : exConvertedInstance, MemberInfo);
             var exConvertedResult = Expression.Convert(exMemberAccess, typeof(object));
 
             var lambda = Expression.Lambda<Func<object?, object?>>(exConvertedResult, exInstance);
@@ -65,7 +65,7 @@ namespace BotsCommon.Runtime
             var exValue = Expression.Parameter(typeof(object), "value");
 
             var exConvertedInstance = Expression.Convert(exInstance, targetType);
-            var exMemberAccess = Expression.MakeMemberAccess(exConvertedInstance, MemberInfo);
+            var exMemberAccess = Expression.MakeMemberAccess(IsStatic(MemberInfo) ? null : exConvertedInstance, MemberInfo);
             var exConvertedValue = Expression.Convert(exValue, GetUnderlyingType(MemberInfo));
             var exAssign = Expression.Assign(exMemberAccess, exConvertedValue);
 
@@ -131,6 +131,21 @@ namespace BotsCommon.Runtime
                     return ((PropertyInfo)member).PropertyType;
                 default:
                     throw new ArgumentException($"{nameof(MemberInfo)} must be of type {nameof(EventInfo)}, {nameof(FieldInfo)}, {nameof(MethodInfo)} or {nameof(PropertyInfo)}");
+            }
+        }
+
+        public static bool IsStatic(MemberInfo member)
+        {
+            switch (member.MemberType)
+            {
+                case MemberTypes.Field:
+                    return ((FieldInfo)member).IsStatic;
+                case MemberTypes.Method:
+                    return ((MethodInfo)member).IsStatic;
+                case MemberTypes.Property:
+                    return ((PropertyInfo)member).GetAccessors().Any(x => x.IsStatic);
+                default:
+                    throw new ArgumentException($"{nameof(MemberInfo)} must be of type {nameof(FieldInfo)}, {nameof(MethodInfo)} or {nameof(PropertyInfo)}");
             }
         }
     }

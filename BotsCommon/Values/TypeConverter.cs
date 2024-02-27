@@ -165,7 +165,7 @@ namespace BotsCommon.Values
         {
             targetObj = null;
 
-            var hash = MemoizationHelper.GetHashCode(targetType, type);
+            var hash = HashCode.Combine(targetType, type);
 
             if (_tryConvertCache.TryGetValue(hash, out var cacheItem))
             {
@@ -284,7 +284,7 @@ namespace BotsCommon.Values
             if (type.IsGenericType)
                 type = type.GetGenericTypeDefinition();
 
-            var hash = MemoizationHelper.GetHashCode(type);
+            var hash = HashCode.Combine(type);
 
             if (_isPrimitiveTypeCache.TryGetValue(hash, out var result))
                 return result;
@@ -318,7 +318,7 @@ namespace BotsCommon.Values
 
         public bool IsArrayType(Type type)
         {
-            var hash = MemoizationHelper.GetHashCode(type);
+            var hash = HashCode.Combine(type);
 
             if (_isArrayTypeCache.TryGetValue(hash, out var result))
                 return result;
@@ -363,7 +363,7 @@ namespace BotsCommon.Values
 
         private static bool IsAssignableToCached(Type sourceType, Type targetType)
         {
-            var hash = MemoizationHelper.GetHashCode(sourceType, targetType);
+            var hash = HashCode.Combine(sourceType, targetType);
 
             if (_isAssignableToCache.TryGetValue(hash, out var result))
                 return result;
