@@ -12,14 +12,14 @@ namespace BotsCommon.IO.Content
 
         private static ReadOnlyMemory<byte> GetBytesFromData(object obj)
         {
-            var memoryStream = new MemoryStream(0);
-            var streamWriter = new StreamWriter(memoryStream);
+            var memoryStream = new MemoryStream(256);
 
-            using var writer = new JsonTextWriter(streamWriter);
+            using (var writer = new JsonTextWriter(new StreamWriter(memoryStream, leaveOpen: true)))
+            {
+                var serializer = new JsonSerializer();
 
-            var serializer = new JsonSerializer();
-
-            serializer.Serialize(writer, obj);
+                serializer.Serialize(writer, obj);
+            }
 
             return memoryStream.ToReadOnlyMemory();
         }
