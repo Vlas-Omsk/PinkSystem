@@ -89,16 +89,27 @@ namespace BotsCommon.Runtime
             var parameters = methodBase.GetParameters();
 
             var exParametersArray = new Expression[parameters.Length];
+            var exVariablesArray = new List<ParameterExpression>(parameters.Length);
 
             for (int i = 0; i < parameters.Length; i++)
             {
                 var parameterType = parameters[i].ParameterType;
 
-                var exIndex = Expression.Constant(i);
-                var exParameter = Expression.ArrayIndex(exParameters, exIndex);
-                var exConvertedParameter = Expression.Convert(exParameter, parameterType);
+                if (parameterType.IsByRef)
+                {
+                    var exVariable = Expression.Variable(parameterType.GetElementType()!, parameters[i].Name);
 
-                exParametersArray[i] = exConvertedParameter;
+                    exVariablesArray.Add(exVariable);
+                    exParametersArray[i] = exVariable;
+                }
+                else
+                {   
+                    var exIndex = Expression.Constant(i);
+                    var exParameter = Expression.ArrayIndex(exParameters, exIndex);
+                    var exConvertedParameter = Expression.Convert(exParameter, parameterType);
+
+                    exParametersArray[i] = exConvertedParameter;
+                }
             }
 
             Expression exResult;
@@ -110,11 +121,40 @@ namespace BotsCommon.Runtime
             else
                 throw new InvalidOperationException($"{nameof(MemberInfo)} must be of type {nameof(ConstructorInfo)} or {nameof(MethodInfo)}");
 
-            var exConvertedResult = Expression.Convert(exResult, typeof(object));
+            exResult = Expression.Block(
+                exVariablesArray,
+                Expression.NewArrayInit(
+                    typeof(object),
+                    exVariablesArray
+                        .Select(x => 
+                            Expression.Convert(x, typeof(object))
+                        )
+                        .Prepend(
+                            Expression.Convert(exResult, typeof(object))
+                        )
+                )
+            );
 
-            var lambda = Expression.Lambda<Func<object?, object?[], object?>>(exConvertedResult, exInstance, exParameters);
+            var lambda = Expression.Lambda<Func<object?, object?[], object?[]>>(exResult, exInstance, exParameters);
 
-            _invoker = lambda.Compile();
+            var func = lambda.Compile();
+
+            _invoker = (instance, args) =>
+            {
+                var result = func.Invoke(instance, args);
+
+                var refIndex = 1;
+
+                for (var i = 0; i < parameters.Length; i++)
+                {
+                    var parameter = parameters[i];
+
+                    if (parameter.ParameterType.IsByRef)
+                        args[i] = result[refIndex++];
+                }
+
+                return result[0];
+            };
         }
 
         public static Type GetUnderlyingType(MemberInfo member)

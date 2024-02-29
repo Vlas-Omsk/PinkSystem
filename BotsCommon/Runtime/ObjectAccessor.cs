@@ -124,10 +124,10 @@ namespace BotsCommon.Runtime
 
         public object? CallMethod(string name, Type[] genericTypes, params object?[] args)
         {
-            return CallMethod(name, genericTypes, args.Select(x => x!.GetType()).ToArray(), args);
+            return CallMethod(name, genericTypes, args.Select(x => x?.GetType()).ToArray(), args);
         }
 
-        public object? CallMethod(string name, Type[] genericTypes, Type[] argTypes, params object?[] args)
+        public object? CallMethod(string name, Type[] genericTypes, Type?[] argTypes, params object?[] args)
         {
             var accessor = GetMethodAccessor(name, genericTypes, argTypes);
 
@@ -137,7 +137,7 @@ namespace BotsCommon.Runtime
             );
         }
 
-        private MemberAccessor GetMethodAccessor(string name, Type[] genericTypes, Type[] argTypes)
+        private MemberAccessor GetMethodAccessor(string name, Type[] genericTypes, Type?[] argTypes)
         {
             return Memoizer<ObjectAccessor>.Shared.GetOrAddMemoizedValue(
                 () =>
@@ -145,15 +145,15 @@ namespace BotsCommon.Runtime
                     var method = Type.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance)
                         .Where(x => x.Name == name)
                         .Where(x => (int)_generickParameterCountAccessor.GetValue(x)! == genericTypes.Length)
-                        .Select(x => x.MakeGenericMethod(genericTypes))
+                        .Select(x => x.IsGenericMethodDefinition ? x.MakeGenericMethod(genericTypes) : x)
                         .Where(x => x.GetParameters().Length == argTypes.Length)
                         .Where(x => x
                             .GetParameters()
                             .Select((c, i) => (c, i))
-                            .All(c => c.c.ParameterType.IsAssignableFrom(argTypes[c.i]))
+                            .All(c => argTypes[c.i] == null || c.c.ParameterType.IsAssignableFrom(argTypes[c.i]))
                         )
                         .FirstOrDefault() ??
-                        throw new Exception($"Method with name {name}, generic types {string.Join(", ", genericTypes.Select(x => x.Name))} and arg types {string.Join(", ", argTypes.Select(x => x.Name))} not found");
+                        throw new Exception($"Method with name {name}, generic types {string.Join(", ", genericTypes.Select(x => x.Name))} and arg types {string.Join(", ", argTypes.Select(x => x?.Name ?? "null"))} not found");
 
                     return MemberAccessorsCache.Shared.Create(method);
                 },
