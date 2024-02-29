@@ -1,4 +1,6 @@
-﻿using System.Collections;
+﻿#nullable enable
+
+using System.Collections;
 using System.Collections.Concurrent;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -16,15 +18,15 @@ namespace BotsCommon.Runtime
             typeof(decimal),
         };
 
-        public static object ChangeType(object value, Type targetType)
+        public static object? ChangeType(object? value, Type targetType)
         {
             if (!TryChangeType(value, targetType, out var result))
-                throw new ArgumentException($"Cannot convert value of type {value.GetType()} to type {targetType}");
+                throw new ArgumentException($"Cannot convert value of type {value?.GetType()} to type {targetType}");
 
             return result;
         }
 
-        public static bool TryChangeType(object value, Type targetType, out object result)
+        public static bool TryChangeType(object? value, Type targetType, out object? result)
         {
             if (targetType == null)
                 throw new ArgumentNullException(nameof(targetType));
