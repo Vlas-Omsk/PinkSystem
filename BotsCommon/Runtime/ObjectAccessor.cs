@@ -12,11 +12,11 @@ namespace BotsCommon.Runtime
 
         public ObjectAccessor(object? obj, Type type)
         {
-            Object = obj;
+            Instance = obj;
             Type = type;
         }
 
-        public object? Object { get; }
+        public object? Instance { get; }
         public Type Type { get; }
 
         public object? GetProperty(string name)
@@ -24,14 +24,14 @@ namespace BotsCommon.Runtime
             var accessor = GetPropertyAccessor(name);
 
             return accessor.GetValue(
-                ((PropertyInfo)accessor.MemberInfo).GetMethod!.IsStatic ? null : Object
+                ((PropertyInfo)accessor.MemberInfo).GetMethod!.IsStatic ? null : Instance
             );
         }
 
         public object? GetProperty(PropertyInfo property)
         {
             return MemberAccessorsCache.Shared.Create(property).GetValue(
-                property.GetMethod!.IsStatic ? null : Object
+                property.GetMethod!.IsStatic ? null : Instance
             );
         }
 
@@ -40,7 +40,7 @@ namespace BotsCommon.Runtime
             var accessor = GetPropertyAccessor(name);
 
             accessor.SetValue(
-                ((PropertyInfo)accessor.MemberInfo).SetMethod!.IsStatic ? null : Object,
+                ((PropertyInfo)accessor.MemberInfo).SetMethod!.IsStatic ? null : Instance,
                 value
             );
         }
@@ -48,7 +48,7 @@ namespace BotsCommon.Runtime
         public void SetProperty(PropertyInfo property, object? value)
         {
             MemberAccessorsCache.Shared.Create(property).SetValue(
-                property.SetMethod!.IsStatic ? null : Object,
+                property.SetMethod!.IsStatic ? null : Instance,
                 value
             );
         }
@@ -73,14 +73,14 @@ namespace BotsCommon.Runtime
             var accessor = GetFieldAccessor(name);
 
             return accessor.GetValue(
-                ((FieldInfo)accessor.MemberInfo).IsStatic ? null : Object
+                ((FieldInfo)accessor.MemberInfo).IsStatic ? null : Instance
             );
         }
 
         public object? GetField(FieldInfo field)
         {
             return MemberAccessorsCache.Shared.Create(field).GetValue(
-                field.IsStatic ? null : Object
+                field.IsStatic ? null : Instance
             );
         }
 
@@ -89,7 +89,7 @@ namespace BotsCommon.Runtime
             var accessor = GetFieldAccessor(name);
 
             accessor.SetValue(
-                ((FieldInfo)accessor.MemberInfo).IsStatic ? null : Object,
+                ((FieldInfo)accessor.MemberInfo).IsStatic ? null : Instance,
                 value
             );
         }
@@ -97,7 +97,7 @@ namespace BotsCommon.Runtime
         public void SetField(FieldInfo field, object? value)
         {
             MemberAccessorsCache.Shared.Create(field).SetValue(
-                field.IsStatic ? null : Object,
+                field.IsStatic ? null : Instance,
                 value
             );
         }
@@ -132,7 +132,7 @@ namespace BotsCommon.Runtime
             var accessor = GetMethodAccessor(name, genericTypes, argTypes);
 
             return accessor.Invoke(
-                ((MethodInfo)accessor.MemberInfo).IsStatic ? null : Object,
+                ((MethodInfo)accessor.MemberInfo).IsStatic ? null : Instance,
                 args
             );
         }
