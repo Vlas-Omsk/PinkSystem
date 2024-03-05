@@ -21,7 +21,9 @@ namespace BotsCommon
         public static ReadOnlyMemory<byte> ReadAsBytes(this IContentReader self)
         {
             using var stream = self.CreateStream();
-            using var memoryStream = new MemoryStream();
+            using var memoryStream = self.Length.HasValue && self.Length.Value <= int.MaxValue ?
+                new MemoryStream((int)self.Length.Value) :
+                new MemoryStream();
 
             stream.CopyTo(memoryStream);
 
