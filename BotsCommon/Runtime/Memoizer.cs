@@ -1,4 +1,5 @@
-﻿using System.Collections.Concurrent;
+﻿using System;
+using System.Collections.Concurrent;
 
 namespace BotsCommon.Runtime
 {
@@ -12,7 +13,12 @@ namespace BotsCommon.Runtime
         {
             var hashCode = GetHashCode(args);
 
-            return (T)_cache.GetOrAdd(hashCode, x => func());
+            return (T)_cache.GetOrAdd(hashCode, x =>
+            {
+                var value = func();
+
+                return value == null ? 0 : value;
+            });
         }
 
         private static int GetHashCode(object[] args)

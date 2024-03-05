@@ -1,4 +1,6 @@
-﻿namespace BotsCommon
+﻿using System.IO;
+
+namespace BotsCommon
 {
     public static class StreamReaderExtensions
     {
@@ -8,7 +10,7 @@
             self.DiscardBufferedData();
         }
 
-        public static int GetLinesCount(this StreamReader self)
+        public static int CountLines(this StreamReader self)
         {
             var position = self.BaseStream.Position;
 

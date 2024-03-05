@@ -1,4 +1,6 @@
-﻿namespace BotsCommon
+﻿using System;
+
+namespace BotsCommon
 {
     public static class RandomUtils
     {

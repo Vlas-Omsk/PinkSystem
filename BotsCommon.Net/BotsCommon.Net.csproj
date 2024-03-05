@@ -1,0 +1,14 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\BotsCommon.IO\BotsCommon.IO.csproj" />
+    <ProjectReference Include="..\BotsCommon.RegularExpressions\BotsCommon.RegularExpressions.csproj" />
+    <ProjectReference Include="..\BotsCommon\BotsCommon.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,10 +1,16 @@
-﻿namespace BotsCommon
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+
+namespace BotsCommon
 {
     public sealed class TasksPool : IDisposable, IAsyncDisposable
     {
         private readonly Task[] _tasks;
         private readonly object _lock = new object();
-        private CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
+        private CancellationTokenSource _cancellationTokenSource = new();
 
         public TasksPool(int count)
         {
@@ -47,7 +53,7 @@
             return WaitAnyInternal();
         }
 
-        public async Task<T> WaitAnyAndGetValue<T>()
+        public async Task<T?> WaitAnyAndGetValue<T>()
         {
             var task = await WaitAnyInternal();
 
@@ -77,7 +83,7 @@
             {
                 var exceptions = _tasks
                     .Where(t => t.Exception != null)
-                    .Select(t => t.Exception)
+                    .Select(t => t.Exception!)
                     .ToArray();
 
                 if (exceptions.Length == 1)

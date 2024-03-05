@@ -1,8 +1,10 @@
-﻿namespace BotsCommon
+﻿using System;
+
+namespace BotsCommon
 {
     public static class TypeExtensions
     {
-        public static object GetDefaultValue(this Type type)
+        public static object? GetDefaultValue(this Type type)
         {
             if (type.IsValueType)
                 return Activator.CreateInstance(type);

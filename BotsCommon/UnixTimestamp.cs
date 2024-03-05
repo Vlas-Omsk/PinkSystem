@@ -1,4 +1,7 @@
-﻿namespace BotsCommon
+﻿using System;
+using System.Linq;
+
+namespace BotsCommon
 {
     public enum UnixTimestampPercision
     {
@@ -34,7 +37,7 @@
         public double Days => TimeSpan.TotalDays;
         public long DaysLong => (long)Math.Round(TimeSpan.TotalDays);
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if (obj == null || GetType() != obj.GetType())
                 return false;

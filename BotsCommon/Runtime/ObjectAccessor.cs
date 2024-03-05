@@ -1,5 +1,5 @@
-﻿#nullable enable
-
+﻿using System;
+using System.Linq;
 using System.Reflection;
 
 namespace BotsCommon.Runtime

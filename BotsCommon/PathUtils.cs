@@ -1,3 +1,7 @@
+using System;
+using System.IO;
+using System.Linq;
+
 namespace BotsCommon
 {
     public static class PathUtils
@@ -21,9 +25,9 @@ namespace BotsCommon
             string[] pathVariable;
 
             if (OperatingSystem.IsWindows())
-                pathVariable = Environment.GetEnvironmentVariable("PATH").Split(';');
+                pathVariable = (Environment.GetEnvironmentVariable("PATH") ?? string.Empty).Split(';');
             else if (OperatingSystem.IsLinux())
-                pathVariable = Environment.GetEnvironmentVariable("PATH").Split(':');
+                pathVariable = (Environment.GetEnvironmentVariable("PATH") ?? string.Empty).Split(':');
             else
                 throw new PlatformNotSupportedException();
 

@@ -1,6 +1,7 @@
-﻿using System.Diagnostics.CodeAnalysis;
-
-#nullable enable
+﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 
 namespace BotsCommon.Console
 {

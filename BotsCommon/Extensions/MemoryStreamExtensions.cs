@@ -1,4 +1,7 @@
-﻿namespace BotsCommon
+﻿using System;
+using System.IO;
+
+namespace BotsCommon
 {
     public static class MemoryStreamExtensions
     {

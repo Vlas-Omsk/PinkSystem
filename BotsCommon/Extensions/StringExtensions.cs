@@ -1,4 +1,6 @@
-﻿using System.Text.RegularExpressions;
+﻿using System;
+using System.IO;
+using System.Linq;
 
 namespace BotsCommon
 {
@@ -204,15 +206,15 @@ namespace BotsCommon
             }
         }
 
-        public static void ToUnicodeString(this string value, TextWriter writer)
+        public static void ToUnicodeString(this string self, TextWriter writer)
         {
-            for (var i = 0; i < value.Length; i++)
-                writer.Write(value[i].ToUnicode());
+            for (var i = 0; i < self.Length; i++)
+                writer.Write(self[i].ToUnicode());
         }
 
-        public static string MakeIndent(this string value, int indentSize)
+        public static string MakeIndent(this string self, int indentSize)
         {
-            var lines = value.Split(new char[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+            var lines = self.Split(new char[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
 
             var indent = new string(' ', indentSize);
 
