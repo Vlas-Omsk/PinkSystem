@@ -1,5 +1,6 @@
 ﻿using BotsCommon.IO.Content;
 using Newtonsoft.Json;
+using System.Buffers;
 
 namespace BotsCommon
 {
@@ -15,6 +16,16 @@ namespace BotsCommon
             using var streamReader = new StreamReader(self.CreateStream());
 
             return streamReader.ReadToEnd();
+        }
+
+        public static ReadOnlyMemory<byte> ReadAsBytes(this IContentReader self)
+        {
+            using var stream = self.CreateStream();
+            using var memoryStream = new MemoryStream();
+
+            stream.CopyTo(memoryStream);
+
+            return memoryStream.ToReadOnlyMemory();
         }
     }
 }
