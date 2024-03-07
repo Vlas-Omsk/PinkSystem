@@ -81,17 +81,17 @@ namespace BotsCommon
             };
         }
 
-        public static bool operator >(UnixTimestamp left, UnixTimestamp right)
+        public static bool operator >(UnixTimestamp? left, UnixTimestamp? right)
         {
-            return left.Ticks > right.Ticks;
+            return left?.Ticks > right?.Ticks;
         }
 
-        public static bool operator <(UnixTimestamp left, UnixTimestamp right)
+        public static bool operator <(UnixTimestamp? left, UnixTimestamp? right)
         {
-            return left.Ticks < right.Ticks;
+            return left?.Ticks < right?.Ticks;
         }
 
-        public static bool operator ==(UnixTimestamp left, UnixTimestamp right)
+        public static bool operator ==(UnixTimestamp? left, UnixTimestamp? right)
         {
             if (object.Equals(left, null) || object.Equals(right, null))
                 return object.Equals(left, right);
@@ -99,7 +99,7 @@ namespace BotsCommon
             return left.Equals(right);
         }
 
-        public static bool operator !=(UnixTimestamp left, UnixTimestamp right)
+        public static bool operator !=(UnixTimestamp? left, UnixTimestamp? right)
         {
             return !(left == right);
         }
