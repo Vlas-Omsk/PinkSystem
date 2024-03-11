@@ -11,11 +11,11 @@ namespace BotsCommon.IO.Content
         public long? Length => _info.Length;
         public string MimeType { get; }
 
-        public FileContentReader(string path)
+        public FileContentReader(string path, string? mimeType = null)
         {
             _path = path;
             _info = new FileInfo(_path);
-            MimeType = MimeTypeMap.GetMimeType(_info.Name);
+            MimeType = mimeType ?? MimeTypeMap.GetMimeType(_info.Name);
         }
 
         public Stream CreateStream()
