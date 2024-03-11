@@ -26,6 +26,8 @@ namespace BotsCommon.Net.Http.Callbacks
             _listener.Prefixes.Add($"http://+:{port}/");
         }
 
+        public bool IsListening { get; private set; }
+
         public Uri GetUri(string path)
         {
             return new Uri(_uri, path);
@@ -33,6 +35,8 @@ namespace BotsCommon.Net.Http.Callbacks
 
         public async Task Start(CancellationToken cancellationToken)
         {
+            IsListening = true;
+
             _listener.Start();
 
             _task = Task.Run(async () =>
