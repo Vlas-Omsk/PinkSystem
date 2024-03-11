@@ -12,11 +12,6 @@ namespace BotsCommon
 {
     public static class JsonExtensions
     {
-        public static JToken SerializeToJToken(this object self, JsonSerializer serializer)
-        {
-            return JToken.FromObject(self, serializer);
-        }
-
         public static string SerializeToJString(this object self, JsonSerializer serializer)
         {
             var stringBuilder = new StringBuilder(256);
@@ -26,6 +21,14 @@ namespace BotsCommon
                 serializer.Serialize(writer, self);
 
             return stringWriter.ToString();
+        }
+
+        public static T? DeserializeFromJString<T>(this string self, JsonSerializer serializer)
+        {
+            var stringReader = new StringReader(self);
+
+            using (var reader = new JsonTextReader(stringReader))
+                return serializer.Deserialize<T>(reader);
         }
 
         private sealed class JsonReaderStream : Stream
