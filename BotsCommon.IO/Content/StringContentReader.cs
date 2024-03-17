@@ -7,7 +7,7 @@ namespace BotsCommon.IO.Content
     {
         private readonly byte[] _bytes;
 
-        public StringContentReader(string str, string mimeType)
+        public StringContentReader(string str, string mimeType = "text/plain")
         {
             _bytes = new UTF8Encoding(false).GetBytes(str);
             MimeType = mimeType;

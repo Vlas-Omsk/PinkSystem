@@ -42,6 +42,14 @@ namespace BotsCommon.Net.Http
             list.AddRange(values);
         }
 
+        public IEnumerable<string> GetValues(string key)
+        {
+            if (!TryGetValues(key, out var values))
+                throw new KeyNotFoundException($"Header with name '{key}' not found");
+
+            return values;
+        }
+
         public bool TryGetValues(string key, [NotNullWhen(true)] out IEnumerable<string>? values)
         {
             var result = _dictionary.TryGetValue(key, out var list);

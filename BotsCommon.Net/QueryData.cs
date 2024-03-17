@@ -2,12 +2,23 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Web;
 
 namespace BotsCommon.Net
 {
-    public sealed class QueryData : IEnumerable<KeyValuePair<string, string>>
+    public sealed class QueryData : IEnumerable<KeyValuePair<string, string>>, IEnumerable<KeyValuePair<string, IEnumerable<string>>>
     {
-        private readonly Dictionary<string, List<string>> _dictionary = new();
+        private readonly Dictionary<string, List<string>> _dictionary;
+
+        public QueryData(IEnumerable<KeyValuePair<string, IEnumerable<string>>> dictionary)
+        {
+            _dictionary = dictionary.ToDictionary(x => x.Key, x => x.Value.ToList());
+        }
+
+        public QueryData()
+        {
+            _dictionary = new();
+        }
 
         public static QueryData Empty { get; } = new();
 
@@ -24,6 +35,13 @@ namespace BotsCommon.Net
                         new KeyValuePair<string, string>(x.Key, c)
                     )
                 )
+                .GetEnumerator();
+        }
+
+        IEnumerator<KeyValuePair<string, IEnumerable<string>>> IEnumerable<KeyValuePair<string, IEnumerable<string>>>.GetEnumerator()
+        {
+            return _dictionary
+                .Select(x => new KeyValuePair<string, IEnumerable<string>>(x.Key, x.Value))
                 .GetEnumerator();
         }
 
@@ -70,6 +88,31 @@ namespace BotsCommon.Net
                         return result + '=' + Uri.EscapeDataString(x.value);
                     })
             );
+        }
+
+        public static QueryData Parse(string query)
+        {
+            var queryData = new QueryData();
+            var nameValueCollection = HttpUtility.ParseQueryString(query);
+
+            foreach (string key in nameValueCollection)
+            {
+                var values = nameValueCollection.GetValues(key)!;
+
+                queryData.Add(key, values);
+            }
+
+            return queryData;
+        }
+
+        public static QueryData ParseFromUri(string uri)
+        {
+            return Parse(new Uri(uri).Query);
+        }
+
+        public static QueryData FromFlat(IEnumerable<KeyValuePair<string, string>> flat)
+        {
+            return new QueryData(flat.Select(x => new KeyValuePair<string, IEnumerable<string>>(x.Key, [x.Value])));
         }
     }
 }
