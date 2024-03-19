@@ -29,9 +29,15 @@ namespace BotsCommon.Net.Http
             foreach (var header in request.Headers)
             {
                 if (header.Key.StartsWith("Content-", StringComparison.OrdinalIgnoreCase))
-                    requestMessage.Content?.Headers.Add(header.Key, header.Value);
+                {
+                    if (requestMessage.Content?.Headers.TryAddWithoutValidation(header.Key, header.Value) == false)
+                        throw new Exception();
+                }
                 else
-                    requestMessage.Headers.Add(header.Key, header.Value);
+                {
+                    if (requestMessage.Headers.TryAddWithoutValidation(header.Key, header.Value) == false)
+                        throw new Exception();
+                }
             }
 
             return requestMessage;
