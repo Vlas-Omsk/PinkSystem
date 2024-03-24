@@ -15,7 +15,7 @@ namespace BotsCommon.Net.Http
             {
                 Method = new HttpMethod(request.Method),
                 RequestUri = request.Uri,
-                Version = HttpVersion.Version20,
+                Version = request.HttpVersion ?? HttpVersion.Version20,
                 VersionPolicy = HttpVersionPolicy.RequestVersionOrHigher
             };
 

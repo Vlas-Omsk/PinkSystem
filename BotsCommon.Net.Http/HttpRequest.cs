@@ -15,6 +15,7 @@ namespace BotsCommon.Net.Http
         public Uri Uri { get; }
         public HttpHeaders Headers { get; } = new();
         public IContentReader? Content { get; set; }
+        public Version? HttpVersion { get; set; }
 
         public HttpRequest SetContentWithHeader(IContentReader contentReader)
         {
