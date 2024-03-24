@@ -7,7 +7,7 @@ namespace BotsCommon.IO.Content
     public sealed class JsonContentReader : ByteArrayContentReader
     {
         public JsonContentReader(object obj, JsonSerializer? serializer = null) :
-            base(GetBytesFromData(obj, serializer), "application/json; charset=UTF-8")
+            base(GetBytesFromData(obj, serializer), "application/json")
         {
             
         }
