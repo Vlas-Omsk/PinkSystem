@@ -7,7 +7,7 @@ using System.Net;
 
 namespace BotsCommon.Net.Http.Cookies
 {
-    public sealed class JsonCookieReaderProvider : ICookieProvider
+    public sealed class JsonCookieProvider : ICookieProvider
     {
         public string? Domain { get; set; }
         public bool UseExpirationTimestamp { get; set; }
