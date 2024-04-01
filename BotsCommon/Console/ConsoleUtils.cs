@@ -32,13 +32,15 @@ namespace BotsCommon.Console
 
         private sealed class ReadInputHandler
         {
+            private readonly Func<ConsoleKeyInfo, ReadInputValue?> _inputHandler;
             private string _value;
             private int _cursorStartPos;
             private int _position;
             private int _offset;
 
-            public ReadInputHandler(string? value)
+            public ReadInputHandler(string? value, Func<ConsoleKeyInfo, ReadInputValue?> inputHandler)
             {
+                _inputHandler = inputHandler;
                 _cursorStartPos = System.Console.CursorLeft;
                 _value = value ?? string.Empty;
                 _position = _value.Length;
@@ -133,6 +135,9 @@ namespace BotsCommon.Console
             {
                 var ch = key.KeyChar;
 
+                if (!char.IsLetterOrDigit(ch))
+                    return;
+
                 if (key.Modifiers.HasFlag(ConsoleModifiers.Shift))
                     ch = char.ToUpper(ch);
 
@@ -177,9 +182,15 @@ namespace BotsCommon.Console
                             System.Console.WriteLine();
                             return new ReadInputValue(_value, false);
                         default:
+                            var result = _inputHandler(key);
+
+                            if (result != null)
+                                return result;
+
                             if (key.Key == ConsoleKey.Z &&
                                 key.Modifiers.HasFlag(ConsoleModifiers.Control))
                                 return new ReadInputValue(null, true);
+
                             Add(key);
                             break;
                     }
@@ -187,9 +198,9 @@ namespace BotsCommon.Console
             }
         }
 
-        public static ReadInputValue ReadInput(string? value)
+        public static ReadInputValue ReadInput(string? value, Func<ConsoleKeyInfo, ReadInputValue?> inputHandler)
         {
-            return new ReadInputHandler(value).Read();
+            return new ReadInputHandler(value, inputHandler).Read();
         }
     }
 }

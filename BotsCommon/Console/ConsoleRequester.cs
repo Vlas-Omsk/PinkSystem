@@ -56,10 +56,12 @@ namespace BotsCommon.Console
         private T? RequestValue<T>(
             string name,
             string question,
+            string? description,
             string? defaultValue,
             string? availableValues,
             bool supportNullValue,
-            TryParseDelegate<T> tryParse
+            TryParseDelegate<T> tryParse,
+            Func<ConsoleKeyInfo, ReadInputValue?> inputHandler
         )
         {
             var firstCursorTop = 0;
@@ -120,6 +122,12 @@ namespace BotsCommon.Console
                 System.Console.WriteLine();
             }
 
+            if (description != null)
+            {
+                ConsoleUtils.WriteColored(description, foregroundColor: ConsoleColor.DarkGray);
+                System.Console.WriteLine();
+            }
+
             if (supportNullValue)
             {
                 ConsoleUtils.WriteColored("Leave field blank if you do not want to use this.", foregroundColor: ConsoleColor.DarkGray);
@@ -157,7 +165,7 @@ namespace BotsCommon.Console
             {
                 System.Console.Write($"{name}{(supportNullValue ? " (Optional)" : string.Empty)}: ");
 
-                var str = ConsoleUtils.ReadInput(defaultValueString).Value;
+                var str = ConsoleUtils.ReadInput(defaultValueString, inputHandler).Value;
 
                 defaultValueString = null;
 
@@ -193,14 +201,17 @@ namespace BotsCommon.Console
         public T? RequestOptionsValue<T>(
             string name,
             string question,
+            string? description,
             T? defaultValue,
             bool supportNullValue,
-            IEnumerable<RequestOption<T>> options
+            IEnumerable<RequestOption<T>> options,
+            Func<ConsoleKeyInfo, ReadInputValue?> inputHandler
         )
         {
             return RequestValue(
                 name,
                 question,
+                description,
                 options.FirstOrDefault(x => x.Value?.Equals(defaultValue) == true)?.Name,
                 "Available values:\n    " +
                 string.Join(
@@ -235,21 +246,25 @@ namespace BotsCommon.Console
                     value = default;
                     name = null;
                     return false;
-                }
+                },
+                inputHandler
             );
         }
 
         public string? RequestStringValue(
             string name,
             string question,
+            string? description,
             string? defaultValue,
             string? availableValues,
-            bool supportNullValue
+            bool supportNullValue,
+            Func<ConsoleKeyInfo, ReadInputValue?> inputHandler
         )
         {
             return RequestValue(
                 name,
                 question,
+                description,
                 defaultValue,
                 availableValues,
                 supportNullValue,
@@ -258,20 +273,24 @@ namespace BotsCommon.Console
                     value = str;
                     name = str;
                     return true;
-                }
+                },
+                inputHandler
             );
         }
 
         public bool? RequestBoolValue(
             string name,
             string question,
+            string? description,
             bool? defaultValue,
-            bool supportNullValue
+            bool supportNullValue,
+            Func<ConsoleKeyInfo, ReadInputValue?> inputHandler
         )
         {
             return RequestValue(
                 name,
                 question,
+                description,
                 defaultValue.HasValue ? defaultValue.Value ? "yes" : "no" : null,
                 "Available values: (y)es, (n)o",
                 supportNullValue,
@@ -303,15 +322,18 @@ namespace BotsCommon.Console
                     value = null;
                     name = null;
                     return false;
-                }
+                },
+                inputHandler
             );
         }
 
         public int? RequestIntValue(
             string name,
             string question,
+            string? description,
             int? defaultValue,
             bool supportNullValue,
+            Func<ConsoleKeyInfo, ReadInputValue?> inputHandler,
             int? min = null,
             int? max = null
         )
@@ -319,6 +341,7 @@ namespace BotsCommon.Console
             return RequestValue(
                 name,
                 question,
+                description,
                 defaultValue.HasValue ? defaultValue.Value.ToString() : null,
                 min.HasValue || max.HasValue ?
                     (
@@ -341,15 +364,18 @@ namespace BotsCommon.Console
                     value = null;
                     name = null;
                     return false;
-                }
+                },
+                inputHandler
             );
         }
 
         public long? RequestLongValue(
             string name,
             string question,
+            string? description,
             long? defaultValue,
             bool supportNullValue,
+            Func<ConsoleKeyInfo, ReadInputValue?> inputHandler,
             long? min = null,
             long? max = null
         )
@@ -357,6 +383,7 @@ namespace BotsCommon.Console
             return RequestValue(
                 name,
                 question,
+                description,
                 defaultValue.HasValue ? defaultValue.Value.ToString() : null,
                 min.HasValue || max.HasValue ?
                     (
@@ -379,7 +406,8 @@ namespace BotsCommon.Console
                     value = null;
                     name = null;
                     return false;
-                }
+                },
+                inputHandler
             );
         }
     }
