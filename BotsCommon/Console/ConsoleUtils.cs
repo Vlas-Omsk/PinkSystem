@@ -135,7 +135,7 @@ namespace BotsCommon.Console
             {
                 var ch = key.KeyChar;
 
-                if (!char.IsLetterOrDigit(ch))
+                if (char.IsControl(ch))
                     return;
 
                 if (key.Modifiers.HasFlag(ConsoleModifiers.Shift))
