@@ -9,11 +9,14 @@ namespace BotsCommon.Runtime
         private static readonly MemberAccessor _generickParameterCountAccessor = new(
              typeof(MethodInfo).GetProperty("GenericParameterCount", BindingFlags.NonPublic | BindingFlags.Instance)!
         );
+        private readonly BindingFlags _bindingFlags;
 
         public ObjectAccessor(object? obj, Type type)
         {
             Instance = obj;
             Type = type;
+
+            _bindingFlags = BindingFlags.Public | BindingFlags.NonPublic | (obj == null ? BindingFlags.Static : BindingFlags.Instance);
         }
 
         public object? Instance { get; }
@@ -58,7 +61,7 @@ namespace BotsCommon.Runtime
             return Memoizer<ObjectAccessor>.Shared.GetOrAddMemoizedValue(
                 () =>
                 {
-                    var property = Type.GetRuntimeProperty(name) ??
+                    var property = Type.GetProperty(name, _bindingFlags) ??
                         throw new Exception($"Property with name {name} not found");
 
                     return MemberAccessorsCache.Shared.Create(property);
@@ -107,7 +110,7 @@ namespace BotsCommon.Runtime
             return Memoizer<ObjectAccessor>.Shared.GetOrAddMemoizedValue(
                 () =>
                 {
-                    var field = Type.GetRuntimeField(name) ??
+                    var field = Type.GetField(name, _bindingFlags) ??
                         throw new Exception($"Field with name {name} not found");
 
                     return MemberAccessorsCache.Shared.Create(field);
@@ -142,7 +145,7 @@ namespace BotsCommon.Runtime
             return Memoizer<ObjectAccessor>.Shared.GetOrAddMemoizedValue(
                 () =>
                 {
-                    var method = Type.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance)
+                    var method = Type.GetMethods(_bindingFlags)
                         .Where(x => x.Name == name)
                         .Where(x => (int)_generickParameterCountAccessor.GetValue(x)! == genericTypes.Length)
                         .Select(x => x.IsGenericMethodDefinition ? x.MakeGenericMethod(genericTypes) : x)
