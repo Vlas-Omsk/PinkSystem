@@ -1,27 +1,26 @@
 ﻿using System;
-using System.Net;
 using System.Threading;
 
 namespace BotsCommon.Net.Http.Callbacks
 {
-    internal interface IHttpCallbackHandler
+    public interface IHttpCallbackHandler
     {
-        bool TryHandle(HttpListenerRequest request);
+        bool TryHandle(HttpRequest request);
     }
 
     public sealed record HttpCallbackHandler<T> : IHttpCallbackHandler
     {
-        private readonly Func<HttpListenerRequest, HttpCallbackHandlerResponse<T>> _func;
+        private readonly Func<HttpRequest, HttpCallbackHandlerResponse<T>> _func;
         private readonly ManualResetEvent _event = new(false);
         private T? _result;
         private Exception? _exception;
 
-        public HttpCallbackHandler(Func<HttpListenerRequest, HttpCallbackHandlerResponse<T>> func)
+        public HttpCallbackHandler(Func<HttpRequest, HttpCallbackHandlerResponse<T>> func)
         {
             _func = func;
         }
 
-        public bool TryHandle(HttpListenerRequest request)
+        public bool TryHandle(HttpRequest request)
         {
             HttpCallbackHandlerResponse<T> response;
 

@@ -1,6 +1,8 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using BotsCommon.IO.Content;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Threading;
@@ -8,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace BotsCommon.Net.Http.Callbacks
 {
-    public sealed class HttpCallbackReceiver
+    public sealed class HttpCallbackReceiver : IHttpCallbackReceiver
     {
         private readonly Uri _uri;
         private readonly ILogger<HttpCallbackReceiver> _logger;
@@ -56,7 +58,29 @@ namespace BotsCommon.Net.Http.Callbacks
 
                             foreach (var handler in handlers)
                             {
-                                if (handler.TryHandle(context.Request))
+                                var request = new HttpRequest(context.Request.HttpMethod, context.Request.Url!);
+
+                                if (context.Request.HasEntityBody)
+                                {
+                                    byte[] buffer = new byte[16 * 1024];
+
+                                    using var memoryStream = new MemoryStream();
+                                    
+                                    int read;
+
+                                    while ((read = context.Request.InputStream.Read(buffer, 0, buffer.Length)) > 0)
+                                        memoryStream.Write(buffer, 0, read);
+
+                                    request.Content = new ByteArrayContentReader(
+                                        memoryStream.ToReadOnlyMemory(),
+                                        context.Request.ContentType ?? "application/octet-stream"
+                                    );
+                                }
+
+                                foreach (string key in context.Request.Headers.Keys)
+                                    request.Headers.Add(key, context.Request.Headers[key] ?? "");
+
+                                if (handler.TryHandle(request))
                                 {
                                     lock (_lock)
                                         _handlers.Remove(handler);
@@ -79,8 +103,8 @@ namespace BotsCommon.Net.Http.Callbacks
 
             var handler = new HttpCallbackHandler<bool>(x =>
             {
-                if (!x.HttpMethod.Equals("GET") ||
-                    x.Url != testUrl)
+                if (!x.Method.Equals("GET") ||
+                    x.Uri != testUrl)
                     return new HttpCallbackHandlerResponse<bool>(false, false);
 
                 return new HttpCallbackHandlerResponse<bool>(true, true);
@@ -102,7 +126,7 @@ namespace BotsCommon.Net.Http.Callbacks
             }
         }
 
-        public void AddHandler<T>(HttpCallbackHandler<T> handler)
+        public void AddHandler(IHttpCallbackHandler handler)
         {
             lock (_lock)
                 _handlers.Add(handler);
