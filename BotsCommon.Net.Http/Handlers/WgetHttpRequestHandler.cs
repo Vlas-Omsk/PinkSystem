@@ -95,53 +95,51 @@ namespace BotsCommon.Net.Http.Handlers
 
                 ReadOnlyMemory<byte>? contentBytes = null;
 
-                await Task.WhenAny(
-                    Task.WhenAll(
-                        Task.Run(() =>
+                await Task.WhenAll(
+                    Task.Run(() =>
+                    {
+                        while ((line = process.StandardError.ReadLine()) != null)
                         {
-                            while ((line = process.StandardError.ReadLine()) != null)
+                            if (line[..2] == "  ")
                             {
-                                if (line[..2] == "  ")
+                                var trimmedLine = line[2..];
+
+                                if (firstLine)
                                 {
-                                    var trimmedLine = line[2..];
+                                    var split = trimmedLine.Split(' ');
 
-                                    if (firstLine)
-                                    {
-                                        var split = trimmedLine.Split(' ');
+                                    statusCode = (HttpStatusCode)int.Parse(split[1]);
+                                    reasonPhrase = string.Join(' ', split[2..]);
 
-                                        statusCode = (HttpStatusCode)int.Parse(split[1]);
-                                        reasonPhrase = string.Join(' ', split[2..]);
-
-                                        firstLine = false;
-                                    }
-                                    else
-                                    {
-                                        var delimiterIndex = trimmedLine.IndexOf(':');
-
-                                        var key = trimmedLine[..delimiterIndex];
-                                        var value = trimmedLine[(delimiterIndex + 1)..];
-
-                                        headers.Add(key, value.TrimStart());
-                                    }
+                                    firstLine = false;
                                 }
                                 else
                                 {
-                                    LogWgetOutput(logMessageBuffer, line);
+                                    var delimiterIndex = trimmedLine.IndexOf(':');
 
-                                    errorsLog.AppendLine(line);
+                                    var key = trimmedLine[..delimiterIndex];
+                                    var value = trimmedLine[(delimiterIndex + 1)..];
+
+                                    headers.Add(key, value.TrimStart());
                                 }
                             }
-                        }),
-                        Task.Run(() =>
-                        {
-                            using (var memoryStream = new MemoryStream(0))
+                            else
                             {
-                                process.StandardOutput.BaseStream.CopyTo(memoryStream);
+                                LogWgetOutput(logMessageBuffer, line);
 
-                                contentBytes = memoryStream.ToReadOnlyMemory();
+                                errorsLog.AppendLine(line);
                             }
-                        })
-                    ),
+                        }
+                    }),
+                    Task.Run(() =>
+                    {
+                        using (var memoryStream = new MemoryStream(0))
+                        {
+                            process.StandardOutput.BaseStream.CopyTo(memoryStream);
+
+                            contentBytes = memoryStream.ToReadOnlyMemory();
+                        }
+                    }),
                     process.WaitForExitAsync(cancellationToken)
                 );
 
