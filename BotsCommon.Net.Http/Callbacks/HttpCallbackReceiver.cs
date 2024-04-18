@@ -45,7 +45,7 @@ namespace BotsCommon.Net.Http.Callbacks
             {
                 while (true)
                 {
-                    var context = await _listener.GetContextAsync();
+                    var context = await _listener.GetContextAsync().ConfigureAwait(false);
 
                     _ = Task.Run(() =>
                     {
@@ -114,7 +114,7 @@ namespace BotsCommon.Net.Http.Callbacks
 
             using var httpClient = new HttpClient();
 
-            await httpClient.GetAsync(testUrl);
+            await httpClient.GetAsync(testUrl).ConfigureAwait(false);
 
             try
             {

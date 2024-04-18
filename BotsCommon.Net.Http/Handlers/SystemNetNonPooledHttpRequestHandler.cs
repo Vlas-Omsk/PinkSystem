@@ -29,9 +29,9 @@ namespace BotsCommon.Net.Http.Handlers
 
             using var httpClient = new HttpClient(handler);
 
-            using var responseMessage = await httpClient.SendAsync(requestMessage, cancellationToken);
+            using var responseMessage = await httpClient.SendAsync(requestMessage, cancellationToken).ConfigureAwait(false);
 
-            return await SystemNetHttpUtils.CreateResponseFromNetResponse(responseMessage, cancellationToken);
+            return await SystemNetHttpUtils.CreateResponseFromNetResponse(responseMessage, cancellationToken).ConfigureAwait(false);
         }
 
         public void Dispose()

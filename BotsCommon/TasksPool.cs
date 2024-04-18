@@ -55,7 +55,7 @@ namespace BotsCommon
 
         public async Task<T?> WaitAnyAndGetValue<T>()
         {
-            var task = await WaitAnyInternal();
+            var task = await WaitAnyInternal().ConfigureAwait(false);
 
             if (task == Task.CompletedTask)
                 return default;
@@ -65,10 +65,10 @@ namespace BotsCommon
 
         private async Task<Task> WaitAnyInternal()
         {
-            var task = await Task.WhenAny(_tasks);
+            var task = await Task.WhenAny(_tasks).ConfigureAwait(false);
 
             if (task.IsFaulted)
-                await WaitAll();
+                await WaitAll().ConfigureAwait(false);
 
             return task;
         }
@@ -77,7 +77,7 @@ namespace BotsCommon
         {
             try
             {
-                await Task.WhenAll(_tasks);
+                await Task.WhenAll(_tasks).ConfigureAwait(false);
             }
             catch
             {
@@ -95,7 +95,7 @@ namespace BotsCommon
 
         public async Task<IEnumerable<T>> WaitAllAndGetValues<T>()
         {
-            await WaitAll();
+            await WaitAll().ConfigureAwait(false);
 
             return _tasks.Where(x => x is Task<T>).Select(x => ((Task<T>)x).Result);
         }
@@ -106,7 +106,7 @@ namespace BotsCommon
 
             try
             {
-                await WaitAll();
+                await WaitAll().ConfigureAwait(false);
             }
             catch (AggregateException ex) when (ex.InnerExceptions.All(x => x is OperationCanceledException))
             {
@@ -124,7 +124,7 @@ namespace BotsCommon
 
             try
             {
-                CancelAll().Wait();
+                CancelAll().ConfigureAwait(false).GetAwaiter().GetResult();
             }
             catch
             {
@@ -137,7 +137,7 @@ namespace BotsCommon
 
             try
             {
-                await CancelAll();
+                await CancelAll().ConfigureAwait(false);
             }
             catch
             {

@@ -52,7 +52,7 @@ namespace BotsCommon.Net.Http.Handlers
         {
             request.Headers.Replace("Accept-Encoding", "gzip, deflate, br");
 
-            var response = await _handler.SendAsync(request, cancellationToken);
+            var response = await _handler.SendAsync(request, cancellationToken).ConfigureAwait(false);
 
             response = new HttpResponse(
                 response.Uri,

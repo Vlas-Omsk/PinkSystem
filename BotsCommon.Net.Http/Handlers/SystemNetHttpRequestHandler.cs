@@ -31,9 +31,9 @@ namespace BotsCommon.Net.Http.Handlers
         {
             using var requestMessage = SystemNetHttpUtils.CreateNetRequestFromRequest(request);
 
-            var responseMessage = await _httpClient.SendAsync(requestMessage, cancellationToken);
+            var responseMessage = await _httpClient.SendAsync(requestMessage, cancellationToken).ConfigureAwait(false);
 
-            return await SystemNetHttpUtils.CreateResponseFromNetResponse(responseMessage, cancellationToken);
+            return await SystemNetHttpUtils.CreateResponseFromNetResponse(responseMessage, cancellationToken).ConfigureAwait(false);
         }
 
         public void Dispose()

@@ -36,7 +36,7 @@ namespace BotsCommon.Net.Http.Handlers
             {
                 try
                 {
-                    return await _handler.SendAsync(request, cancellationToken);
+                    return await _handler.SendAsync(request, cancellationToken).ConfigureAwait(false);
                 }
                 catch (Exception ex) when (ex.CheckAny(ex =>
                     (ex is HttpRequestException &&
@@ -54,7 +54,7 @@ namespace BotsCommon.Net.Http.Handlers
                 }
 
                 if (i < _retryAmount)
-                    await Task.Delay(_retryDelay, cancellationToken);
+                    await Task.Delay(_retryDelay, cancellationToken).ConfigureAwait(false);
             }
 
             throw new Exception("The number of attempts has been exhausted", exLast!);

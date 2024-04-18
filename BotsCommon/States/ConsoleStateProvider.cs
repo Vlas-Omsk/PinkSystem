@@ -76,7 +76,7 @@ namespace BotsCommon.States
 
                 try
                 {
-                    await Task.Delay(_updateInterval, _cancellationTokenSource.Token);
+                    await Task.Delay(_updateInterval, _cancellationTokenSource.Token).ConfigureAwait(false);
                 }
                 catch (OperationCanceledException)
                 {
@@ -90,7 +90,7 @@ namespace BotsCommon.States
 
             try
             {
-                _task?.GetAwaiter().GetResult();
+                _task?.ConfigureAwait(false).GetAwaiter().GetResult();
             }
             catch (OperationCanceledException)
             {

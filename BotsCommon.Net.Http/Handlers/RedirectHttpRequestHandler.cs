@@ -21,7 +21,7 @@ namespace BotsCommon.Net.Http.Handlers
         {
             while (true)
             {
-                var response = await _handler.SendAsync(request, cancellationToken);
+                var response = await _handler.SendAsync(request, cancellationToken).ConfigureAwait(false);
 
                 if (response.StatusCode is
                     not HttpStatusCode.Moved and

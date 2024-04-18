@@ -56,12 +56,12 @@ namespace BotsCommon.Net.Http.Handlers
 
             if (request.Content != null)
             {
-                using (var webRequestStream = await webRequest.GetRequestStreamAsync())
+                using (var webRequestStream = await webRequest.GetRequestStreamAsync().ConfigureAwait(false))
                 using (var requestStream = request.Content.CreateStream())
                     requestStream.CopyTo(webRequestStream);
             }
 
-            using var webResponse = (HttpWebResponse)await webRequest.GetResponseAsync();
+            using var webResponse = (HttpWebResponse)await webRequest.GetResponseAsync().ConfigureAwait(false);
 
             ReadOnlyMemory<byte> bytes;
 

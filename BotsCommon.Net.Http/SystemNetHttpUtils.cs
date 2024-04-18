@@ -53,7 +53,7 @@ namespace BotsCommon.Net.Http
             foreach (var header in responseMessage.Content.Headers)
                 headers.Add(header.Key, header.Value);
 
-            var contentBytes = await responseMessage.Content.ReadAsByteArrayAsync(cancellationToken);
+            var contentBytes = await responseMessage.Content.ReadAsByteArrayAsync(cancellationToken).ConfigureAwait(false);
 
             return new HttpResponse(
                 responseMessage.RequestMessage?.RequestUri!,

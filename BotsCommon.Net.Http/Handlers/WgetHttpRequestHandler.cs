@@ -141,7 +141,7 @@ namespace BotsCommon.Net.Http.Handlers
                         }
                     }),
                     process.WaitForExitAsync(cancellationToken)
-                );
+                ).ConfigureAwait(false);
 
                 if (!statusCode.HasValue)
                     throw new Exception(errorsLog.ToString());

@@ -24,7 +24,7 @@ namespace BotsCommon.Net.Http.Handlers
             if (!string.IsNullOrEmpty(cookieHeaderValue))
                 request.Headers.Add("Cookie", cookieHeaderValue);
 
-            var response = await _handler.SendAsync(request, cancellationToken);
+            var response = await _handler.SendAsync(request, cancellationToken).ConfigureAwait(false);
 
             if (response.Headers.TryGetValues("Set-Cookie", out var setCookieHeaders))
                 foreach (var setCookieHeader in setCookieHeaders)
