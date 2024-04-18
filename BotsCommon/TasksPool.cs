@@ -87,9 +87,9 @@ namespace BotsCommon
                     .ToArray();
 
                 if (exceptions.Length == 1)
-                    throw exceptions[0];
+                    throw new Exception("Exception ocurrend when executing task on pool", exceptions[0]);
                 else
-                    throw new AggregateException(exceptions);
+                    throw new AggregateException("Exception ocurrend when executing task on pool", exceptions);
             }
         }
 
