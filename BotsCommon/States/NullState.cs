@@ -14,6 +14,10 @@ namespace BotsCommon.States
         {
         }
 
+        public void Change(string key, string value)
+        {
+        }
+
         public static NullState Instance { get; } = new();
     }
 }
