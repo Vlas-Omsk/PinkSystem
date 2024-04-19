@@ -10,14 +10,16 @@ namespace BotsCommon
     {
         private readonly Task[] _tasks;
         private readonly object _lock = new object();
-        private CancellationTokenSource _cancellationTokenSource = new();
+        private CancellationTokenSource _cancellationTokenSource;
 
-        public TasksPool(int count)
+        public TasksPool(int count, CancellationToken cancellationToken = default)
         {
             _tasks = new Task[count];
 
             for (var i = 0; i < count; i++)
                 _tasks[i] = Task.CompletedTask;
+
+            _cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         }
 
         ~TasksPool()
