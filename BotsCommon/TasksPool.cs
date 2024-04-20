@@ -110,10 +110,7 @@ namespace BotsCommon
             {
                 await WaitAll().ConfigureAwait(false);
             }
-            catch (AggregateException ex) when (ex.InnerExceptions.All(x => x is OperationCanceledException))
-            {
-            }
-            catch (OperationCanceledException)
+            catch (Exception ex) when (ex.CheckAll(x => x is OperationCanceledException))
             {
             }
 
