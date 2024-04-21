@@ -33,7 +33,7 @@ namespace BotsCommon.Net.Http.Callbacks
             {
                 _exception = ex;
 
-                _event.Set();
+                _event.Release();
 
                 return true;
             }
@@ -42,7 +42,7 @@ namespace BotsCommon.Net.Http.Callbacks
             {
                 _result = response.Value;
 
-                _event.Set();
+                _event.Release();
 
                 return true;
             }
