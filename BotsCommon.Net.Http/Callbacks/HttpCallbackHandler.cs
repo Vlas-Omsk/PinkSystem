@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace BotsCommon.Net.Http.Callbacks
 {
@@ -11,7 +12,7 @@ namespace BotsCommon.Net.Http.Callbacks
     public sealed record HttpCallbackHandler<T> : IHttpCallbackHandler
     {
         private readonly Func<HttpRequest, HttpCallbackHandlerResponse<T>> _func;
-        private readonly ManualResetEvent _event = new(false);
+        private readonly SemaphoreSlim _event = new(0, 1);
         private T? _result;
         private Exception? _exception;
 
@@ -49,14 +50,9 @@ namespace BotsCommon.Net.Http.Callbacks
             return false;
         }
 
-        public T Wait(TimeSpan timeout, CancellationToken cancellationToken)
+        public async Task<T> Wait(TimeSpan timeout, CancellationToken cancellationToken)
         {
-            var index = WaitHandle.WaitAny(
-                [cancellationToken.WaitHandle, _event],
-                timeout
-            );
-
-            if (index == WaitHandle.WaitTimeout)
+            if (!await _event.WaitAsync(timeout, cancellationToken))
                 throw new TimeoutException("Timeout when waiting message");
 
             cancellationToken.ThrowIfCancellationRequested();
