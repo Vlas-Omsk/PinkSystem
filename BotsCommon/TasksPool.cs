@@ -62,6 +62,9 @@ namespace BotsCommon
             if (task == Task.CompletedTask)
                 return default;
 
+            if (_cancellationTokenSource.Token.IsCancellationRequested && task.IsCanceled)
+                return default;
+
             return ((Task<T>)task).Result;
         }
 
@@ -80,6 +83,10 @@ namespace BotsCommon
             try
             {
                 await Task.WhenAll(_tasks).ConfigureAwait(false);
+            }
+            catch (OperationCanceledException)
+            {
+                return;
             }
             catch
             {
@@ -114,6 +121,8 @@ namespace BotsCommon
             {
             }
 
+            _cancellationTokenSource.Dispose();
+
             _cancellationTokenSource = new CancellationTokenSource();
         }
 
@@ -121,26 +130,14 @@ namespace BotsCommon
         {
             GC.SuppressFinalize(this);
 
-            try
-            {
-                CancelAll().ConfigureAwait(false).GetAwaiter().GetResult();
-            }
-            catch
-            {
-            }
+            CancelAll().ConfigureAwait(false).GetAwaiter().GetResult();
         }
 
         public async ValueTask DisposeAsync()
         {
             GC.SuppressFinalize(this);
 
-            try
-            {
-                await CancelAll().ConfigureAwait(false);
-            }
-            catch
-            {
-            }
+            await CancelAll().ConfigureAwait(false);
         }
     }
 }
