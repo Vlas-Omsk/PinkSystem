@@ -118,7 +118,7 @@ namespace BotsCommon.Net.Http.Callbacks
 
             try
             {
-                handler.Wait(TimeSpan.FromSeconds(10), cancellationToken);
+                await handler.Wait(TimeSpan.FromSeconds(10), cancellationToken);
             }
             catch (Exception ex)
             {
