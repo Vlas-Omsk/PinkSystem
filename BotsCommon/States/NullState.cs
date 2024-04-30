@@ -18,6 +18,10 @@ namespace BotsCommon.States
         {
         }
 
+        public void Remove(string key)
+        {
+        }
+
         public static NullState Instance { get; } = new();
     }
 }

@@ -48,5 +48,18 @@ namespace BotsCommon.States
 
             _factory.NotifyUpdate();
         }
+
+        public void Remove(string key)
+        {
+            lock (_lock)
+            {
+                if (_value == null)
+                    return;
+            }
+
+            _value.TryRemove(key, out _);
+
+            _factory.NotifyUpdate();
+        }
     }
 }
