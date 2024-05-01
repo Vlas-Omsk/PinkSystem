@@ -8,10 +8,14 @@ namespace BotsCommon.IO.Data
         private readonly IDataReader<T> _reader;
         private readonly object _lock = new();
         private readonly List<T?> _items = new();
+        private readonly int _maxRange;
+        private readonly int _maxBufferSize;
 
-        public RandomDataReader(IDataReader<T> dataReader)
+        public RandomDataReader(IDataReader<T> dataReader, int maxRange = int.MaxValue)
         {
             _reader = dataReader;
+            _maxRange = maxRange;
+            _maxBufferSize = (int)Math.Min(_maxRange * 3L, int.MaxValue);
         }
 
         public int? Length => _reader.Length;
@@ -22,7 +26,20 @@ namespace BotsCommon.IO.Data
             if (!_reader.Length.HasValue)
                 throw new Exception("Length must be non null");
 
-            var skipCount = Random.Shared.Next(0, (_reader.Length.Value - _reader.Index) + _items.Count);
+            lock (_lock)
+            {
+                if (_items.Count >= _maxBufferSize)
+                {
+                    var index = Random.Shared.Next(0, _items.Count);
+                    var item = _items[index];
+
+                    _items.RemoveAt(index);
+
+                    return item;
+                }
+            }
+
+            var skipCount = Random.Shared.Next(0, Math.Min(_reader.Length.Value - _reader.Index, _maxRange) + _items.Count);
 
             lock (_lock)
             {
