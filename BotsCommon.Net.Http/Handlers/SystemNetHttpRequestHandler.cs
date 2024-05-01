@@ -1,4 +1,5 @@
-﻿using System.Net;
+﻿using System;
+using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -9,7 +10,7 @@ namespace BotsCommon.Net.Http.Handlers
     {
         private readonly HttpClient _httpClient;
 
-        public SystemNetHttpRequestHandler(HttpRequestHandlerOptions options)
+        public SystemNetHttpRequestHandler(HttpRequestHandlerOptions options, TimeSpan timeout)
         {
             var handler = new HttpClientHandler()
             {
@@ -20,7 +21,10 @@ namespace BotsCommon.Net.Http.Handlers
             if (options.Proxy != null)
                 handler.Proxy = options.Proxy.ToWebProxy();
 
-            _httpClient = new HttpClient(handler);
+            _httpClient = new HttpClient(handler)
+            {
+                Timeout = timeout
+            };
 
             Options = options;
         }

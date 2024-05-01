@@ -1,4 +1,5 @@
-﻿using System.Net;
+﻿using System;
+using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -7,9 +8,12 @@ namespace BotsCommon.Net.Http.Handlers
 {
     public sealed class SystemNetNonPooledHttpRequestHandler : IHttpRequestHandler
     {
-        public SystemNetNonPooledHttpRequestHandler(HttpRequestHandlerOptions options)
+        private readonly TimeSpan _timeout;
+
+        public SystemNetNonPooledHttpRequestHandler(HttpRequestHandlerOptions options, TimeSpan timeout)
         {
             Options = options;
+            _timeout = timeout;
         }
 
         public HttpRequestHandlerOptions Options { get; }
@@ -27,7 +31,10 @@ namespace BotsCommon.Net.Http.Handlers
             if (Options.Proxy != null)
                 handler.Proxy = Options.Proxy.ToWebProxy();
 
-            using var httpClient = new HttpClient(handler);
+            using var httpClient = new HttpClient(handler)
+            {
+                Timeout = _timeout,
+            };
 
             using var responseMessage = await httpClient.SendAsync(requestMessage, cancellationToken).ConfigureAwait(false);
 
