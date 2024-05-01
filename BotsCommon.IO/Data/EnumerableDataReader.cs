@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 
 namespace BotsCommon.IO.Data
 {
@@ -9,7 +10,7 @@ namespace BotsCommon.IO.Data
         private readonly object _lock = new();
         private int _index;
 
-        public EnumerableDataReader(IEnumerable<T> enumerable) : this(enumerable, null)
+        public EnumerableDataReader(IEnumerable<T> enumerable) : this(enumerable, enumerable.Count())
         {
         }
 
