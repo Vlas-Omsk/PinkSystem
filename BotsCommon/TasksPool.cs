@@ -9,8 +9,8 @@ namespace BotsCommon
     public sealed class TasksPool : IDisposable, IAsyncDisposable
     {
         private readonly Task[] _tasks;
-        private readonly object _lock = new object();
         private CancellationTokenSource _cancellationTokenSource;
+        private readonly CancellationToken _cancellationToken;
 
         public TasksPool(int count, CancellationToken cancellationToken = default)
         {
@@ -19,7 +19,8 @@ namespace BotsCommon
             for (var i = 0; i < count; i++)
                 _tasks[i] = Task.CompletedTask;
 
-            _cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            _cancellationToken = cancellationToken;
+            _cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(_cancellationToken);
         }
 
         ~TasksPool()
@@ -39,15 +40,12 @@ namespace BotsCommon
             if (task == null)
                 throw new ArgumentNullException(nameof(task));
 
-            lock (_lock)
-            {
-                var index = Array.FindIndex(_tasks, x => x.IsCompleted);
+            var index = Array.FindIndex(_tasks, x => x.IsCompleted);
 
-                if (index == -1)
-                    throw new Exception("All tasks are in progress");
+            if (index == -1)
+                throw new Exception("All tasks are in progress");
 
-                _tasks[index] = task(_cancellationTokenSource.Token);
-            }
+            _tasks[index] = task(_cancellationTokenSource.Token);
         }
 
         public Task WaitAny()
@@ -111,6 +109,13 @@ namespace BotsCommon
 
         public async Task CancelAll()
         {
+            await CancelAllInternal().ConfigureAwait(false);
+
+            _cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(_cancellationToken);
+        }
+
+        private async Task CancelAllInternal()
+        {
             _cancellationTokenSource.Cancel();
 
             try
@@ -122,22 +127,20 @@ namespace BotsCommon
             }
 
             _cancellationTokenSource.Dispose();
-
-            _cancellationTokenSource = new CancellationTokenSource();
         }
 
         public void Dispose()
         {
             GC.SuppressFinalize(this);
 
-            CancelAll().ConfigureAwait(false).GetAwaiter().GetResult();
+            CancelAllInternal().ConfigureAwait(false).GetAwaiter().GetResult();
         }
 
         public async ValueTask DisposeAsync()
         {
             GC.SuppressFinalize(this);
 
-            await CancelAll().ConfigureAwait(false);
+            await CancelAllInternal().ConfigureAwait(false);
         }
     }
 }

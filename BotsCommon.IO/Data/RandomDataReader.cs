@@ -7,7 +7,7 @@ namespace BotsCommon.IO.Data
     {
         private readonly IDataReader<T> _reader;
         private readonly object _lock = new();
-        private readonly List<T?> _items = new();
+        private readonly List<T?> _items;
         private readonly int _maxRange;
         private readonly int _maxBufferSize;
 
@@ -15,7 +15,8 @@ namespace BotsCommon.IO.Data
         {
             _reader = dataReader;
             _maxRange = maxRange;
-            _maxBufferSize = (int)Math.Min(_maxRange * 3L, int.MaxValue);
+            _maxBufferSize = (int)Math.Min(_maxRange * 2L, int.MaxValue);
+            _items = new(_maxBufferSize);
         }
 
         public int? Length => _reader.Length;
