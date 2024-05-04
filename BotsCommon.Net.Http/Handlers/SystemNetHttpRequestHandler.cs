@@ -12,7 +12,7 @@ namespace BotsCommon.Net.Http.Handlers
 
         public SystemNetHttpRequestHandler(HttpRequestHandlerOptions options, TimeSpan timeout)
         {
-            var handler = new HttpClientHandler()
+            var handler = new SocketsHttpHandler()
             {
                 AutomaticDecompression = DecompressionMethods.None,
                 AllowAutoRedirect = false
