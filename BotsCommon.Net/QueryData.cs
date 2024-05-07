@@ -24,7 +24,7 @@ namespace BotsCommon.Net
 
         public string this[string key]
         {
-            get => _dictionary[key].First(),
+            get => _dictionary[key].First();
             set => Add(key, value);
         }
 
