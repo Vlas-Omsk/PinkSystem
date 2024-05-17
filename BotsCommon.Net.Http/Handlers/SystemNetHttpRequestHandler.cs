@@ -21,6 +21,12 @@ namespace BotsCommon.Net.Http.Handlers
             if (options.Proxy != null)
                 handler.Proxy = options.Proxy.ToWebProxy();
 
+            if (!options.ValidateSsl)
+                handler.SslOptions = new()
+                {
+                    RemoteCertificateValidationCallback = delegate { return true; }
+                };
+
             _httpClient = new HttpClient(handler)
             {
                 Timeout = timeout
