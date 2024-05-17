@@ -44,8 +44,7 @@ namespace BotsCommon.Net.Http.Handlers
                             ex.Message.Contains("proxy", StringComparison.OrdinalIgnoreCase) ||
                             ex.Message.Contains("The server shut down the connection", StringComparison.OrdinalIgnoreCase) ||
                             ex.Message.Contains("An HTTP/2 connection could not be established because the server did not complete the HTTP/2 handshake", StringComparison.OrdinalIgnoreCase))) ||
-                    (ex is TaskCanceledException &&
-                        ex.Message.Contains("The request was canceled due to the configured HttpClient.Timeout", StringComparison.OrdinalIgnoreCase))
+                    (ex is TaskCanceledException && !cancellationToken.IsCancellationRequested)
                 ))
                 {
                     exLast = ex;
