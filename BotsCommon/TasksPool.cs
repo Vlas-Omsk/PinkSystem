@@ -1,6 +1,7 @@
 ﻿using BotsCommon.Exceptions;
 using BotsCommon.Runtime;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -78,8 +79,6 @@ namespace BotsCommon
 
         public async Task<T?> WaitAny()
         {
-            await _tasksPool.WaitAny();
-
             var task = await _tasksPool.WaitAny().ConfigureAwait(false);
 
             if (task == Task.CompletedTask)
@@ -116,16 +115,23 @@ namespace BotsCommon
 
     internal sealed class TasksPoolCore : IDisposable, IAsyncDisposable
     {
-        private readonly Task[] _tasks;
+        private readonly List<Task> _tasks;
+        private readonly ConcurrentQueue<Task> _completedTasks;
+        private readonly SemaphoreSlim _taskCompletedEvent;
         private CancellationTokenSource _cancellationTokenSource;
         private readonly CancellationToken _cancellationToken;
 
         public TasksPoolCore(int count, CancellationToken cancellationToken)
         {
-            _tasks = new Task[count];
+            Count = count;
 
-            for (var i = 0; i < count; i++)
-                _tasks[i] = Task.CompletedTask;
+            _tasks = new(
+                Enumerable.Range(1, count).Select(_ => Task.CompletedTask)
+            );
+            _completedTasks = new(
+                _tasks
+            );
+            _taskCompletedEvent = new(count, count);
 
             _cancellationToken = cancellationToken;
             _cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(_cancellationToken);
@@ -136,7 +142,7 @@ namespace BotsCommon
             Dispose();
         }
 
-        public int Count => _tasks.Length;
+        public int Count { get; }
         public bool IsCancelled => _cancellationTokenSource.IsCancellationRequested;
 
         public void StartNew(Func<Task> func)
@@ -149,12 +155,19 @@ namespace BotsCommon
             if (func == null)
                 throw new ArgumentNullException(nameof(func));
 
-            var index = Array.FindIndex(_tasks, x => x.IsCompleted);
-
-            if (index == -1)
+            if (_tasks.Count >= Count)
                 throw new Exception("All tasks are in progress");
 
-            _tasks[index] = StartNewTask(func);
+            var task = StartNewTask(func);
+
+            _tasks.Add(task);
+
+            task.ContinueWith((_) =>
+            {
+                _completedTasks.Enqueue(task);
+
+                _taskCompletedEvent.Release();
+            }, TaskContinuationOptions.ExecuteSynchronously);
         }
 
         private async Task<object?> StartNewTask(Func<CancellationToken, Task> func)
@@ -183,7 +196,12 @@ namespace BotsCommon
 
         public async Task<Task> WaitAny()
         {
-            var task = await Task.WhenAny(_tasks).ConfigureAwait(false);
+            await _taskCompletedEvent.WaitAsync();
+
+            if (!_completedTasks.TryDequeue(out var task))
+                throw new InvalidOperationException("Completed tasks collection empty");
+
+            _tasks.Remove(task);
 
             if (task.IsFaulted)
                 await WaitAll().ConfigureAwait(false);
@@ -210,6 +228,14 @@ namespace BotsCommon
                     throw new Exception("Exception ocurrend when executing task on pool", exceptions[0]);
                 else
                     throw new AggregateException("Exception ocurrend when executing task on pool", exceptions);
+            }
+            finally
+            {
+                if (_completedTasks.Count != Count)
+                    throw new InvalidOperationException("Not all tasks completed");
+
+                _completedTasks.Clear();
+                _tasks.Clear();
             }
         }
 
