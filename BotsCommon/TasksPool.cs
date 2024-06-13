@@ -115,7 +115,8 @@ namespace BotsCommon
 
     internal sealed class TasksPoolCore : IDisposable, IAsyncDisposable
     {
-        private readonly List<Task> _tasks;
+        private readonly Task[] _tasks;
+        private readonly Queue<int> _emptyIndexes;
         private readonly ConcurrentQueue<(int, Task)> _completedTasks;
         private readonly SemaphoreSlim _taskCompletedEvent;
         private CancellationTokenSource _cancellationTokenSource;
@@ -128,8 +129,9 @@ namespace BotsCommon
             _completedTasks = new(
                 Enumerable.Range(0, count).Select(x => (x, Task.CompletedTask))
             );
-            _tasks = new(
-                _completedTasks.Select(x => x.Item2)
+            _tasks = _completedTasks.Select(x => x.Item2).ToArray();
+            _emptyIndexes = new(
+                _completedTasks.Select(x => x.Item1)
             );
             _taskCompletedEvent = new(count, count);
 
@@ -155,14 +157,12 @@ namespace BotsCommon
             if (func == null)
                 throw new ArgumentNullException(nameof(func));
 
-            if (_tasks.Count >= Count)
+            if (!_emptyIndexes.TryDequeue(out var index))
                 throw new Exception("All tasks are in progress");
 
             var task = StartNewTask(func);
 
-            var index = _tasks.Count;
-
-            _tasks.Add(task);
+            _tasks[index] = task;
 
             task.ContinueWith((_) =>
             {
@@ -203,7 +203,7 @@ namespace BotsCommon
             if (!_completedTasks.TryDequeue(out var tuple))
                 throw new InvalidOperationException("Completed tasks collection empty");
 
-            _tasks.RemoveAt(tuple.Item1);
+            _emptyIndexes.Enqueue(tuple.Item1);
 
             if (tuple.Item2.IsFaulted)
                 await WaitAll().ConfigureAwait(false);
@@ -233,11 +233,7 @@ namespace BotsCommon
             }
             finally
             {
-                if (_completedTasks.Count != _tasks.Count)
-                    throw new InvalidOperationException("Not all tasks completed");
-
                 _completedTasks.Clear();
-                _tasks.Clear();
             }
         }
 
