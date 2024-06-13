@@ -116,7 +116,7 @@ namespace BotsCommon
     internal sealed class TasksPoolCore : IDisposable, IAsyncDisposable
     {
         private readonly List<Task> _tasks;
-        private readonly ConcurrentQueue<Task> _completedTasks;
+        private readonly ConcurrentQueue<(int, Task)> _completedTasks;
         private readonly SemaphoreSlim _taskCompletedEvent;
         private CancellationTokenSource _cancellationTokenSource;
         private readonly CancellationToken _cancellationToken;
@@ -125,11 +125,11 @@ namespace BotsCommon
         {
             Count = count;
 
-            _tasks = new(
-                Enumerable.Range(1, count).Select(_ => Task.CompletedTask)
-            );
             _completedTasks = new(
-                _tasks
+                Enumerable.Range(0, count).Select(x => (x, Task.CompletedTask))
+            );
+            _tasks = new(
+                _completedTasks.Select(x => x.Item2)
             );
             _taskCompletedEvent = new(count, count);
 
@@ -160,11 +160,13 @@ namespace BotsCommon
 
             var task = StartNewTask(func);
 
+            var index = _tasks.Count;
+
             _tasks.Add(task);
 
             task.ContinueWith((_) =>
             {
-                _completedTasks.Enqueue(task);
+                _completedTasks.Enqueue((index, task));
 
                 _taskCompletedEvent.Release();
             }, TaskContinuationOptions.ExecuteSynchronously);
@@ -198,15 +200,15 @@ namespace BotsCommon
         {
             await _taskCompletedEvent.WaitAsync();
 
-            if (!_completedTasks.TryDequeue(out var task))
+            if (!_completedTasks.TryDequeue(out var tuple))
                 throw new InvalidOperationException("Completed tasks collection empty");
 
-            _tasks.Remove(task);
+            _tasks.RemoveAt(tuple.Item1);
 
-            if (task.IsFaulted)
+            if (tuple.Item2.IsFaulted)
                 await WaitAll().ConfigureAwait(false);
 
-            return task;
+            return tuple.Item2;
         }
 
         public async Task<IEnumerable<Task>> WaitAll()
