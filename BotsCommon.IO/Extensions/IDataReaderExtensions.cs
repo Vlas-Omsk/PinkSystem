@@ -1,4 +1,5 @@
 ﻿using BotsCommon.IO.Data;
+using System.Collections.Generic;
 
 namespace BotsCommon
 {
@@ -9,6 +10,16 @@ namespace BotsCommon
             return self.Length.HasValue ?
                 (float)self.Index / self.Length.Value * 100 :
                 float.PositiveInfinity;
+        }
+
+        public static IEnumerable<T> AsEnumerable<T>(this IDataReader<T> self)
+        {
+            T? item;
+
+            while ((item = self.Read()) != null)
+            {
+                yield return item;
+            }
         }
     }
 }

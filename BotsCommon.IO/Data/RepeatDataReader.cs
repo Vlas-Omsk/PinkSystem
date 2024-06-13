@@ -3,7 +3,7 @@
     public sealed class RepeatDataReader<T> : IDataReader<T>
     {
         private readonly IDataReader<T> _reader;
-        private readonly object _lock = new();
+        private object _lock = new();
 
         public RepeatDataReader(IDataReader<T> reader)
         {
@@ -15,19 +15,21 @@
 
         public T? Read()
         {
+            T? data;
+
             lock (_lock)
             {
-                var data = _reader.Read();
+                data = _reader.Read();
 
                 if (data == null)
                 {
-                    _reader.Reset();
+                    Reset();
 
                     data = _reader.Read();
                 }
-
-                return data;
             }
+
+            return data;
         }
 
         public void Reset()
@@ -38,8 +40,7 @@
 
         public void Dispose()
         {
-            lock (_lock)
-                _reader.Dispose();
+            _reader.Dispose();
         }
     }
 }
