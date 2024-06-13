@@ -231,7 +231,7 @@ namespace BotsCommon
             }
             finally
             {
-                if (_completedTasks.Count != Count)
+                if (_completedTasks.Count != _tasks.Count)
                     throw new InvalidOperationException("Not all tasks completed");
 
                 _completedTasks.Clear();
