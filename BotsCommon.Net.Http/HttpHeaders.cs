@@ -8,7 +8,7 @@ namespace BotsCommon.Net.Http
 {
     public sealed class HttpHeaders : IEnumerable<KeyValuePair<string, IEnumerable<string>>>
     {
-        private readonly Dictionary<string, List<string>> _dictionary = new(StringComparer.InvariantCultureIgnoreCase);
+        private readonly Dictionary<string, List<string>> _dictionary = new(StringComparer.OrdinalIgnoreCase);
 
         public void Add(string key, string value)
         {
