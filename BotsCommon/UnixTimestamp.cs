@@ -13,7 +13,7 @@ namespace BotsCommon
         Days
     }
 
-    public sealed class UnixTimestamp
+    public readonly struct UnixTimestamp
     {
         public UnixTimestamp(TimeSpan timeSpan, UnixTimestampPercision percision)
         {
@@ -50,7 +50,7 @@ namespace BotsCommon
 
         public override int GetHashCode()
         {
-            return base.GetHashCode();
+            return DateTime.GetHashCode();
         }
 
         public static UnixTimestamp operator -(UnixTimestamp left, UnixTimestamp right)
