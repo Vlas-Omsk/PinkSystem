@@ -1,29 +1,29 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
+
+#pragma warning disable CS8714
 
 namespace BotsCommon
 {
     public sealed class WatcherCollection<T>
     {
-        private readonly List<T> _items = new();
-        private readonly object _lock = new();
+        private readonly ConcurrentDictionary<T, object?> _items = new();
 
         public void Add(T item)
         {
-            lock (_lock)
-                _items.Add(item);
+            _items.TryAdd(item, null);
         }
 
         public void Remove(T item)
         {
-            lock (_lock)
-                _items.Remove(item);
+            _items.TryRemove(item, out _);
         }
 
         public IEnumerable<T> GetAll()
         {
-            lock (_lock)
-                return _items.ToArray();
+            return _items.Select(x => x.Key);
         }
     }
 
