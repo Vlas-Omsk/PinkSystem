@@ -10,7 +10,7 @@
             _reader = reader;
         }
 
-        public int? Length => _reader.Length;
+        public int? Length { get; } = null;
         public int Index => _reader.Index;
 
         public T? Read()
