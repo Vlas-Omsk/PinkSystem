@@ -153,7 +153,7 @@ namespace BotsCommon.Runtime
                         .Where(x => x
                             .GetParameters()
                             .Select((c, i) => (c, i))
-                            .All(c => argTypes[c.i] == null || c.c.ParameterType.IsAssignableFrom(argTypes[c.i]))
+                            .All(c => argTypes[c.i] == null || c.c.ParameterType.IsAssignableFrom(argTypes[c.i]) || (argTypes[c.i] != null && c.c.ParameterType.IsPointer && argTypes[c.i]! == typeof(Pointer)))
                         )
                         .FirstOrDefault() ??
                         throw new Exception($"Method with name {name}, generic types {string.Join(", ", genericTypes.Select(x => x.Name))} and arg types {string.Join(", ", argTypes.Select(x => x?.Name ?? "null"))} not found");

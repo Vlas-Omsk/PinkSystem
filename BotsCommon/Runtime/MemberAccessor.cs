@@ -8,6 +8,8 @@ namespace BotsCommon.Runtime
 {
     public sealed class MemberAccessor
     {
+        private static MethodInfo _unboxPointerMethod = typeof(MemberAccessor)
+            .GetMethod(nameof(UnboxPointer), BindingFlags.Static | BindingFlags.NonPublic)!;
         private Func<object?, object?>? _getter;
         private Action<object?, object?>? _setter;
         private Func<object?, object?[], object?>? _invoker;
@@ -104,12 +106,26 @@ namespace BotsCommon.Runtime
                     exParametersArray[i] = exVariable;
                 }
                 else
-                {   
+                {
                     var exIndex = Expression.Constant(i);
                     var exParameter = Expression.ArrayIndex(exParameters, exIndex);
-                    var exConvertedParameter = Expression.Convert(exParameter, parameterType);
 
-                    exParametersArray[i] = exConvertedParameter;
+                    if (parameterType.IsPointer)
+                    {
+                        exParametersArray[i] = Expression.Call(
+                            null,
+                            _unboxPointerMethod.MakeGenericMethod(parameterType.GetElementType()!),
+                            [
+                                exParameter
+                            ]
+                        );
+                    }
+                    else
+                    {
+                        var exConvertedParameter = Expression.Convert(exParameter, parameterType);
+
+                        exParametersArray[i] = exConvertedParameter;
+                    }
                 }
             }
 
@@ -188,6 +204,12 @@ namespace BotsCommon.Runtime
                 default:
                     throw new ArgumentException($"{nameof(MemberInfo)} must be of type {nameof(FieldInfo)}, {nameof(MethodInfo)} or {nameof(PropertyInfo)}");
             }
+        }
+
+        private unsafe static T* UnboxPointer<T>(object pointer)
+            where T : unmanaged
+        {
+            return (T*)Pointer.Unbox(pointer);
         }
     }
 }
