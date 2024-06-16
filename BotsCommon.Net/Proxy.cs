@@ -5,6 +5,10 @@ namespace BotsCommon.Net
 {
     public sealed class Proxy
     {
+        private string? _stringPresentation;
+        private string? _uri;
+        private string? _uriWithCredentials;
+
         public Proxy(ProxyScheme scheme, string host) : this(scheme, host, GetDefaultPort(scheme))
         {
             IsDefaultPort = true;
@@ -44,6 +48,17 @@ namespace BotsCommon.Net
 
         public string GetUri(bool useCredentials)
         {
+            if (useCredentials)
+            {
+                if (_uriWithCredentials != null)
+                    return _uriWithCredentials;
+            }
+            else
+            {
+                if (_uri != null)
+                    return _uri;
+            }
+
             var url = $"{GetSchemeName()}://";
 
             if (useCredentials && HasCredentials)
@@ -53,6 +68,11 @@ namespace BotsCommon.Net
 
             if (!IsDefaultPort)
                 url += $":{Port}";
+
+            if (useCredentials)
+                _uriWithCredentials = url;
+            else
+                _uri = url;
 
             return url;
         }
@@ -74,12 +94,19 @@ namespace BotsCommon.Net
 
         public override string ToString()
         {
+            if (_stringPresentation != null)
+                return _stringPresentation;
+
             var result = $"(Host: {Host}, Port: {Port}";
 
             if (HasCredentials)
                 result += $", Username: {Username}, Password: {Password}";
 
-            return result + ")";
+            result += ")";
+
+            _stringPresentation = result;
+
+            return result;
         }
 
         public override bool Equals(object? obj)

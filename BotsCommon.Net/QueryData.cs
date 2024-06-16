@@ -9,6 +9,7 @@ namespace BotsCommon.Net
     public sealed class QueryData : IEnumerable<KeyValuePair<string, string>>, IEnumerable<KeyValuePair<string, IEnumerable<string>>>
     {
         private readonly Dictionary<string, List<string>> _dictionary;
+        private string? _stringPresentation;
 
         public QueryData(IEnumerable<KeyValuePair<string, IEnumerable<string>>> dictionary)
         {
@@ -58,6 +59,8 @@ namespace BotsCommon.Net
             else
                 _dictionary.Add(key, list = new List<string>() { value });
 
+            _stringPresentation = null;
+
             return this;
         }
 
@@ -68,12 +71,17 @@ namespace BotsCommon.Net
             else
                 _dictionary.Add(key, list = new List<string>(values));
 
+            _stringPresentation = null;
+
             return this;
         }
 
         public override string ToString()
         {
-            return string.Join(
+            if (_stringPresentation != null)
+                return _stringPresentation;
+
+            return _stringPresentation = string.Join(
                 '&',
                 _dictionary
                     .SelectMany(x =>
