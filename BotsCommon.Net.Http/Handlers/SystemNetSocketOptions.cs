@@ -1,4 +1,5 @@
-﻿using System.Net.Http;
+﻿using System;
+using System.Net.Http;
 using System.Net.Sockets;
 
 namespace BotsCommon.Net.Http.Handlers
@@ -19,7 +20,8 @@ namespace BotsCommon.Net.Http.Handlers
                         LingerState = new(false, 0)
                     };
 
-                    socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
+                    if (!OperatingSystem.IsLinux())
+                        socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
 
                     try
                     {
