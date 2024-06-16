@@ -8,11 +8,13 @@ namespace BotsCommon.Net.Http.Handlers
 {
     public sealed class SystemNetNonPooledHttpRequestHandler : IHttpRequestHandler
     {
+        private readonly SystemNetSocketOptions _socketOptions;
         private readonly TimeSpan _timeout;
 
-        public SystemNetNonPooledHttpRequestHandler(HttpRequestHandlerOptions options, TimeSpan timeout)
+        public SystemNetNonPooledHttpRequestHandler(HttpRequestHandlerOptions options, SystemNetSocketOptions socketOptions, TimeSpan timeout)
         {
             Options = options;
+            _socketOptions = socketOptions;
             _timeout = timeout;
         }
 
@@ -22,11 +24,13 @@ namespace BotsCommon.Net.Http.Handlers
         {
             using var requestMessage = SystemNetHttpUtils.CreateNetRequestFromRequest(request);
 
-            var handler = new HttpClientHandler()
+            var handler = new SocketsHttpHandler()
             {
                 AutomaticDecompression = DecompressionMethods.None,
                 AllowAutoRedirect = false
             };
+
+            _socketOptions.Apply(handler);
 
             if (Options.Proxy != null)
                 handler.Proxy = Options.Proxy.ToWebProxy();

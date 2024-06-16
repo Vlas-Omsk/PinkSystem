@@ -10,13 +10,15 @@ namespace BotsCommon.Net.Http.Handlers
     {
         private readonly HttpClient _httpClient;
 
-        public SystemNetHttpRequestHandler(HttpRequestHandlerOptions options, TimeSpan timeout)
+        public SystemNetHttpRequestHandler(HttpRequestHandlerOptions options, SystemNetSocketOptions socketOptions, TimeSpan timeout)
         {
             var handler = new SocketsHttpHandler()
             {
                 AutomaticDecompression = DecompressionMethods.None,
                 AllowAutoRedirect = false
             };
+
+            socketOptions.Apply(handler);
 
             if (options.Proxy != null)
                 handler.Proxy = options.Proxy.ToWebProxy();
@@ -34,7 +36,7 @@ namespace BotsCommon.Net.Http.Handlers
 
             Options = options;
         }
-
+        
         public HttpRequestHandlerOptions Options { get; }
 
         public async Task<HttpResponse> SendAsync(HttpRequest request, CancellationToken cancellationToken)
