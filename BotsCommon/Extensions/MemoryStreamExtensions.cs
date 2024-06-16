@@ -1,4 +1,5 @@
-﻿using System;
+﻿using BotsCommon.Runtime;
+using System;
 using System.IO;
 
 namespace BotsCommon
@@ -7,9 +8,14 @@ namespace BotsCommon
     {
         public static ReadOnlyMemory<byte> ToReadOnlyMemory(this MemoryStream self)
         {
+            var accessor = new ObjectAccessor(self, typeof(MemoryStream));
+
+            var buffer = (byte[])accessor.GetField("_buffer")!;
+            var origin = (int)accessor.GetField("_origin")!;
+
             return new ReadOnlyMemory<byte>(
-                self.GetBuffer() ?? Array.Empty<byte>(),
-                0,
+                buffer,
+                origin,
                 (int)self.Length
             );
         }
