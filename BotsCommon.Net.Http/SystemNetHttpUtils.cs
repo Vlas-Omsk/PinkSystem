@@ -1,5 +1,6 @@
 ﻿using BotsCommon.IO.Content;
 using System;
+using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Threading;
@@ -53,7 +54,24 @@ namespace BotsCommon.Net.Http
             foreach (var header in responseMessage.Content.Headers)
                 headers.Add(header.Key, header.Value);
 
-            var contentBytes = await responseMessage.Content.ReadAsByteArrayAsync(cancellationToken).ConfigureAwait(false);
+            using var contentStream = await responseMessage.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
+
+            ReadOnlyMemory<byte> contentBytes;
+
+            if (contentStream is MemoryStream memoryStream)
+            {
+                contentBytes = memoryStream.ToReadOnlyMemory();
+            }
+            else
+            {
+                using var memoryStream2 = responseMessage.Content.Headers.ContentLength.HasValue ?
+                    new MemoryStream((int)responseMessage.Content.Headers.ContentLength) :
+                    new MemoryStream();
+
+                await contentStream.CopyToAsync(memoryStream2, cancellationToken);
+
+                contentBytes = memoryStream2.ToReadOnlyMemory();
+            }
 
             return new HttpResponse(
                 responseMessage.RequestMessage?.RequestUri!,
