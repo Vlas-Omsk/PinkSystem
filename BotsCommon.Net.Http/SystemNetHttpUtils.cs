@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace BotsCommon.Net.Http
 {
-    internal sealed class SystemNetHttpUtils
+    public sealed class SystemNetHttpUtils
     {
         public static HttpRequestMessage CreateNetRequestFromRequest(HttpRequest request)
         {
