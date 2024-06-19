@@ -25,7 +25,7 @@ namespace BotsCommon.IO.Data
         public T? Read()
         {
             if (!_reader.Length.HasValue)
-                throw new Exception("Length must be non null");
+                return _reader.Read();
 
             lock (_lock)
             {
