@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -7,8 +8,7 @@ namespace BotsCommon.States
 {
     public sealed class StateFactory : IStateFactory
     {
-        private readonly object _lock = new();
-        private readonly Dictionary<string, State> _states = new();
+        private readonly ConcurrentDictionary<string, State> _states = new();
         private readonly ImmutableArray<IStateProvider> _providers;
 
         public StateFactory(IEnumerable<IStateProvider> providers)
@@ -18,51 +18,39 @@ namespace BotsCommon.States
 
         public IState Create(string category)
         {
-            State? state;
+            var newState = new State(this);
+            var state = _states.GetOrAdd(category, newState);
 
-            lock (_lock)
-            {
-                if (_states.Any(x => x.Key == category))
-                    throw new Exception($"State for category '{category}' alredy created");
-                
-                state = new State(this);
-
-                _states.Add(category, state);
-            }
+            if (newState != state)
+                throw new Exception($"State for category '{category}' alredy created");
 
             return state;
         }
 
         public IState GetOrCreate(string category)
         {
-            lock (_lock)
-            {
-                if (!_states.TryGetValue(category, out var state))
-                    _states.Add(category, state = new State(this));
+            var state = _states.GetOrAdd(category, (_) => new State(this));
 
-                return state;
-            }
+            return state;
         }
 
         internal void NotifyUpdate()
         {
-            var container = new StateContainer();
+            var container = new StateContainer(
+                _states
+                    .ToArray()
+                    .Where(x => x.Value.Value != null)
+                    .Select(x => new KeyValuePair<string, IEnumerable<KeyValuePair<string, string>>>(x.Key, x.Value.Value!))
+            );
 
-            lock (_lock)
-                foreach (var progress in _states)
-                    if (progress.Value.Value != null)
-                        container.Add(progress.Key, progress.Value.Value);
-
-            lock (_lock)
-                foreach (var provider in _providers)
-                    provider.Set(container);
+            foreach (var provider in _providers)
+                provider.Set(container);
         }
 
         public void Dispose()
         {
-            lock (_lock)
-                foreach (var provider in _providers)
-                    provider.Dispose();
+            foreach (var provider in _providers)
+                provider.Dispose();
         }
     }
 }

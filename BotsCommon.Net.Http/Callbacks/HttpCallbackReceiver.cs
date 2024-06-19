@@ -1,8 +1,10 @@
 ﻿using BotsCommon.IO.Content;
 using Microsoft.Extensions.Logging;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading;
@@ -15,8 +17,7 @@ namespace BotsCommon.Net.Http.Callbacks
         private readonly Uri _uri;
         private readonly ILogger<HttpCallbackReceiver> _logger;
         private readonly HttpListener _listener;
-        private readonly List<IHttpCallbackHandler> _handlers = new();
-        private readonly object _lock = new();
+        private readonly ConcurrentDictionary<IHttpCallbackHandler, bool> _handlers = new();
         private Task? _task;
 
         public HttpCallbackReceiver(string externalHost, int port, ILogger<HttpCallbackReceiver> logger)
@@ -51,10 +52,7 @@ namespace BotsCommon.Net.Http.Callbacks
                     {
                         try
                         {
-                            IHttpCallbackHandler[] handlers;
-
-                            lock (_lock)
-                                handlers = _handlers.ToArray();
+                            IHttpCallbackHandler[] handlers = _handlers.Keys.ToArray();
 
                             foreach (var handler in handlers)
                             {
@@ -82,8 +80,7 @@ namespace BotsCommon.Net.Http.Callbacks
 
                                 if (handler.TryHandle(request))
                                 {
-                                    lock (_lock)
-                                        _handlers.Remove(handler);
+                                    _handlers.TryRemove(handler, out _);
 
                                     break;
                                 }
@@ -128,8 +125,7 @@ namespace BotsCommon.Net.Http.Callbacks
 
         public void AddHandler(IHttpCallbackHandler handler)
         {
-            lock (_lock)
-                _handlers.Add(handler);
+            _handlers.TryAdd(handler, true);
         }
     }
 }

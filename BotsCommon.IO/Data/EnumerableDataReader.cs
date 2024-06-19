@@ -22,19 +22,7 @@ namespace BotsCommon.IO.Data
         }
 
         public int? Length { get; }
-        public int Index
-        {
-            get
-            {
-                lock (_lock)
-                    return _index;
-            }
-            set
-            {
-                lock (_lock)
-                    _index = value;
-            }
-        }
+        public int Index => _index;
 
         public T? Read()
         {
@@ -42,7 +30,7 @@ namespace BotsCommon.IO.Data
             {
                 if (_enumerator.MoveNext())
                 {
-                    Index++;
+                    _index++;
                     return _enumerator.Current;
                 }
             }
@@ -54,7 +42,7 @@ namespace BotsCommon.IO.Data
         {
             lock (_lock)
             {
-                Index = 0;
+                _index = 0;
                 _enumerator.Dispose();
                 _enumerator = _enumerable.GetEnumerator();
             }

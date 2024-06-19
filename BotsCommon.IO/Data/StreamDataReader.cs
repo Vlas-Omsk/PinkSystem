@@ -23,11 +23,6 @@ namespace BotsCommon.IO.Data
                 lock (_lock)
                     return _index;
             }
-            set
-            {
-                lock (_lock)
-                    _index = value;
-            }
         }
 
         public T? Read()
@@ -40,7 +35,7 @@ namespace BotsCommon.IO.Data
 
                 if (line != null)
                 {
-                    Index++;
+                    _index++;
 
                     line = line.TrimStart(new char[] {
                         '\uFEFF',
@@ -59,7 +54,7 @@ namespace BotsCommon.IO.Data
             lock (_lock)
             {
                 _reader.SetPosition(0);
-                Index = 0;
+                _index = 0;
             }
         }
 

@@ -1,11 +1,11 @@
 ﻿using System.Collections.Generic;
+using System.Threading;
 
 namespace BotsCommon.IO.Data
 {
     public sealed class ListDataReader<T> : IDataReader<T>
     {
         private readonly IReadOnlyList<T> _list;
-        private readonly object _lock = new();
         private int _index;
 
         public ListDataReader(IReadOnlyList<T> list)
@@ -14,41 +14,21 @@ namespace BotsCommon.IO.Data
         }
 
         public int? Length { get; }
-        public int Index
-        {
-            get
-            {
-                lock (_lock)
-                    return _index;
-            }
-            set
-            {
-                lock (_lock)
-                    _index = value;
-            }
-        }
+        public int Index => _index;
 
         public T? Read()
         {
-            int index;
+            int index = Interlocked.Increment(ref _index) - 1;
 
-            lock (_lock)
-            {
-                if (Index >= _list.Count)
-                    return default;
-
-                index = Index++;
-            }
+            if (index >= _list.Count)
+                return default;
 
             return _list[index];
         }
 
         public void Reset()
         {
-            lock (_lock)
-            {
-                Index = 0;
-            }
+            Interlocked.Exchange(ref _index, 0);
         }
 
         public void Dispose()
