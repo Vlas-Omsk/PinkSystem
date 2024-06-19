@@ -9,5 +9,7 @@ namespace BotsCommon.Net.Http.Handlers
         HttpRequestHandlerOptions Options { get; }
 
         Task<HttpResponse> SendAsync(HttpRequest request, CancellationToken cancellationToken);
+
+        IHttpRequestHandler Clone();
     }
 }

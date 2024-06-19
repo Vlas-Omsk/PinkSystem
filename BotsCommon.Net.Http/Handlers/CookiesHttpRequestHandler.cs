@@ -33,6 +33,11 @@ namespace BotsCommon.Net.Http.Handlers
             return response;
         }
 
+        public IHttpRequestHandler Clone()
+        {
+            return new CookiesHttpRequestHandler(_handler.Clone(), _cookieContainer);
+        }
+
         public void Dispose()
         {
             _handler.Dispose();

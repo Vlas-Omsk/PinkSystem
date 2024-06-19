@@ -9,6 +9,8 @@ namespace BotsCommon.Net.Http.Handlers
     public sealed class SystemNetHttpRequestHandler : IHttpRequestHandler
     {
         private readonly HttpClient _httpClient;
+        private readonly SystemNetSocketOptions _socketOptions;
+        private readonly TimeSpan _timeout;
 
         public SystemNetHttpRequestHandler(HttpRequestHandlerOptions options, SystemNetSocketOptions socketOptions, TimeSpan timeout)
         {
@@ -34,6 +36,9 @@ namespace BotsCommon.Net.Http.Handlers
                 Timeout = timeout
             };
 
+            _socketOptions = socketOptions;
+            _timeout = timeout;
+
             Options = options;
         }
         
@@ -46,6 +51,11 @@ namespace BotsCommon.Net.Http.Handlers
             using var responseMessage = await _httpClient.SendAsync(requestMessage, cancellationToken).ConfigureAwait(false);
 
             return await SystemNetHttpUtils.CreateResponseFromNetResponse(responseMessage, cancellationToken).ConfigureAwait(false);
+        }
+
+        public IHttpRequestHandler Clone()
+        {
+            return new SystemNetHttpRequestHandler(Options, _socketOptions, _timeout);
         }
 
         public void Dispose()

@@ -49,6 +49,11 @@ namespace BotsCommon.Net.Http.Handlers
             }
         }
 
+        public IHttpRequestHandler Clone()
+        {
+            return new RedirectHttpRequestHandler(_handler.Clone());
+        }
+
         public void Dispose()
         {
             _handler.Dispose();

@@ -90,6 +90,11 @@ namespace BotsCommon.Net.Http.Handlers
             );
         }
 
+        public IHttpRequestHandler Clone()
+        {
+            return new SystemWebHttpRequestHandler(Options);
+        }
+
         public void Dispose()
         {
         }

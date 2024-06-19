@@ -45,6 +45,11 @@ namespace BotsCommon.Net.Http.Handlers
             return await SystemNetHttpUtils.CreateResponseFromNetResponse(responseMessage, cancellationToken).ConfigureAwait(false);
         }
 
+        public IHttpRequestHandler Clone()
+        {
+            return new SystemNetNonPooledHttpRequestHandler(Options, _socketOptions, _timeout);
+        }
+
         public void Dispose()
         {
         }

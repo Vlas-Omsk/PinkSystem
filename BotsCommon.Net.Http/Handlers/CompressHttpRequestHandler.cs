@@ -70,6 +70,11 @@ namespace BotsCommon.Net.Http.Handlers
             return response;
         }
 
+        public IHttpRequestHandler Clone()
+        {
+            return new CompressHttpRequestHandler(_handler.Clone());
+        }
+
         public void Dispose()
         {
             _handler.Dispose();

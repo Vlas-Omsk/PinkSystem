@@ -195,6 +195,11 @@ namespace BotsCommon.Net.Http.Handlers
             logMessageBuffer.Clear();
         }
 
+        public IHttpRequestHandler Clone()
+        {
+            return new WgetHttpRequestHandler(Options, _retryAmount, _logger);
+        }
+
         public void Dispose()
         {
         }

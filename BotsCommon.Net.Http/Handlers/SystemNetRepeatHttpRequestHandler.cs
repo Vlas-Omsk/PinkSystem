@@ -59,6 +59,11 @@ namespace BotsCommon.Net.Http.Handlers
             throw new Exception("The number of attempts has been exhausted", exLast!);
         }
 
+        public IHttpRequestHandler Clone()
+        {
+            return new SystemNetRepeatHttpRequestHandler(_handler.Clone(), _retryAmount, _retryDelay, _logger);
+        }
+
         public void Dispose()
         {
             _handler.Dispose();
