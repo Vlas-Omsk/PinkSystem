@@ -13,7 +13,7 @@ namespace BotsCommon.IO.Data
             _list = list;
         }
 
-        public int? Length { get; }
+        public int? Length => _list.Count;
         public int Index => _index;
 
         public T? Read()
