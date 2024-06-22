@@ -2,6 +2,15 @@
 {
     public sealed record BrowserInfo(
         string UserAgent,
-        string SecChUa
-    );
+        string? SecChUa
+    )
+    {
+        public override string ToString()
+        {
+            if (SecChUa == null)
+                return UserAgent;
+
+            return $"{UserAgent}|{SecChUa}";
+        }
+    }
 }
