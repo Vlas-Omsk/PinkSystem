@@ -131,24 +131,46 @@ namespace BotsCommon.Runtime
 
             Expression exResult;
 
+            IEnumerable<Expression> exArrayItems = exVariablesArray
+                .Select(x =>
+                    Expression.Convert(x, typeof(object))
+                );
+
             if (MemberInfo is ConstructorInfo constructor)
+            {
                 exResult = Expression.New(constructor, exParametersArray);
+
+                exArrayItems = exArrayItems.Prepend(
+                    Expression.Convert(exResult, typeof(object))
+                );
+            }
             else if (MemberInfo is MethodInfo method)
+            {
                 exResult = Expression.Call(methodBase.IsStatic ? null : exConvertedInstance, method, exParametersArray);
+
+                if (method.ReturnType == typeof(void))
+                {
+                    exArrayItems = exArrayItems.Prepend(
+                        Expression.Constant(null)
+                    );
+                }
+                else
+                {
+                    exArrayItems = exArrayItems.Prepend(
+                        Expression.Convert(exResult, typeof(object))
+                    );
+                }
+            }
             else
+            {
                 throw new InvalidOperationException($"{nameof(MemberInfo)} must be of type {nameof(ConstructorInfo)} or {nameof(MethodInfo)}");
+            }
 
             exResult = Expression.Block(
                 exVariablesArray,
                 Expression.NewArrayInit(
                     typeof(object),
-                    exVariablesArray
-                        .Select(x => 
-                            Expression.Convert(x, typeof(object))
-                        )
-                        .Prepend(
-                            Expression.Convert(exResult, typeof(object))
-                        )
+                    exArrayItems
                 )
             );
 
