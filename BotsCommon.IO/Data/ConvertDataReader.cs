@@ -35,5 +35,10 @@ namespace BotsCommon.IO.Data
         {
             _reader.Dispose();
         }
+
+        object? IDataReader.Read()
+        {
+            return Read();
+        }
     }
 }

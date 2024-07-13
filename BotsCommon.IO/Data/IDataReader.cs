@@ -2,12 +2,17 @@
 
 namespace BotsCommon.IO.Data
 {
-    public interface IDataReader<out T> : IDisposable
+    public interface IDataReader : IDisposable
     {
         int? Length { get; }
         int Index { get; }
 
-        T? Read();
+        object? Read();
         void Reset();
+    }
+
+    public interface IDataReader<out T> : IDataReader
+    {
+        new T? Read();
     }
 }

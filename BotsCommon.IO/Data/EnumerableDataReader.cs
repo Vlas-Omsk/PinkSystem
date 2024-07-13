@@ -38,6 +38,11 @@ namespace BotsCommon.IO.Data
             return default;
         }
 
+        object? IDataReader.Read()
+        {
+            return Read();
+        }
+
         public void Reset()
         {
             lock (_lock)

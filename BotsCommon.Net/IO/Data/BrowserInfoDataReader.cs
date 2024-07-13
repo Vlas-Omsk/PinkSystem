@@ -29,6 +29,11 @@ namespace BotsCommon.Net.IO.Data
             return new(split[0], null);
         }
 
+        object? IDataReader.Read()
+        {
+            return Read();
+        }
+
         public void Reset()
         {
             _reader.Reset();

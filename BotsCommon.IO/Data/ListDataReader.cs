@@ -26,6 +26,11 @@ namespace BotsCommon.IO.Data
             return _list[index];
         }
 
+        object? IDataReader.Read()
+        {
+            return Read();
+        }
+
         public void Reset()
         {
             Interlocked.Exchange(ref _index, 0);

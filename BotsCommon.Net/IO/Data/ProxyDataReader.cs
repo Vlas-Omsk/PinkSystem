@@ -59,6 +59,11 @@ namespace BotsCommon.IO.Data
             }
         }
 
+        object? IDataReader.Read()
+        {
+            return Read();
+        }
+
         public void Reset()
         {
             _reader.Reset();

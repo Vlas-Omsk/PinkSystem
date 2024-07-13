@@ -32,6 +32,11 @@
             return data;
         }
 
+        object? IDataReader.Read()
+        {
+            return Read();
+        }
+
         public void Reset()
         {
             lock (_lock)
