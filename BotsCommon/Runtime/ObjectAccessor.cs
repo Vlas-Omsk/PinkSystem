@@ -174,27 +174,52 @@ namespace BotsCommon.Runtime
 
         public static ObjectAccessor Create(Type type, Type[] argTypes, params object?[] args)
         {
-            var constructorAccessor = Memoizer<ObjectAccessor>.Shared.GetOrAddMemoizedValue(
-                () =>
-                {
-                    var constructor = type
-                        .GetConstructors(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
-                        .Where(x => x.GetParameters().Length == argTypes.Length)
-                        .Where(x => x
-                            .GetParameters()
-                            .Select((c, i) => (c, i))
-                            .All(c => c.c.ParameterType.IsAssignableFrom(argTypes[c.i]))
-                        )
-                        .FirstOrDefault() ??
-                        throw new Exception($"Constructor on type {type} not found for arg types {string.Join(", ", argTypes.Select(x => x.Name))}");
+            object? obj = null;
+            ConstructorInfo? constructor = null;
 
-                    return MemberAccessorsCache.Shared.Create(constructor);
-                },
-                type,
-                argTypes
-            );
+            if (!type.IsClass)
+            {
+                constructor = type
+                    .GetConstructors(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
+                    .Where(x => x.GetParameters().Length == argTypes.Length)
+                    .Where(x => x
+                        .GetParameters()
+                        .Select((c, i) => (c, i))
+                        .All(c => c.c.ParameterType.IsAssignableFrom(argTypes[c.i]))
+                    )
+                    .FirstOrDefault();
 
-            var obj = constructorAccessor.Invoke(null, args);
+                if (constructor == null && argTypes.Length == 0)
+                    obj = Activator.CreateInstance(type);
+            }
+
+            if (obj == null)
+            {
+                var constructorAccessor = Memoizer<ObjectAccessor>.Shared.GetOrAddMemoizedValue(
+                    () =>
+                    {
+                        if (constructor == null)
+                            constructor = type
+                                .GetConstructors(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
+                                .Where(x => x.GetParameters().Length == argTypes.Length)
+                                .Where(x => x
+                                    .GetParameters()
+                                    .Select((c, i) => (c, i))
+                                    .All(c => c.c.ParameterType.IsAssignableFrom(argTypes[c.i]))
+                                )
+                                .FirstOrDefault();
+
+                        if (constructor == null)
+                            throw new Exception($"Constructor on type {type} not found for arg types {string.Join(", ", argTypes.Select(x => x.Name))}");
+    
+                        return MemberAccessorsCache.Shared.Create(constructor);
+                    },
+                    type,
+                    argTypes
+                );
+
+                obj = constructorAccessor.Invoke(null, args);
+            }
 
             return new ObjectAccessor(obj, type);
         }
