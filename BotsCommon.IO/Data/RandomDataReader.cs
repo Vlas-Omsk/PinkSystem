@@ -11,7 +11,7 @@ namespace BotsCommon.IO.Data
         private readonly int _maxRange;
         private readonly int _maxBufferSize;
 
-        public RandomDataReader(IDataReader<T> dataReader, int maxRange = int.MaxValue)
+        public RandomDataReader(IDataReader<T> dataReader, int maxRange = 5000)
         {
             _reader = dataReader;
             _maxRange = maxRange;
