@@ -1,11 +1,11 @@
 ﻿namespace BotsCommon.IO.Data
 {
-    public sealed class RepeatDataReader<T> : IDataReader<T>
+    public class RepeatDataReader : IDataReader
     {
-        private readonly IDataReader<T> _reader;
-        private object _lock = new();
+        private readonly IDataReader _reader;
+        private readonly object _lock = new();
 
-        public RepeatDataReader(IDataReader<T> reader)
+        public RepeatDataReader(IDataReader reader)
         {
             _reader = reader;
         }
@@ -13,9 +13,9 @@
         public int? Length { get; } = null;
         public int Index => _reader.Index;
 
-        public T? Read()
+        public object? Read()
         {
-            T? data;
+            object? data;
 
             lock (_lock)
             {
@@ -32,11 +32,6 @@
             return data;
         }
 
-        object? IDataReader.Read()
-        {
-            return Read();
-        }
-
         public void Reset()
         {
             lock (_lock)
@@ -46,6 +41,18 @@
         public void Dispose()
         {
             _reader.Dispose();
+        }
+    }
+
+    public sealed class RepeatDataReader<T> : RepeatDataReader, IDataReader<T>
+    {
+        public RepeatDataReader(IDataReader<T> reader) : base(reader)
+        {
+        }
+
+        T? IDataReader<T>.Read()
+        {
+            return (T?)Read();
         }
     }
 }

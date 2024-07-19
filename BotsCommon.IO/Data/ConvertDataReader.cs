@@ -2,12 +2,12 @@
 
 namespace BotsCommon.IO.Data
 {
-    public sealed class ConvertDataReader<TIn, TOut> : IDataReader<TOut>
+    public class ConvertDataReader : IDataReader
     {
-        private readonly IDataReader<TIn> _reader;
-        private readonly Func<TIn, TOut> _converter;
+        private readonly IDataReader _reader;
+        private readonly Func<object, object> _converter;
 
-        public ConvertDataReader(IDataReader<TIn> reader, Func<TIn, TOut> converter)
+        public ConvertDataReader(IDataReader reader, Func<object, object> converter)
         {
             _reader = reader;
             _converter = converter;
@@ -16,7 +16,7 @@ namespace BotsCommon.IO.Data
         public int? Length => _reader.Length;
         public int Index => _reader.Index;
 
-        public TOut? Read()
+        public object? Read()
         {
             var item = _reader.Read();
 
@@ -39,6 +39,18 @@ namespace BotsCommon.IO.Data
         object? IDataReader.Read()
         {
             return Read();
+        }
+    }
+
+    public sealed class ConvertDataReader<TIn, TOut> : ConvertDataReader, IDataReader<TOut>
+    {
+        public ConvertDataReader(IDataReader<TIn> reader, Func<TIn, TOut> converter) : base(reader, (obj) => converter((TIn)obj)!)
+        {
+        }
+
+        TOut? IDataReader<TOut>.Read()
+        {
+            return (TOut?)Read();
         }
     }
 }

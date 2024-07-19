@@ -5,6 +5,16 @@ namespace BotsCommon
 {
     public static class IDataReaderExtensions
     {
+        public static RepeatDataReader<T> AsRepeatable<T>(this IDataReader<T> self)
+        {
+            return new RepeatDataReader<T>(self);
+        }
+
+        public static RepeatDataReader AsRepeatable(this IDataReader self)
+        {
+            return new RepeatDataReader(self);
+        }
+
         public static float GetProgress<T>(this IDataReader<T> self)
         {
             return self.Length.HasValue ?
