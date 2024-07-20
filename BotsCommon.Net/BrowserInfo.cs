@@ -2,8 +2,7 @@
 {
     public sealed record BrowserInfo(
         string UserAgent,
-        string? SecChUa,
-        Ja3Fingerprint? Fingerprint
+        string? SecChUa
     )
     {
         public override string ToString()
@@ -19,12 +18,9 @@
             var parts = str.Split('|');
 
             if (parts.Length == 2)
-                return new(parts[0], parts[1], null);
+                return new(parts[0], parts[1]);
 
-            if (parts.Length == 3)
-                return new(parts[0], parts[1], Ja3Fingerprint.Parse(parts[2]));
-
-            return new(parts[0], null, null);
+            return new(parts[0], null);
         }
     }
 }
