@@ -1,6 +1,6 @@
 ﻿using BotsCommon.Net.Http.Sockets;
 
-namespace BotsCommon.Net.Http.Handlers
+namespace BotsCommon.Net.Http
 {
     public sealed record SystemNetSocketOptions
     {

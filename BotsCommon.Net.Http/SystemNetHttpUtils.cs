@@ -1,5 +1,4 @@
 ﻿using BotsCommon.IO.Content;
-using BotsCommon.Net.Http.Handlers;
 using BotsCommon.Net.Http.Sockets;
 using System;
 using System.IO;
