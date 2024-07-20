@@ -17,10 +17,9 @@ namespace BotsCommon.Net.Http.Handlers
             var handler = new SocketsHttpHandler()
             {
                 AutomaticDecompression = DecompressionMethods.None,
-                AllowAutoRedirect = false
+                AllowAutoRedirect = false,
+                ConnectCallback = SystemNetHttpUtils.CreateConnectCallback(socketOptions)
             };
-
-            socketOptions.Apply(handler);
 
             if (options.Proxy != null)
                 handler.Proxy = options.Proxy.ToWebProxy();

@@ -1,8 +1,11 @@
 ﻿using BotsCommon.IO.Content;
+using BotsCommon.Net.Http.Handlers;
+using BotsCommon.Net.Http.Sockets;
 using System;
 using System.IO;
 using System.Net;
 using System.Net.Http;
+using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -10,6 +13,36 @@ namespace BotsCommon.Net.Http
 {
     public sealed class SystemNetHttpUtils
     {
+        public static Func<SocketsHttpConnectionContext, CancellationToken, ValueTask<Stream>> CreateConnectCallback(SystemNetSocketOptions options)
+        {
+            return async (context, cancellationToken) =>
+            {
+                var socket = await options.Provider.Create(SocketType.Stream, ProtocolType.Tcp, cancellationToken);
+
+                socket.NoDelay = true;
+
+                if (options.DisableLingering)
+                {
+                    socket.LingerState = new(false, 0);
+                }
+
+                if (!OperatingSystem.IsLinux())
+                    socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
+
+                try
+                {
+                    await socket.ConnectAsync(context.DnsEndPoint, cancellationToken).ConfigureAwait(false);
+
+                    return new NetworkStream(socket, ownsSocket: true);
+                }
+                catch
+                {
+                    socket.Dispose();
+                    throw;
+                }
+            };
+        }
+
         public static HttpRequestMessage CreateNetRequestFromRequest(HttpRequest request)
         {
             var requestMessage = new HttpRequestMessage()
