@@ -21,12 +21,7 @@ namespace BotsCommon.Net.IO.Data
             if (str == null)
                 return null;
 
-            var split = str.Split('|');
-
-            if (split.Length == 2)
-                return new(split[0], split[1]);
-
-            return new(split[0], null);
+            return BrowserInfo.Parse(str);
         }
 
         object? IDataReader.Read()
