@@ -22,7 +22,7 @@ namespace BotsCommon.IO.Data
 
         public ProxyScheme Scheme { get; set; }
         public Regex Format { get; set; }
-        public int? Length => _reader.Length;
+        public int? Length { get; } = null;
         public int Index => _reader.Index;
 
         public Proxy? Read()
