@@ -12,6 +12,9 @@ namespace BotsCommon.Net.Http
 
         public void Add(string key, string value)
         {
+            ArgumentNullException.ThrowIfNull(key);
+            ArgumentNullException.ThrowIfNull(value);
+
             var list = GetList(key);
 
             list.Add(value);
@@ -19,6 +22,11 @@ namespace BotsCommon.Net.Http
 
         public void Add(string key, IEnumerable<string> values)
         {
+            ArgumentNullException.ThrowIfNull(key);
+
+            if (values == null || values.Any(x => x == null))
+                throw new ArgumentNullException(nameof(values));
+
             var list = GetList(key);
 
             list.AddRange(values);
@@ -26,6 +34,9 @@ namespace BotsCommon.Net.Http
 
         public void Replace(string key, string value)
         {
+            ArgumentNullException.ThrowIfNull(key);
+            ArgumentNullException.ThrowIfNull(value);
+
             var list = GetList(key);
 
             list.Clear();
