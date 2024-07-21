@@ -44,16 +44,18 @@ namespace BotsCommon.Net.Http.Handlers
                             try
                             {
                                 var ping = 0L;
-                                string sentSpeed = "?";
-                                string receiveSpeed = "?";
+                                var sentSpeed = "?";
+                                var receiveSpeed = "?";
+                                var sent = _sent;
+                                var timeElapsed = _timeElapsed;
 
-                                if (_sent > 0)
-                                    ping = _timeElapsed / _sent;
+                                if (sent > 0)
+                                    ping = timeElapsed / sent;
 
-                                if (_timeElapsed > 0)
+                                if (timeElapsed > 0)
                                 {
-                                    sentSpeed = (_sentBytes / (_timeElapsed / 1000)).FormatBytes();
-                                    receiveSpeed = (_receivedBytes / (_timeElapsed / 1000)).FormatBytes();
+                                    sentSpeed = (_sentBytes / (timeElapsed / 1000)).FormatBytes();
+                                    receiveSpeed = (_receivedBytes / (timeElapsed / 1000)).FormatBytes();
                                 }
 
                                 _logger.LogInformation(
