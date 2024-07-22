@@ -107,6 +107,8 @@ namespace BotsCommon.Net.Http.Sockets
             public override void Close()
             {
                 _stream.Close();
+
+                base.Close();
             }
 
             public override void CopyTo(Stream destination, int bufferSize)
