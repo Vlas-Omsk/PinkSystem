@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using BotsCommon.Net.Http.Sockets;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Concurrent;
 using System.Diagnostics;
@@ -23,6 +24,7 @@ namespace BotsCommon.Net.Http.Handlers
 
         public sealed class Storage
         {
+            private readonly StatisticsSocketsProvider _socketsProvider;
             private long _sent = 0;
             private long _success = 0;
             private readonly ConcurrentDictionary<FailType, long> _failed = new();
@@ -32,8 +34,9 @@ namespace BotsCommon.Net.Http.Handlers
             private ILogger<Storage> _logger;
             private Task? _task;
 
-            public Storage(ILogger<Storage> logger)
+            public Storage(StatisticsSocketsProvider socketsProvider, ILogger<Storage> logger)
             {
+                _socketsProvider = socketsProvider;
                 _logger = logger;
 
                 _task = Task.Run(
@@ -63,15 +66,17 @@ namespace BotsCommon.Net.Http.Handlers
                                     "    Success: {success}" + Environment.NewLine +
                                     "    Failed: {failed}" + Environment.NewLine +
                                     "    Ping: {ping} ms" + Environment.NewLine +
-                                    "    Sent: {sent} ({sentSpeed}/s)" + Environment.NewLine +
-                                    "    Receive: {receive} ({receiveSpeed}/s)",
+                                    "    Sent: {sent} ({sentSpeed}/s), Socket: {sentSocket}" + Environment.NewLine +
+                                    "    Receive: {receive} ({receiveSpeed}/s), Socket: {receiveSocket}",
                                     _success,
                                     string.Join(", ", _failed.Select(x => $"{x.Key}: {x.Value}")),
                                     ping,
                                     _sentBytes.FormatBytes(),
                                     sentSpeed,
+                                     _socketsProvider.WriteBytes.FormatBytes(),
                                     _receivedBytes.FormatBytes(),
-                                    receiveSpeed
+                                    receiveSpeed,
+                                     _socketsProvider.ReadBytes.FormatBytes()
                                 );
                             }
                             catch (Exception ex)

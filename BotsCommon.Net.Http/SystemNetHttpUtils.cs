@@ -32,7 +32,7 @@ namespace BotsCommon.Net.Http
                 {
                     await socket.ConnectAsync(context.DnsEndPoint, cancellationToken).ConfigureAwait(false);
 
-                    return new NetworkStream(socket, ownsSocket: true);
+                    return socket.GetStream();
                 }
                 catch
                 {

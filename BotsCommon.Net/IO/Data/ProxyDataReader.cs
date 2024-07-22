@@ -9,6 +9,7 @@ namespace BotsCommon.IO.Data
     {
         private static readonly Regex _functionsRegex = new("{(.*?)}", RegexOptions.Compiled);
         private static readonly string _numbers = "0123456789";
+        private static readonly string _numbersWithoutZero = "123456789";
         private static readonly string _letters = "abcdefghijklmnopqrstuvwxyz";
         private static readonly string _numbersAndLetters = _numbers + _letters;
         private readonly IDataReader<string> _reader;
@@ -43,11 +44,11 @@ namespace BotsCommon.IO.Data
                         if (parts.Length != 4)
                             throw new Exception("Function 'random' must provide 3 arguments");
 
-                        var charset = parts[1] switch
+                        var (charset, charsetId) = parts[1] switch
                         {
-                            "numbers" => _numbers,
-                            "letters" => _letters,
-                            "numbersAndLetters" => _numbersAndLetters,
+                            "numbers" => (_numbers, 0),
+                            "letters" => (_letters, 1),
+                            "numbersAndLetters" => (_numbersAndLetters, 2),
                             _ => throw new Exception($"Unknown charset '{parts[1]}'")
                         };
 
@@ -61,7 +62,14 @@ namespace BotsCommon.IO.Data
                             throw new Exception("Maximum length cannot be less than minimum length");
 
                         var chars = Enumerable.Range(0, Random.Shared.Next(minLength, maxLength + 1))
-                            .Select(x => charset[Random.Shared.Next(charset.Length)]);
+                            .Select(x => charset[Random.Shared.Next(charset.Length)])
+                            .Select((x, index) =>
+                            {
+                                if (index == 0 && charsetId == 0 && x == '0')
+                                    return _numbersWithoutZero[Random.Shared.Next(_numbersWithoutZero.Length)];
+
+                                return x;
+                            });
 
                         return string.Concat(chars);
                     }

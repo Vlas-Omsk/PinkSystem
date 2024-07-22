@@ -9,9 +9,9 @@ namespace BotsCommon.Net.Http.Sockets
         public int MaxAvailableSockets { get; } = int.MaxValue;
         public int CurrentAvailableSockets { get; } = int.MaxValue;
 
-        public Task<Socket> Create(SocketType socketType, ProtocolType protocolType, CancellationToken cancellationToken)
+        public Task<ISocket> Create(SocketType socketType, ProtocolType protocolType, CancellationToken cancellationToken)
         {
-            return Task.FromResult(new Socket(socketType, protocolType));
+            return Task.FromResult<ISocket>(new DefaultSocket(new(socketType, protocolType)));
         }
     }
 }

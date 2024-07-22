@@ -11,19 +11,19 @@ namespace BotsCommon.Net.Http.Sockets
     {
         private readonly SemaphoreSlim _socketsLock;
 
-        private sealed class LimitedSocket : Socket
+        private sealed class LimitedSocket : DefaultSocket
         {
             private readonly SemaphoreSlim _socketsLock;
             private int _disposed;
 
-            public LimitedSocket(SocketType socketType, ProtocolType protocolType, SemaphoreSlim socketsLock) : base(socketType, protocolType)
+            public LimitedSocket(Socket socket, SemaphoreSlim socketsLock) : base(socket)
             {
                 _socketsLock = socketsLock;
             }
 
-            protected override void Dispose(bool disposing)
+            public override void Dispose()
             {
-                base.Dispose(disposing);
+                base.Dispose();
 
                 if (Interlocked.CompareExchange(ref _disposed, 1, 0) == 1)
                     return;
@@ -41,11 +41,11 @@ namespace BotsCommon.Net.Http.Sockets
         public int MaxAvailableSockets { get; }
         public int CurrentAvailableSockets => _socketsLock.CurrentCount;
 
-        public async Task<Socket> Create(SocketType socketType, ProtocolType protocolType, CancellationToken cancellationToken)
+        public async Task<ISocket> Create(SocketType socketType, ProtocolType protocolType, CancellationToken cancellationToken)
         {
             await _socketsLock.WaitAsync(cancellationToken);
 
-            return new LimitedSocket(socketType, protocolType, _socketsLock);
+            return new LimitedSocket(new(socketType, protocolType), _socketsLock);
         }
 
         public static async Task<LimitedSocketsProvider> CreateDefault(double percentOfAvailablePorts = 0.8)
