@@ -123,9 +123,9 @@ namespace BotsCommon.Net.Http.Sockets
             {
                 if (disposing)
                 {
-                    _stream.Dispose();
-
                     _socket.Dispose();
+
+                    _stream.Dispose();
                 }
 
                 base.Dispose(disposing);
