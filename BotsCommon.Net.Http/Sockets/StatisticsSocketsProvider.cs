@@ -248,6 +248,21 @@ namespace BotsCommon.Net.Http.Sockets
                 _socket.SetSocketOption(level, name, value);
             }
 
+            public void SetSocketOption(SocketOptionLevel level, SocketOptionName name, int value)
+            {
+                _socket.SetSocketOption(level, name, value);
+            }
+
+            public void SetSocketOption(SocketOptionLevel level, SocketOptionName name, byte[] value)
+            {
+                _socket.SetSocketOption(level, name, value);
+            }
+
+            public void SetSocketOption(SocketOptionLevel level, SocketOptionName name, bool value)
+            {
+                _socket.SetSocketOption(level, name, value);
+            }
+
             public void Dispose()
             {
                 _socket.Dispose();

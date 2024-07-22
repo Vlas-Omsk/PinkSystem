@@ -13,6 +13,9 @@ namespace BotsCommon.Net.Http.Sockets
         LingerOption? LingerState { get; set; }
         
         void SetSocketOption(SocketOptionLevel level, SocketOptionName name, object value);
+        void SetSocketOption(SocketOptionLevel level, SocketOptionName name, int value);
+        void SetSocketOption(SocketOptionLevel level, SocketOptionName name, byte[] value);
+        void SetSocketOption(SocketOptionLevel level, SocketOptionName name, bool value);
         ValueTask ConnectAsync(EndPoint endPoint, CancellationToken cancellationToken);
         Stream GetStream();
     }
