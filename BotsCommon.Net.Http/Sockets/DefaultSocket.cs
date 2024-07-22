@@ -125,7 +125,7 @@ namespace BotsCommon.Net.Http.Sockets
             {
                 if (disposing)
                 {
-                    _socket.Dispose();
+                    _socket.Dispose(streamDisposing: true);
 
                     _stream.Dispose();
                 }
@@ -135,7 +135,7 @@ namespace BotsCommon.Net.Http.Sockets
 
             public override ValueTask DisposeAsync()
             {
-                _socket.Dispose();
+                _socket.Dispose(streamDisposing: true);
 
                 return _stream.DisposeAsync();
             }
@@ -218,9 +218,15 @@ namespace BotsCommon.Net.Http.Sockets
             Socket.SetSocketOption(level, name, value);
         }
 
-        public virtual void Dispose()
+        public void Dispose()
         {
-            Socket.Dispose();
+            Dispose(streamDisposing: false);
+        }
+
+        protected virtual void Dispose(bool streamDisposing)
+        {
+            if (!streamDisposing)
+                Socket.Dispose();
         }
     }
 }

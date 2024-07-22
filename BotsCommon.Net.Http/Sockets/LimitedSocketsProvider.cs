@@ -21,9 +21,9 @@ namespace BotsCommon.Net.Http.Sockets
                 _socketsLock = socketsLock;
             }
 
-            public override void Dispose()
+            protected override void Dispose(bool streamDisposing)
             {
-                base.Dispose();
+                base.Dispose(streamDisposing);
 
                 if (Interlocked.CompareExchange(ref _disposed, 1, 0) == 1)
                     return;
