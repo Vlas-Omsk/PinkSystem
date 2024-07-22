@@ -185,11 +185,6 @@ namespace BotsCommon.Net.Http.Sockets
                 _stream.SetLength(value);
             }
 
-            public override string? ToString()
-            {
-                return _stream.ToString();
-            }
-
             private void AddReadBytes(int amount)
             {
                 unchecked
