@@ -108,7 +108,12 @@ namespace BotsCommon.Net
             {
                 var values = nameValueCollection.GetValues(key)!;
 
-                queryData.Add(key, values);
+                if (key == null && values.Length == 1)
+                    queryData.Add(values[0], "");
+                else if (key == null)
+                    throw new Exception("Key in query cannot be null");
+                else
+                    queryData.Add(key, values);
             }
 
             return queryData;
