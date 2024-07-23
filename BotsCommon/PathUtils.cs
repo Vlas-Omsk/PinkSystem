@@ -6,6 +6,16 @@ namespace BotsCommon
 {
     public static class PathUtils
     {
+        private static readonly string[] _invalidFileNameChars = Path.GetInvalidFileNameChars().Select(x => x.ToString()).ToArray();
+
+        public static string ReplaceFileNameInvalidChars(string fileName, string ch)
+        {
+            foreach (var invalid in _invalidFileNameChars)
+                fileName = fileName.Replace(invalid, ch);
+
+            return fileName;
+        }
+
         public static string ReplaceFileNameInvalidChars(string fileName, char ch)
         {
             foreach (var invalid in Path.GetInvalidFileNameChars())
