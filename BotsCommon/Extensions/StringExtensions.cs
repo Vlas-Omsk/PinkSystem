@@ -24,17 +24,17 @@ namespace BotsCommon
                 writer.Write(self);
         }
 
-        public static string EscapeString(this string self)
+        public static string EscapeString(this string self, params char[] unicodeChars)
         {
             using (var writer = new StringWriter())
             {
-                EscapeString(self, writer);
+                EscapeString(self, writer, unicodeChars);
 
                 return writer.ToString();
             }
         }
 
-        public static void EscapeString(this string self, TextWriter writer)
+        public static void EscapeString(this string self, TextWriter writer, params char[] unicodeChars)
         {
             var flushIndex = 0;
 
@@ -79,6 +79,13 @@ namespace BotsCommon
                     case '\\':
                         FlushString(self, ref flushIndex, i, writer);
                         writer.Write("\\\\");
+                        break;
+                    default:
+                        if (unicodeChars.Contains(ch))
+                        {
+                            FlushString(self, ref flushIndex, i, writer);
+                            writer.Write($"\\u{Convert.ToString(ch, 16).PadLeft(4).ToUpper()}");
+                        }
                         break;
                 }
             }
