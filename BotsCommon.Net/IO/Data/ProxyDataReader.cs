@@ -121,8 +121,6 @@ namespace BotsCommon.IO.Data
         public void Reset()
         {
             _reader.Reset();
-
-            _index = 0;
         }
 
         public void Dispose()
