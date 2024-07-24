@@ -2,6 +2,7 @@
 using System;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Threading;
 
 namespace BotsCommon.IO.Data
 {
@@ -13,6 +14,7 @@ namespace BotsCommon.IO.Data
         private static readonly string _letters = "abcdefghijklmnopqrstuvwxyz";
         private static readonly string _numbersAndLetters = _numbers + _letters;
         private readonly IDataReader<string> _reader;
+        private int _index;
 
         public ProxyDataReader(IDataReader<string> reader, ProxyScheme scheme, Regex format)
         {
@@ -24,7 +26,7 @@ namespace BotsCommon.IO.Data
         public ProxyScheme Scheme { get; set; }
         public Regex Format { get; set; }
         public int? Length { get; } = null;
-        public int Index => _reader.Index;
+        public int Index => _index;
 
         public Proxy? Read()
         {
@@ -95,6 +97,8 @@ namespace BotsCommon.IO.Data
                 if (match.Groups.TryGetValue("password", out Group? passwordGroup))
                     password = passwordGroup.ThrowIfNotSuccuess().Value;
 
+                Interlocked.Increment(ref _index);
+
                 return new Proxy(
                     Scheme,
                     host ?? throw new Exception("Host cannot be null"),
@@ -117,6 +121,8 @@ namespace BotsCommon.IO.Data
         public void Reset()
         {
             _reader.Reset();
+
+            _index = 0;
         }
 
         public void Dispose()
