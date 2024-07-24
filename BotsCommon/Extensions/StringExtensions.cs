@@ -84,7 +84,7 @@ namespace BotsCommon
                         if (unicodeChars.Contains(ch))
                         {
                             FlushString(self, ref flushIndex, i, writer);
-                            writer.Write($"\\u{Convert.ToString(ch, 16).PadLeft(4).ToUpper()}");
+                            writer.Write($"\\u{Convert.ToString(ch, 16).PadLeft(4, '0').ToUpper()}");
                         }
                         break;
                 }
@@ -189,7 +189,8 @@ namespace BotsCommon
                             writer.Write('/');
                             break;
                         default:
-                            throw new Exception($"Unidentified escape sequence \\{self[i]} at position {i}.");
+                            writer.Write(self[i]);
+                            break;
                     }
                 }
                 else if (self[i] == '\\')
