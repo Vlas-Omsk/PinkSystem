@@ -8,7 +8,7 @@ namespace BotsCommon.Net.Http.Handlers.Factories
     {
         private readonly ISocketsHttpRequestHandlerFactory _httpRequestHandlerFactory;
         private readonly IHttpRequestHandlerWrapper _httpRequestHandlerWrapper;
-        private readonly PooledHttpRequestHandler.Pool _pool;
+        private readonly PooledHttpRequestHandler.PoolConnections _pool;
 
         public PooledHttpRequestHandlerFactory(
             ISocketsHttpRequestHandlerFactory httpRequestHandlerFactory,
@@ -18,11 +18,9 @@ namespace BotsCommon.Net.Http.Handlers.Factories
         {
             _httpRequestHandlerFactory = httpRequestHandlerFactory;
             _httpRequestHandlerWrapper = httpRequestHandlerWrapper;
-            _pool = new PooledHttpRequestHandler.Pool(
-                new PooledHttpRequestHandler.PoolConnections(
-                    httpRequestHandlerFactory,
-                    loggerFactory.CreateLogger<PooledHttpRequestHandler.PoolConnections>()
-                )
+            _pool = new PooledHttpRequestHandler.PoolConnections(
+                httpRequestHandlerFactory,
+                loggerFactory.CreateLogger<PooledHttpRequestHandler.PoolConnections>()
             );
         }
 

@@ -11,7 +11,8 @@ namespace BotsCommon.Net.Http
 {
     public sealed class PooledHttpRequestHandler : IHttpRequestHandler
     {
-        private readonly PoolMap _poolMap;
+        private readonly PoolConnections _poolConnections;
+        private WeakReference<PoolConnection> _poolConnection;
 
         public sealed class PoolConnections : IDisposable
         {
@@ -118,69 +119,9 @@ namespace BotsCommon.Net.Http
             }
         }
 
-        public sealed class PoolMap
-        {
-            private readonly HttpRequestHandlerOptions _options;
-            private readonly PoolConnections _connections;
-            private readonly ConcurrentDictionary<PooledHttpRequestHandler, WeakReference<PoolConnection>> _map = new();
-
-            public PoolMap(HttpRequestHandlerOptions options, PoolConnections connections)
-            {
-                _options = options;
-                _connections = connections;
-            }
-
-            public PoolConnection Rent(PooledHttpRequestHandler id)
-            {
-                while (true)
-                {
-                    var itemRef = _map.GetOrAdd(id, (_) => _connections.CreateNew(_options));
-
-                    if (itemRef.TryGetTarget(out var item) &&
-                        item.TryRent(id))
-                        return item;
-
-                    _map.TryRemove(id, out _);
-                }
-            }
-
-            public void Dispose(PooledHttpRequestHandler id)
-            {
-                if (!_map.TryGetValue(id, out var itemRef))
-                    return;
-
-                if (itemRef.TryGetTarget(out var item) &&
-                    !item.TryDispose(ignoreNew: true))
-                    return;
-
-                _map.TryRemove(id, out _);
-            }
-        }
-
-        public sealed class Pool : IDisposable
-        {
-            private readonly PoolConnections _connections;
-            private readonly ConcurrentDictionary<HttpRequestHandlerOptions, PoolMap> _maps = new();
-
-            public Pool(PoolConnections connections)
-            {
-                _connections = connections;
-            }
-
-            public PoolMap GetMap(HttpRequestHandlerOptions options)
-            {
-                return _maps.GetOrAdd(options, (_) => new PoolMap(options, _connections));
-            }
-
-            public void Dispose()
-            {
-                _connections.Dispose();
-            }
-        }
-
         public sealed class PoolConnection
         {
-            private readonly ConcurrentDictionary<PooledHttpRequestHandler, int> _rents = new();
+            private int _rents = 0;
             private bool _disposed = false;
             private readonly ReaderWriterLockSlim _lock = new();
 
@@ -195,9 +136,9 @@ namespace BotsCommon.Net.Http
             public DateTime LastUse { get; private set; } = DateTime.Now;
             public IHttpRequestHandler Handler { get; }
 
-            public int RentsAmount => _rents.Sum(x => x.Value);
+            public int RentsAmount => _rents;
 
-            public bool TryRent(PooledHttpRequestHandler id)
+            public bool TryRent()
             {
                 _lock.EnterReadLock();
 
@@ -206,7 +147,7 @@ namespace BotsCommon.Net.Http
                     if (_disposed)
                         return false;
 
-                    _rents.AddOrUpdate(id, 1, (x, c) => c + 1);
+                    Interlocked.Increment(ref _rents);
 
                     LastUse = DateTime.Now;
                     New = false;
@@ -219,13 +160,13 @@ namespace BotsCommon.Net.Http
                 }
             }
 
-            public void Return(PooledHttpRequestHandler id)
+            public void Return()
             {
                 _lock.EnterReadLock();
 
                 try
                 {
-                    ReturnInternal(id);
+                    ReturnInternal();
                 }
                 finally
                 {
@@ -233,19 +174,12 @@ namespace BotsCommon.Net.Http
                 }
             }
 
-            private void ReturnInternal(PooledHttpRequestHandler id)
+            private void ReturnInternal()
             {
-                _rents.AddOrUpdate(
-                    id,
-                    (_) => throw new InvalidOperationException("Not rented by specified handler"),
-                    (x, c) =>
-                    {
-                        if (c <= 0)
-                            throw new InvalidOperationException("Not rented by specified handler");
+                var rents = Interlocked.Decrement(ref _rents);
 
-                        return c - 1;
-                    }
-                );
+                if (rents < 0)
+                    throw new InvalidOperationException("Not rented by specified handler");
             }
 
             public bool TryDispose(bool ignoreNew = false)
@@ -284,15 +218,10 @@ namespace BotsCommon.Net.Http
             }
         }
 
-        public PooledHttpRequestHandler(Pool pool, HttpRequestHandlerOptions options)
+        public PooledHttpRequestHandler(PoolConnections poolConnections, HttpRequestHandlerOptions options)
         {
-            _poolMap = pool.GetMap(options);
-            Options = options;
-        }
-
-        private PooledHttpRequestHandler(PoolMap poolMap, HttpRequestHandlerOptions options)
-        {
-            _poolMap = poolMap;
+            _poolConnections = poolConnections;
+            _poolConnection = _poolConnections.CreateNew(options);
             Options = options;
         }
 
@@ -300,7 +229,7 @@ namespace BotsCommon.Net.Http
 
         public async Task<HttpResponse> SendAsync(HttpRequest request, CancellationToken cancellationToken)
         {
-            var connection = _poolMap.Rent(this);
+            var connection = Rent();
 
             try
             {
@@ -308,18 +237,32 @@ namespace BotsCommon.Net.Http
             }
             finally
             {
-                connection.Return(this);
+                connection.Return();
             }
         }
 
         public IHttpRequestHandler Clone()
         {
-            return new PooledHttpRequestHandler(_poolMap, Options);
+            return new PooledHttpRequestHandler(_poolConnections, Options);
         }
 
         public void Dispose()
         {
-            _poolMap.Dispose(this);
+            if (_poolConnection.TryGetTarget(out var item) &&
+                !item.TryDispose(ignoreNew: true))
+                return;
+        }
+
+        private PoolConnection Rent()
+        {
+            while (true)
+            {
+                if (_poolConnection.TryGetTarget(out var item) &&
+                    item.TryRent())
+                    return item;
+                else
+                    _poolConnection = _poolConnections.CreateNew(Options);
+            }
         }
     }
 }
