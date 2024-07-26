@@ -1,21 +1,22 @@
-﻿using System;
+﻿using BotsCommon.Net.Http.Sockets;
+using System;
 
 namespace BotsCommon.Net.Http.Handlers.Factories
 {
     public sealed class SystemNetNonPooledHttpRequestHandlerFactory : IHttpRequestHandlerFactory
     {
-        private readonly SystemNetSocketOptions _socketOptions;
+        private readonly ISocketsProvider _socketsProvider;
         private readonly TimeSpan _timeout;
 
-        public SystemNetNonPooledHttpRequestHandlerFactory(SystemNetSocketOptions socketOptions, TimeSpan timeout)
+        public SystemNetNonPooledHttpRequestHandlerFactory(ISocketsProvider socketsProvider, TimeSpan timeout)
         {
-            _socketOptions = socketOptions;
+            _socketsProvider = socketsProvider;
             _timeout = timeout;
         }
 
         public IHttpRequestHandler Create(HttpRequestHandlerOptions options)
         {
-            return new SystemNetNonPooledHttpRequestHandler(options, _socketOptions, _timeout);
+            return new SystemNetNonPooledHttpRequestHandler(options, _socketsProvider, _timeout);
         }
     }
 }

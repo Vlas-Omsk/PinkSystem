@@ -12,18 +12,11 @@ namespace BotsCommon.Net.Http
 {
     public sealed class SystemNetHttpUtils
     {
-        public static Func<SocketsHttpConnectionContext, CancellationToken, ValueTask<Stream>> CreateConnectCallback(SystemNetSocketOptions options)
+        public static Func<SocketsHttpConnectionContext, CancellationToken, ValueTask<Stream>> CreateConnectCallback(ISocketsProvider socketsProvider)
         {
             return async (context, cancellationToken) =>
             {
-                var socket = await options.Provider.Create(SocketType.Stream, ProtocolType.Tcp, cancellationToken);
-
-                socket.NoDelay = true;
-
-                if (options.DisableLingering)
-                {
-                    socket.LingerState = new(false, 0);
-                }
+                var socket = await socketsProvider.Create(SocketType.Stream, ProtocolType.Tcp, cancellationToken);
 
                 if (!OperatingSystem.IsLinux())
                     socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);

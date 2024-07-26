@@ -1,4 +1,5 @@
-﻿using System;
+﻿using BotsCommon.Net.Http.Sockets;
+using System;
 using System.Net;
 using System.Net.Http;
 using System.Threading;
@@ -9,16 +10,16 @@ namespace BotsCommon.Net.Http.Handlers
     public sealed class SystemNetHttpRequestHandler : IHttpRequestHandler
     {
         private readonly HttpClient _httpClient;
-        private readonly SystemNetSocketOptions _socketOptions;
+        private readonly ISocketsProvider _socketsProvider;
         private readonly TimeSpan _timeout;
 
-        public SystemNetHttpRequestHandler(HttpRequestHandlerOptions options, SystemNetSocketOptions socketOptions, TimeSpan timeout)
+        public SystemNetHttpRequestHandler(HttpRequestHandlerOptions options, ISocketsProvider socketsProvider, TimeSpan timeout)
         {
             var handler = new SocketsHttpHandler()
             {
                 AutomaticDecompression = DecompressionMethods.None,
                 AllowAutoRedirect = false,
-                ConnectCallback = SystemNetHttpUtils.CreateConnectCallback(socketOptions)
+                ConnectCallback = SystemNetHttpUtils.CreateConnectCallback(socketsProvider)
             };
 
             if (options.Proxy != null)
@@ -35,7 +36,7 @@ namespace BotsCommon.Net.Http.Handlers
                 Timeout = timeout
             };
 
-            _socketOptions = socketOptions;
+            _socketsProvider = socketsProvider;
             _timeout = timeout;
 
             Options = options;
@@ -54,7 +55,7 @@ namespace BotsCommon.Net.Http.Handlers
 
         public IHttpRequestHandler Clone()
         {
-            return new SystemNetHttpRequestHandler(Options, _socketOptions, _timeout);
+            return new SystemNetHttpRequestHandler(Options, _socketsProvider, _timeout);
         }
 
         public void Dispose()
