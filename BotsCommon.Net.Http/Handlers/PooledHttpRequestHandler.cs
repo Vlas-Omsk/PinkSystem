@@ -184,10 +184,7 @@ namespace BotsCommon.Net.Http
 
             public bool TryDispose(bool ignoreNew = false)
             {
-                if (_disposed)
-                    return true;
-
-                _lock.EnterWriteLock();
+                _lock.EnterUpgradeableReadLock();
 
                 try
                 {
@@ -200,15 +197,24 @@ namespace BotsCommon.Net.Http
                     if (RentsAmount > 0)
                         return false;
 
-                    Handler.Dispose();
+                    _lock.EnterWriteLock();
 
-                    _disposed = true;
+                    try
+                    {
+                        Handler.Dispose();
 
-                    return true;
+                        _disposed = true;
+
+                        return true;
+                    }
+                    finally
+                    {
+                        _lock.ExitWriteLock();
+                    }
                 }
                 finally
                 {
-                    _lock.ExitWriteLock();
+                    _lock.ExitUpgradeableReadLock();
                 }
             }
 
