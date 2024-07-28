@@ -50,9 +50,9 @@
         {
         }
 
-        T? IDataReader<T>.Read()
+        public new T? Read()
         {
-            return (T?)Read();
+            return (T?)base.Read();
         }
     }
 }
