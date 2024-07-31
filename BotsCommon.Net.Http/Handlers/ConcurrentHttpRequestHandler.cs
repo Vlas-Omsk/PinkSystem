@@ -7,11 +7,13 @@ namespace BotsCommon.Net.Http.Handlers
     public sealed class ConcurrentHttpRequestHandler : IHttpRequestHandler
     {
         private readonly SemaphoreSlim _semaphore;
+        private readonly int _concurrency;
         private readonly IHttpRequestHandler _handler;
 
-        public ConcurrentHttpRequestHandler(IHttpRequestHandler handler)
+        public ConcurrentHttpRequestHandler(IHttpRequestHandler handler, int concurrency)
         {
-            _semaphore = new(ServicePointManager.DefaultConnectionLimit, ServicePointManager.DefaultConnectionLimit);
+            _semaphore = new(concurrency, concurrency);
+            _concurrency = concurrency;
             _handler = handler;
         }
 
@@ -33,7 +35,7 @@ namespace BotsCommon.Net.Http.Handlers
 
         public IHttpRequestHandler Clone()
         {
-            return new ConcurrentHttpRequestHandler(_handler.Clone());
+            return new ConcurrentHttpRequestHandler(_handler.Clone(), _concurrency);
         }
 
         public void Dispose()
