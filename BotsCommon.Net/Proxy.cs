@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Net;
+using System.Text.RegularExpressions;
 
 namespace BotsCommon.Net
 {
@@ -33,6 +35,8 @@ namespace BotsCommon.Net
         public string? Username { get; }
         public string? Password { get; }
         public bool IsDefaultPort { get; }
+        public static Regex UserPasswordAtHostPortFormat { get; } = new("(?<username>.*?):(?<password>.*?)@(?<host>.*?):(?<port>.*)", RegexOptions.Compiled);
+        public static Regex HostPortUserPasswordFormat { get; } = new("(?<host>.*?):(?<port>.*?):(?<username>.*?):(?<password>.*)", RegexOptions.Compiled);
 
         public bool HasCredentials => Username != null && Password != null;
 
@@ -138,6 +142,103 @@ namespace BotsCommon.Net
                 default:
                     throw new NotSupportedException();
             }
+        }
+
+        public static Proxy Parse(string str, ProxyScheme scheme)
+        {
+            if (TryParse(str, scheme, UserPasswordAtHostPortFormat, out var proxy))
+                return proxy;
+            else if (TryParse(str, scheme, HostPortUserPasswordFormat, out proxy))
+                return proxy;
+            else
+                throw new Exception("Cannot parse proxy using default formats");
+        }
+
+        public static bool TryParse(string str, ProxyScheme scheme, Regex format, [NotNullWhen(true)] out Proxy? proxy)
+        {
+            var match = format.Match(str);
+
+            string? host = null;
+            int? port = null;
+            string? username = null;
+            string? password = null;
+
+            if (match.Groups.TryGetValue("host", out Group? hostGroup))
+            {
+                if (!hostGroup.Success)
+                {
+                    proxy = null;
+                    return false;
+                }
+
+                host = hostGroup.Value;
+            }
+            if (match.Groups.TryGetValue("port", out Group? portGroup))
+            {
+                if (!portGroup.Success || !int.TryParse(portGroup.Value, out var parsedPort))
+                {
+                    proxy = null;
+                    return false;
+                }
+
+                port = parsedPort;
+            }
+            if (match.Groups.TryGetValue("username", out Group? usernameGroup))
+            {
+                if (!usernameGroup.Success)
+                {
+                    proxy = null;
+                    return false;
+                }
+
+                username = usernameGroup.Value;
+            }
+            if (match.Groups.TryGetValue("password", out Group? passwordGroup))
+            {
+                if (!passwordGroup.Success)
+                {
+                    proxy = null;
+                    return false;
+                }
+
+                password = passwordGroup.ThrowIfNotSuccuess().Value;
+            }
+
+            proxy = new Proxy(
+                scheme,
+                host ?? throw new Exception("Host cannot be null"),
+                port ?? GetDefaultPort(scheme),
+                username,
+                password
+            );
+            return true;
+        }
+
+        public static Proxy Parse(string str, ProxyScheme scheme, Regex format)
+        {
+            var match = format.Match(str);
+
+            string? host = null;
+            int? port = null;
+            string? username = null;
+            string? password = null;
+
+            if (match.Groups.TryGetValue("host", out Group? hostGroup))
+                host = hostGroup.ThrowIfNotSuccuess().Value;
+            if (match.Groups.TryGetValue("port", out Group? portGroup))
+                port = int.Parse(portGroup.ThrowIfNotSuccuess().Value);
+            if (match.Groups.TryGetValue("username", out Group? usernameGroup))
+                username = usernameGroup.ThrowIfNotSuccuess().Value;
+            if (match.Groups.TryGetValue("password", out Group? passwordGroup))
+                password = passwordGroup.ThrowIfNotSuccuess().Value;
+
+            return new Proxy(
+                scheme,
+                host ?? throw new Exception("Host cannot be null"),
+                port ?? GetDefaultPort(scheme),
+                username,
+                password
+            );
         }
     }
 }
