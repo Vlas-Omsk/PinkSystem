@@ -73,7 +73,7 @@ namespace BotsCommon.Net.Http.Sockets
         {
             if (OperatingSystem.IsLinux())
             {
-                var output = await ProcessUtils.GetProcessOutput("sysctl", "-n net.ipv4.ip_local_port_range");
+                var output = await ProcessUtils.GetProcessOutput("sudo", "sysctl -n net.ipv4.ip_local_port_range");
 
                 var split = output.Trim().Split('\t', StringSplitOptions.RemoveEmptyEntries);
 
