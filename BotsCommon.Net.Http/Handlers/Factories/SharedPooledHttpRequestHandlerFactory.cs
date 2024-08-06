@@ -1,10 +1,10 @@
-﻿using BotsCommon.Net.Http.Handlers;
+﻿using BotsCommon.Net.Http.Sockets;
 using Microsoft.Extensions.Logging;
 using System;
 
 namespace BotsCommon.Net.Http.Handlers.Factories
 {
-    public sealed class SharedPooledHttpRequestHandlerFactory : IHttpRequestHandlerFactory, IDisposable
+    public sealed class SharedPooledHttpRequestHandlerFactory : ISocketsHttpRequestHandlerFactory, IDisposable
     {
         private readonly IHttpRequestHandlerWrapper _httpRequestHandlerWrapper;
         private readonly SharedPooledHttpRequestHandler.Pool _pool;
@@ -22,7 +22,10 @@ namespace BotsCommon.Net.Http.Handlers.Factories
                     loggerFactory.CreateLogger<SharedPooledHttpRequestHandler.PoolConnections>()
                 )
             );
+            SocketsProvider = httpRequestHandlerFactory.SocketsProvider;
         }
+
+        public ISocketsProvider SocketsProvider { get; }
 
         public IHttpRequestHandler Create(HttpRequestHandlerOptions options)
         {
