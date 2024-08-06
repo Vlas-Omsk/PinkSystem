@@ -27,15 +27,12 @@ namespace BotsCommon.Net.Http
         public HttpHeaders Headers { get; }
         public IContentReader Content { get; }
 
-        public bool IsSuccessStatusCode
-        {
-            get { return ((int)StatusCode >= 200) && ((int)StatusCode <= 299); }
-        }
+        public bool IsSuccessStatusCode => ((int)StatusCode >= 200) && ((int)StatusCode <= 299);
 
         public void EnsureSuccessStatusCode()
         {
             if (!IsSuccessStatusCode)
-                throw new Exception($"Status code does not indicate success {StatusCode} ({(int)StatusCode}, {ReasonPhrase})");
+                throw new Exception($"Status code does not indicate success {StatusCode} ({(int)StatusCode}, {ReasonPhrase}). Response: \"{Content.ReadAsString()}\"");
         }
     }
 }
