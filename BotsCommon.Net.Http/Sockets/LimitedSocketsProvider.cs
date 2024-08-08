@@ -47,11 +47,15 @@ namespace BotsCommon.Net.Http.Sockets
         {
             await _socketsLock.WaitAsync(cancellationToken);
 
-            return new LimitedSocket(new(socketType, protocolType), _socketsLock)
+            var socket = new LimitedSocket(new(socketType, protocolType), _socketsLock)
             {
-                NoDelay = NoDelay,
-                LingerState = LingerState
+                NoDelay = NoDelay
             };
+
+            if (LingerState != null)
+                socket.LingerState = LingerState;
+
+            return socket;
         }
 
         public static async Task<LimitedSocketsProvider> CreateDefault(double percentOfAvailablePorts = 0.8)

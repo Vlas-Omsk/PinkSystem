@@ -10,7 +10,7 @@ namespace BotsCommon.Net.Http.Sockets
     public interface ISocket : IDisposable
     {
         bool NoDelay { get; set; }
-        LingerOption? LingerState { get; set; }
+        LingerOption LingerState { get; set; }
         
         void SetSocketOption(SocketOptionLevel level, SocketOptionName name, object value);
         void SetSocketOption(SocketOptionLevel level, SocketOptionName name, int value);

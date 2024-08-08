@@ -13,11 +13,15 @@ namespace BotsCommon.Net.Http.Sockets
 
         public Task<ISocket> Create(SocketType socketType, ProtocolType protocolType, CancellationToken cancellationToken)
         {
-            return Task.FromResult<ISocket>(new DefaultSocket(new(socketType, protocolType))
+            var socket = new DefaultSocket(new(socketType, protocolType))
             {
-                LingerState = LingerState,
                 NoDelay = NoDelay
-            });
+            };
+
+            if (LingerState != null)
+                socket.LingerState = LingerState;
+
+            return Task.FromResult<ISocket>(socket);
         }
     }
 }

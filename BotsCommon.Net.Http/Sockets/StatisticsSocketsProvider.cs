@@ -221,7 +221,7 @@ namespace BotsCommon.Net.Http.Sockets
                 set => _socket.NoDelay = value;
             }
 
-            public LingerOption? LingerState
+            public LingerOption LingerState
             {
                 get => _socket.LingerState;
                 set => _socket.LingerState = value;

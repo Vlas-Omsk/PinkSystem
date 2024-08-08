@@ -179,10 +179,10 @@ namespace BotsCommon.Net.Http.Sockets
             set => Socket.NoDelay = value;
         }
 
-        public LingerOption? LingerState
+        public LingerOption LingerState
         {
-            get => Socket.LingerState;
-            set => Socket.LingerState = value!;
+            get => Socket.LingerState!;
+            set => Socket.LingerState = value;
         }
 
         public virtual ValueTask ConnectAsync(EndPoint endPoint, CancellationToken cancellationToken)
