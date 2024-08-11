@@ -4,7 +4,7 @@ namespace BotsCommon.IO.Data
 {
     public sealed class StreamLinesDataReader : StreamDataReader<string>
     {
-        public StreamLinesDataReader(StreamReader reader) : base(reader)
+        public StreamLinesDataReader(TextReader reader) : base(reader)
         {
         }
 

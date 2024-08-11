@@ -1,18 +1,20 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 
 namespace BotsCommon.IO.Data
 {
     public abstract class StreamDataReader<T> : IDataReader<T>
     {
-        private readonly StreamReader _reader;
+        private readonly TextReader _reader;
         private readonly object _lock = new();
         private int _index;
 
-        public StreamDataReader(StreamReader reader)
+        public StreamDataReader(TextReader reader)
         {
             _reader = reader;
-            if (reader.BaseStream.CanSeek)
-                Length = reader.CountLines();
+
+            if (reader is StreamReader streamReader && streamReader.BaseStream.CanSeek)
+                Length = streamReader.CountLines();
         }
 
         public int? Length { get; private set; }
@@ -58,7 +60,11 @@ namespace BotsCommon.IO.Data
         {
             lock (_lock)
             {
-                _reader.SetPosition(0);
+                if (_reader is StreamReader streamReader)
+                    streamReader.SetPosition(0);
+                else
+                    throw new NotSupportedException();
+
                 _index = 0;
             }
         }

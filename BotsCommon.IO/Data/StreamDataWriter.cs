@@ -4,10 +4,10 @@ namespace BotsCommon.IO.Data
 {
     public abstract class StreamDataWriter<T> : IDataWriter<T>
     {
-        private readonly StreamWriter _writer;
+        private readonly TextWriter _writer;
         private readonly object _lock = new object();
 
-        public StreamDataWriter(StreamWriter writer)
+        public StreamDataWriter(TextWriter writer)
         {
             _writer = writer;
         }

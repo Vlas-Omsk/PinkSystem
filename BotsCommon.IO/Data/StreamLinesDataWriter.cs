@@ -4,7 +4,7 @@ namespace BotsCommon.IO.Data
 {
     public sealed class StreamLinesDataWriter : StreamDataWriter<string>
     {
-        public StreamLinesDataWriter(StreamWriter writer) : base(writer)
+        public StreamLinesDataWriter(TextWriter writer) : base(writer)
         {
         }
 
