@@ -11,8 +11,11 @@ namespace BotsCommon.Net.Http
 {
     public sealed class PooledHttpRequestHandler : IHttpRequestHandler
     {
+        // if available sockets more than 20%
+        private const double _safeFreePercent = 0.2;
         private readonly PoolConnections _poolConnections;
         private WeakReference<PoolConnection> _poolConnection;
+        private readonly object _poolConnectionLock = new();
 
         public sealed class PoolConnections : IDisposable
         {
@@ -68,16 +71,21 @@ namespace BotsCommon.Net.Http
 
             private void DisposeUnusedItems()
             {
-                // if available sockets more than 70%
-                if (_factory.SocketsProvider.CurrentAvailableSockets > _factory.SocketsProvider.MaxAvailableSockets * 0.7)
+                if (_factory.SocketsProvider.CurrentAvailableSockets > _factory.SocketsProvider.MaxAvailableSockets * _safeFreePercent)
                     return;
 
+                var amountToDispose = (_factory.SocketsProvider.MaxAvailableSockets * _safeFreePercent) - _factory.SocketsProvider.CurrentAvailableSockets;
                 var disposedAmount = 0;
 
-                foreach (var (connection, _) in _connections)
+                foreach (var (connection, _) in _connections.OrderBy(x => x.Key.LastUse))
                 {
                     if (TryDisposeItemInternal(connection, ignoreNew: false))
+                    {
                         disposedAmount++;
+
+                        if (disposedAmount > amountToDispose)
+                            break;
+                    }
                 }
 
                 if (disposedAmount > 0)
@@ -263,11 +271,14 @@ namespace BotsCommon.Net.Http
         {
             while (true)
             {
-                if (_poolConnection.TryGetTarget(out var item) &&
-                    item.TryRent())
-                    return item;
-                else
-                    _poolConnection = _poolConnections.CreateNew(Options);
+                lock (_poolConnectionLock)
+                {
+                    if (_poolConnection.TryGetTarget(out var item) &&
+                        item.TryRent())
+                        return item;
+                    else
+                        _poolConnection = _poolConnections.CreateNew(Options);
+                }
             }
         }
     }
