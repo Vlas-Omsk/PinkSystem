@@ -58,6 +58,7 @@ namespace BotsCommon.Net.Http
                         );
 
                         DisposeUnusedItems();
+                        DisposeUnusedSockets();
                         DisposeTimeOutedItems();
                     }
                     catch (Exception ex)
@@ -70,6 +71,29 @@ namespace BotsCommon.Net.Http
             }
 
             private void DisposeUnusedItems()
+            {
+                if (_connections.Count < _factory.SocketsProvider.MaxAvailableSockets * 2)
+                    return;
+
+                var amountToDispose = _connections.Count - _factory.SocketsProvider.MaxAvailableSockets;
+                var disposedAmount = 0;
+
+                foreach (var (connection, _) in _connections.OrderBy(x => x.Key.LastUse))
+                {
+                    if (TryDisposeItemInternal(connection, ignoreNew: false))
+                    {
+                        disposedAmount++;
+
+                        if (disposedAmount > amountToDispose)
+                            break;
+                    }
+                }
+
+                if (disposedAmount > 0)
+                    _logger.LogInformation("Disposed {amount} unused http request handlers", disposedAmount);
+            }
+
+            private void DisposeUnusedSockets()
             {
                 if (_factory.SocketsProvider.CurrentAvailableSockets > _factory.SocketsProvider.MaxAvailableSockets * _safeFreePercent)
                     return;
