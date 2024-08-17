@@ -162,7 +162,9 @@ namespace BotsCommon
 
             var task = StartNewTask(func);
 
-            _tasks[index] = task.ContinueWith((_) =>
+            _tasks[index] = task;
+
+            task.ContinueWith((_) =>
             {
                 _completedTasks.Enqueue((index, task));
 
