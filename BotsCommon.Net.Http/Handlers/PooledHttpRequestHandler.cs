@@ -57,9 +57,32 @@ namespace BotsCommon.Net.Http
                             _factory.SocketsProvider.MaxAvailableSockets
                         );
 
-                        DisposeUnusedItems();
-                        DisposeUnusedSockets();
-                        DisposeTimeOutedItems();
+                        try
+                        {
+                            DisposeUnusedItems();
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogError(ex, "Error when disposing unused http request handlers");
+                        }
+
+                        try
+                        {
+                            DisposeUnusedSockets();
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogError(ex, "Error when disposing unused sockets http request handlers");
+                        }
+
+                        try
+                        {
+                            DisposeTimeOutedItems();
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogError(ex, "Error when disposing timeouted http request handlers");
+                        }
                     }
                     catch (Exception ex)
                     {
@@ -78,7 +101,7 @@ namespace BotsCommon.Net.Http
                 var amountToDispose = _connections.Count - _factory.SocketsProvider.MaxAvailableSockets;
                 var disposedAmount = 0;
 
-                foreach (var (connection, _) in _connections.OrderBy(x => x.Key.LastUse))
+                foreach (var (connection, _) in _connections.ToArray().OrderBy(x => x.Key.LastUse))
                 {
                     if (TryDisposeItemInternal(connection, ignoreNew: false))
                     {
@@ -101,7 +124,7 @@ namespace BotsCommon.Net.Http
                 var amountToDispose = (_factory.SocketsProvider.MaxAvailableSockets * _safeFreePercent) - _factory.SocketsProvider.CurrentAvailableSockets;
                 var disposedAmount = 0;
 
-                foreach (var (connection, _) in _connections.OrderBy(x => x.Key.LastUse))
+                foreach (var (connection, _) in _connections.ToArray().OrderBy(x => x.Key.LastUse))
                 {
                     if (TryDisposeItemInternal(connection, ignoreNew: false))
                     {
