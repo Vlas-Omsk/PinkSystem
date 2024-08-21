@@ -38,7 +38,8 @@ namespace BotsCommon.Net.Http
                     _factory.Create(options)
                 );
 
-                _connections.AddOrUpdate(connection, true, (_, _) => true);
+                if (!_connections.TryAdd(connection, true))
+                    throw new Exception("Connection not added to pool");
 
                 return new WeakReference<PoolConnection>(connection);
             }
@@ -136,7 +137,7 @@ namespace BotsCommon.Net.Http
                 }
 
                 if (disposedAmount > 0)
-                    _logger.LogInformation("Disposed {amount} unused http request handlers", disposedAmount);
+                    _logger.LogInformation("Disposed {amount} unused sockets http request handlers", disposedAmount);
             }
 
             private void DisposeTimeOutedItems()
