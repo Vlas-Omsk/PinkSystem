@@ -4,12 +4,10 @@ using System.Threading.Tasks;
 
 namespace PinkSystem.Net.Http.Callbacks
 {
-    public interface IHttpCallbackReceiver
+    public interface IHttpCallbackReceiver : IDisposable
     {
-        bool IsListening { get; }
+        Uri ExternalUri { get; }
 
-        void AddHandler(IHttpCallbackHandler handler);
-        Uri GetUri(string path);
-        Task Start(CancellationToken cancellationToken);
+        Task<HttpRequest> Receive(TimeSpan timeout, CancellationToken cancellationToken);
     }
 }
