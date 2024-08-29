@@ -138,7 +138,7 @@ namespace PinkSystem.Net.Http.Callbacks
 
         public IHttpCallbackHandler CreateHandler()
         {
-            var path = '/' + Guid.NewGuid().ToString();
+            var path = '/' + Guid.NewGuid().ToString() + '/';
             var uri = new Uri(_uri, path);
             var handler =  new SystemNetHttpCallbackHandler(uri);
 
