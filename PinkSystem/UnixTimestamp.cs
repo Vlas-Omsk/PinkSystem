@@ -53,6 +53,11 @@ namespace PinkSystem
             return DateTime.GetHashCode();
         }
 
+        public override string ToString()
+        {
+            return DateTime.ToString();
+        }
+
         public static UnixTimestamp operator -(UnixTimestamp left, UnixTimestamp right)
         {
             return GetMaxPercision(left.Percision, right.Percision) switch
