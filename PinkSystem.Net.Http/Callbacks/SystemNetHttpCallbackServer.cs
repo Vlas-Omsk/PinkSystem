@@ -163,9 +163,7 @@ namespace PinkSystem.Net.Http.Callbacks
 
             try
             {
-                request = await receiver.Receive(Timeout.InfiniteTimeSpan, cancellationToken)
-                    .WaitAsync(TimeSpan.FromSeconds(10), cancellationToken)
-                    .ConfigureAwait(false);
+                request = await receiver.Receive(TimeSpan.FromSeconds(10), cancellationToken).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
