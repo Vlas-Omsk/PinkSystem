@@ -3,6 +3,7 @@ using PinkSystem.IO.Content;
 using System;
 using System.Buffers;
 using System.Collections.Concurrent;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Net;
 using System.Net.Http;
@@ -29,18 +30,19 @@ namespace PinkSystem.Net.Http.Callbacks
                 _uri = uri;
             }
 
-            public IHttpCallbackReceiver CreateReceiver(string path)
+            public bool TryCreateReceiver(string path, [NotNullWhen(true)] out IHttpCallbackReceiver receiver)
             {
                 var uri = new Uri(_uri, path);
 
                 if (!uri.AbsolutePath.StartsWith(_uri.AbsolutePath))
                     throw new ArgumentException("Path cannot have root path");
 
-                var receiver = new SystemNetHttpCallbackReceiver(this, uri);
+                var internalReceiver = new SystemNetHttpCallbackReceiver(this, uri);
 
-                _receivers.TryAdd(uri, receiver);
+                _receivers.TryAdd(uri, internalReceiver);
 
-                return receiver;
+                receiver = internalReceiver;
+                return true;
             }
 
             internal void RemoveReceiver(SystemNetHttpCallbackReceiver receiver)
@@ -151,28 +153,36 @@ namespace PinkSystem.Net.Http.Callbacks
         {
             var handler = CreateHandler();
 
-            using var receiver = handler.CreateReceiver("test");
-
-            using var httpClient = new HttpClient();
-
-            var response = await httpClient.GetAsync(receiver.ExternalUri, cancellationToken).ConfigureAwait(false);
-
-            response.EnsureSuccessStatusCode();
-
-            HttpRequest request;
+            if (!handler.TryCreateReceiver("test", out var receiver))
+                throw new Exception();
 
             try
             {
-                request = await receiver.Receive(TimeSpan.FromSeconds(10), cancellationToken).ConfigureAwait(false);
-            }
-            catch (Exception ex)
-            {
-                throw new Exception("Http callback receiver selft test failed", ex);
-            }
+                using var httpClient = new HttpClient();
 
-            if (!request.Method.Equals("GET") ||
-                request.Uri != receiver.ExternalUri)
-                throw new Exception("Http callback receiver selft test failed");
+                var response = await httpClient.GetAsync(receiver.ExternalUri, cancellationToken).ConfigureAwait(false);
+
+                response.EnsureSuccessStatusCode();
+
+                HttpRequest request;
+
+                try
+                {
+                    request = await receiver.Receive(TimeSpan.FromSeconds(10), cancellationToken).ConfigureAwait(false);
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception("Http callback receiver selft test failed", ex);
+                }
+
+                if (!request.Method.Equals("GET") ||
+                    request.Uri != receiver.ExternalUri)
+                    throw new Exception("Http callback receiver selft test failed");
+            }
+            finally
+            {
+                receiver.Dispose();
+            }
         }
 
         private void HandleRequest(HttpListenerContext context)

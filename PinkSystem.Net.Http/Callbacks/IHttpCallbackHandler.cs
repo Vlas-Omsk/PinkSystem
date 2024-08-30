@@ -1,7 +1,9 @@
-﻿namespace PinkSystem.Net.Http.Callbacks
+﻿using System.Diagnostics.CodeAnalysis;
+
+namespace PinkSystem.Net.Http.Callbacks
 {
     public interface IHttpCallbackHandler
     {
-        bool TryCreateReceiver(string path, out IHttpCallbackReceiver receiver);
+        bool TryCreateReceiver(string path, [NotNullWhen(true)] out IHttpCallbackReceiver? receiver);
     }
 }
