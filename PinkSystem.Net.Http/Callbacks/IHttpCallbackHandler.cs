@@ -2,6 +2,6 @@
 {
     public interface IHttpCallbackHandler
     {
-        IHttpCallbackReceiver CreateReceiver(string path);
+        bool TryCreateReceiver(string path, out IHttpCallbackReceiver receiver);
     }
 }
