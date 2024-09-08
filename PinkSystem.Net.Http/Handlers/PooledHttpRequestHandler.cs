@@ -104,7 +104,7 @@ namespace PinkSystem.Net.Http
 
                 foreach (var (connection, _) in _connections.ToArray().OrderBy(x => x.Key.LastUse))
                 {
-                    if (TryDisposeItemInternal(connection, ignoreNew: false))
+                    if (TryDisposeItem(connection, ignoreNew: false))
                     {
                         disposedAmount++;
 
@@ -127,7 +127,7 @@ namespace PinkSystem.Net.Http
 
                 foreach (var (connection, _) in _connections.ToArray().OrderBy(x => x.Key.LastUse))
                 {
-                    if (TryDisposeItemInternal(connection, ignoreNew: false))
+                    if (TryDisposeItem(connection, ignoreNew: false))
                     {
                         disposedAmount++;
 
@@ -150,7 +150,7 @@ namespace PinkSystem.Net.Http
                     if (connection.LastUse >= disposeTime)
                         continue;
 
-                    if (TryDisposeItemInternal(connection, ignoreNew: true))
+                    if (TryDisposeItem(connection, ignoreNew: true))
                         disposedAmount++;
                 }
 
@@ -158,7 +158,7 @@ namespace PinkSystem.Net.Http
                     _logger.LogInformation("Disposed {amount} timeouted http request handlers", disposedAmount);
             }
 
-            private bool TryDisposeItemInternal(PoolConnection connection, bool ignoreNew)
+            public bool TryDisposeItem(PoolConnection connection, bool ignoreNew)
             {
                 if (!connection.TryDispose(ignoreNew))
                     return false;
@@ -310,9 +310,8 @@ namespace PinkSystem.Net.Http
 
         public void Dispose()
         {
-            if (_poolConnection.TryGetTarget(out var item) &&
-                !item.TryDispose(ignoreNew: true))
-                return;
+            if (_poolConnection.TryGetTarget(out var item))
+                _poolConnections.TryDisposeItem(item, ignoreNew: true);
         }
 
         private PoolConnection Rent()
