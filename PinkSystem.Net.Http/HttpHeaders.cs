@@ -8,16 +8,33 @@ namespace PinkSystem.Net.Http
 {
     public sealed class HttpHeaders : IEnumerable<KeyValuePair<string, IEnumerable<string>>>
     {
-        private readonly Dictionary<string, List<string>> _dictionary = new(StringComparer.OrdinalIgnoreCase);
+        private readonly Dictionary<string, List<string>> _dictionary;
+
+        public HttpHeaders(int capacity)
+        {
+            _dictionary = new(capacity, StringComparer.OrdinalIgnoreCase);
+        }
+
+        public HttpHeaders()
+        {
+            _dictionary = new(StringComparer.OrdinalIgnoreCase);
+        }
 
         public void Add(string key, string value)
         {
             ArgumentNullException.ThrowIfNull(key);
             ArgumentNullException.ThrowIfNull(value);
 
-            var list = GetList(key);
+            if (_dictionary.TryGetValue(key, out var list))
+            {
+                list.Add(value);
+            }
+            else
+            {
+                _dictionary.Add(key, list = new(1));
 
-            list.Add(value);
+                list.Add(value);
+            }
         }
 
         public void Add(string key, IEnumerable<string> values)
@@ -27,9 +44,10 @@ namespace PinkSystem.Net.Http
             if (values == null || values.Any(x => x == null))
                 throw new ArgumentNullException(nameof(values));
 
-            var list = GetList(key);
-
-            list.AddRange(values);
+            if (_dictionary.TryGetValue(key, out var list))
+                list.AddRange(values);
+            else
+                _dictionary.Add(key, new(values));
         }
 
         public void Replace(string key, string value)
@@ -37,20 +55,33 @@ namespace PinkSystem.Net.Http
             ArgumentNullException.ThrowIfNull(key);
             ArgumentNullException.ThrowIfNull(value);
 
-            var list = GetList(key);
+            if (_dictionary.TryGetValue(key, out var list))
+            {
+                list.Clear();
 
-            list.Clear();
-
-            list.Add(value);
+                list.Add(value);
+            }
+            else
+            {
+                _dictionary.Add(key, list = new(1)
+                {
+                    value
+                });
+            }
         }
 
         public void Replace(string key, IEnumerable<string> values)
         {
-            var list = GetList(key);
+            if (_dictionary.TryGetValue(key, out var list))
+            {
+                list.Clear();
 
-            list.Clear();
-
-            list.AddRange(values);
+                list.AddRange(values);
+            }
+            else
+            {
+                _dictionary.Add(key, new(values));
+            }
         }
 
         public IEnumerable<string> GetValues(string key)
@@ -68,14 +99,6 @@ namespace PinkSystem.Net.Http
             values = list;
 
             return result;
-        }
-
-        private List<string> GetList(string key)
-        {
-            if (!_dictionary.TryGetValue(key, out var list))
-                _dictionary.Add(key, list = new());
-
-            return list;
         }
 
         public IEnumerator<KeyValuePair<string, IEnumerable<string>>> GetEnumerator()
