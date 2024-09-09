@@ -81,7 +81,7 @@ namespace PinkSystem.Net
             return url;
         }
 
-        private string GetSchemeName()
+        public string GetSchemeName()
         {
             switch (Scheme)
             {
