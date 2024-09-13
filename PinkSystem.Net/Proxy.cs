@@ -87,8 +87,12 @@ namespace PinkSystem.Net
             {
                 case ProxyScheme.Http:
                     return "http";
+                case ProxyScheme.Https:
+                    return "https";
                 case ProxyScheme.Socks4:
                     return "socks4";
+                case ProxyScheme.Socks4a:
+                    return "socks4a";
                 case ProxyScheme.Socks5:
                     return "socks5";
                 default:
