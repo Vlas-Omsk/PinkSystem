@@ -15,7 +15,7 @@ namespace PinkSystem.IO.Evaluating
                 return false;
             }
 
-            if (args.Count != 2)
+            if (args.Count < 2)
                 throw new Exception("Function 'choice' must provide atleast 1 arguments");
 
             result = args.Skip(Random.Shared.Next(1, args.Count)).First();
