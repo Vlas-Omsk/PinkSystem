@@ -58,5 +58,10 @@ namespace PinkSystem.IO.Data
         {
             _reader.Dispose();
         }
+
+        public static EvaluatingDataReader CreateDefault(IDataReader<string> reader)
+        {
+            return new EvaluatingDataReader(reader, [new RandomEvaluator()]);
+        }
     }
 }
