@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
@@ -11,7 +12,7 @@ namespace PinkSystem.IO.Evaluating
         private static readonly string _letters = "abcdefghijklmnopqrstuvwxyz";
         private static readonly string _numbersAndLetters = _numbers + _letters;
 
-        public bool TryEvaluate(string[] args, [NotNullWhen(true)] out string? result)
+        public bool TryEvaluate(IReadOnlyList<string> args, [NotNullWhen(true)] out string? result)
         {
             if (args[0] != "random")
             {
@@ -19,7 +20,7 @@ namespace PinkSystem.IO.Evaluating
                 return false;
             }
 
-            if (args.Length != 4)
+            if (args.Count != 4)
                 throw new Exception("Function 'random' must provide 3 arguments");
 
             var (charset, charsetId) = args[1] switch

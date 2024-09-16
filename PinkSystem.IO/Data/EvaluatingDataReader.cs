@@ -61,7 +61,13 @@ namespace PinkSystem.IO.Data
 
         public static EvaluatingDataReader CreateDefault(IDataReader<string> reader)
         {
-            return new EvaluatingDataReader(reader, [new RandomEvaluator()]);
+            return new EvaluatingDataReader(
+                reader,
+                [
+                    new RandomEvaluator(),
+                    new ChoiceEvaluator()
+                ]
+            );
         }
     }
 }
