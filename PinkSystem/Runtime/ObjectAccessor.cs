@@ -11,6 +11,11 @@ namespace PinkSystem.Runtime
         );
         private readonly BindingFlags _bindingFlags;
 
+        public ObjectAccessor(object obj) :
+            this(obj, obj.GetType())
+        {
+        }
+
         public ObjectAccessor(object? obj, Type type)
         {
             Instance = obj;

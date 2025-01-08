@@ -3,7 +3,7 @@ using System.Linq;
 
 namespace PinkSystem
 {
-    public enum UnixTimestampPercision
+    public enum UnixTimestampPrecision
     {
         Ticks,
         Milliseconds,
@@ -15,16 +15,16 @@ namespace PinkSystem
 
     public readonly struct UnixTimestamp
     {
-        public UnixTimestamp(TimeSpan timeSpan, UnixTimestampPercision percision)
+        public UnixTimestamp(TimeSpan timeSpan, UnixTimestampPrecision precision)
         {
             DateTime = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc).Add(timeSpan);
             TimeSpan = timeSpan;
-            Percision = percision;
+            Precision = precision;
         }
 
         public DateTime DateTime { get; }
         public TimeSpan TimeSpan { get; }
-        public UnixTimestampPercision Percision { get; }
+        public UnixTimestampPrecision Precision { get; }
         public long Ticks => TimeSpan.Ticks;
         public double Milliseconds => TimeSpan.TotalMilliseconds;
         public long MillisecondsLong => (long)Math.Round(TimeSpan.TotalMilliseconds);
@@ -60,28 +60,28 @@ namespace PinkSystem
 
         public static UnixTimestamp operator -(UnixTimestamp left, UnixTimestamp right)
         {
-            return GetMaxPercision(left.Percision, right.Percision) switch
+            return GetMinPrecision(left.Precision, right.Precision) switch
             {
-                UnixTimestampPercision.Ticks => FromTicks(left.Ticks - right.Ticks),
-                UnixTimestampPercision.Milliseconds => FromMilliseconds(left.MillisecondsLong - right.MillisecondsLong),
-                UnixTimestampPercision.Seconds => FromSeconds(left.SecondsLong - right.SecondsLong),
-                UnixTimestampPercision.Minutes => FromMinutes(left.MinutesLong - right.MinutesLong),
-                UnixTimestampPercision.Hours => FromHours(left.HoursLong - right.HoursLong),
-                UnixTimestampPercision.Days => FromDays(left.DaysLong - right.DaysLong),
+                UnixTimestampPrecision.Ticks => FromTicks(left.Ticks - right.Ticks),
+                UnixTimestampPrecision.Milliseconds => FromMilliseconds(left.MillisecondsLong - right.MillisecondsLong),
+                UnixTimestampPrecision.Seconds => FromSeconds(left.SecondsLong - right.SecondsLong),
+                UnixTimestampPrecision.Minutes => FromMinutes(left.MinutesLong - right.MinutesLong),
+                UnixTimestampPrecision.Hours => FromHours(left.HoursLong - right.HoursLong),
+                UnixTimestampPrecision.Days => FromDays(left.DaysLong - right.DaysLong),
                 _ => throw new NotSupportedException(),
             };
         }
 
         public static UnixTimestamp operator +(UnixTimestamp left, UnixTimestamp right)
         {
-            return GetMaxPercision(left.Percision, right.Percision) switch
+            return GetMinPrecision(left.Precision, right.Precision) switch
             {
-                UnixTimestampPercision.Ticks => FromTicks(left.Ticks + right.Ticks),
-                UnixTimestampPercision.Milliseconds => FromMilliseconds(left.MillisecondsLong + right.MillisecondsLong),
-                UnixTimestampPercision.Seconds => FromSeconds(left.SecondsLong + right.SecondsLong),
-                UnixTimestampPercision.Minutes => FromMinutes(left.MinutesLong + right.MinutesLong),
-                UnixTimestampPercision.Hours => FromHours(left.HoursLong + right.HoursLong),
-                UnixTimestampPercision.Days => FromDays(left.DaysLong + right.DaysLong),
+                UnixTimestampPrecision.Ticks => FromTicks(left.Ticks + right.Ticks),
+                UnixTimestampPrecision.Milliseconds => FromMilliseconds(left.MillisecondsLong + right.MillisecondsLong),
+                UnixTimestampPrecision.Seconds => FromSeconds(left.SecondsLong + right.SecondsLong),
+                UnixTimestampPrecision.Minutes => FromMinutes(left.MinutesLong + right.MinutesLong),
+                UnixTimestampPrecision.Hours => FromHours(left.HoursLong + right.HoursLong),
+                UnixTimestampPrecision.Days => FromDays(left.DaysLong + right.DaysLong),
                 _ => throw new NotSupportedException(),
             };
         }
@@ -109,14 +109,14 @@ namespace PinkSystem
             return !(left == right);
         }
 
-        private static UnixTimestampPercision GetMaxPercision(params UnixTimestampPercision[] percisions)
+        private static UnixTimestampPrecision GetMinPrecision(params UnixTimestampPrecision[] precisions)
         {
-            return percisions.Max();
+            return precisions.Min();
         }
 
-        public static UnixTimestamp Now => FromDateTime(DateTime.UtcNow, UnixTimestampPercision.Ticks);
+        public static UnixTimestamp Now => FromDateTime(DateTime.UtcNow, UnixTimestampPrecision.Ticks);
 
-        public static UnixTimestamp FromDateTime(DateTime dateTime, UnixTimestampPercision percision)
+        public static UnixTimestamp FromDateTime(DateTime dateTime, UnixTimestampPrecision percision)
         {
             return new UnixTimestamp(
                 dateTime.ToUniversalTime() - new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
@@ -128,7 +128,7 @@ namespace PinkSystem
         {
             return new UnixTimestamp(
                 TimeSpan.FromTicks(ticks),
-                UnixTimestampPercision.Ticks
+                UnixTimestampPrecision.Ticks
             );
         }
 
@@ -136,7 +136,7 @@ namespace PinkSystem
         {
             return new UnixTimestamp(
                 TimeSpan.FromMilliseconds(milliseconds),
-                UnixTimestampPercision.Milliseconds
+                UnixTimestampPrecision.Milliseconds
             );
         }
 
@@ -144,7 +144,7 @@ namespace PinkSystem
         {
             return new UnixTimestamp(
                 TimeSpan.FromSeconds(seconds),
-                UnixTimestampPercision.Seconds
+                UnixTimestampPrecision.Seconds
             );
         }
 
@@ -152,7 +152,7 @@ namespace PinkSystem
         {
             return new UnixTimestamp(
                 TimeSpan.FromMinutes(minutes),
-                UnixTimestampPercision.Minutes
+                UnixTimestampPrecision.Minutes
             );
         }
 
@@ -160,7 +160,7 @@ namespace PinkSystem
         {
             return new UnixTimestamp(
                 TimeSpan.FromHours(hours),
-                UnixTimestampPercision.Hours
+                UnixTimestampPrecision.Hours
             );
         }
 
@@ -168,7 +168,7 @@ namespace PinkSystem
         {
             return new UnixTimestamp(
                 TimeSpan.FromDays(days),
-                UnixTimestampPercision.Days
+                UnixTimestampPrecision.Days
             );
         }
     }
