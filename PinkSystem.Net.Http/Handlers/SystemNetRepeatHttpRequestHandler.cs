@@ -44,7 +44,7 @@ namespace PinkSystem.Net.Http.Handlers
                             ex.Message.Contains("proxy", StringComparison.OrdinalIgnoreCase) ||
                             ex.Message.Contains("The server shut down the connection", StringComparison.OrdinalIgnoreCase) ||
                             ex.Message.Contains("An HTTP/2 connection could not be established because the server did not complete the HTTP/2 handshake", StringComparison.OrdinalIgnoreCase))) ||
-                    (ex is TaskCanceledException && !cancellationToken.IsCancellationRequested)
+                    (ex is TaskCanceledException && !cancellationToken.IsCancellationRequested && ex.InnerException is not TimeoutException)
                 ))
                 {
                     exLast = ex;
