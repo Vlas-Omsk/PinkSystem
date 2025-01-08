@@ -38,7 +38,7 @@ namespace PinkSystem.Net.Http.Handlers
                 {
                     return await _handler.SendAsync(request, cancellationToken).ConfigureAwait(false);
                 }
-                catch (Exception ex) when (ex.InnerException is not TimeoutException)
+                catch (Exception ex) when (ex.InnerException is TimeoutException)
                 {
                     throw new TimeoutException(ex.Message, ex.InnerException?.InnerException);
                 }
