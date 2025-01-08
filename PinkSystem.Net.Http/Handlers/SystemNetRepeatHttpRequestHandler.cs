@@ -38,13 +38,17 @@ namespace PinkSystem.Net.Http.Handlers
                 {
                     return await _handler.SendAsync(request, cancellationToken).ConfigureAwait(false);
                 }
+                catch (Exception ex) when (ex.InnerException is not TimeoutException)
+                {
+                    throw new TimeoutException(ex.Message, ex.InnerException?.InnerException);
+                }
                 catch (Exception ex) when (ex.CheckAny(ex =>
                     (ex is HttpRequestException &&
                         (ex.InnerException != null ||
                             ex.Message.Contains("proxy", StringComparison.OrdinalIgnoreCase) ||
                             ex.Message.Contains("The server shut down the connection", StringComparison.OrdinalIgnoreCase) ||
                             ex.Message.Contains("An HTTP/2 connection could not be established because the server did not complete the HTTP/2 handshake", StringComparison.OrdinalIgnoreCase))) ||
-                    (ex is TaskCanceledException && !cancellationToken.IsCancellationRequested && ex.InnerException is not TimeoutException)
+                    (ex is TaskCanceledException && !cancellationToken.IsCancellationRequested)
                 ))
                 {
                     exLast = ex;
