@@ -5,7 +5,7 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\PinkSystem.IO\PinkSystem.IO.csproj" />
-    <ProjectReference Include="..\PinkSystem.RegularExpressions\PinkSystem.Text.csproj" />
+    <ProjectReference Include="..\PinkSystem.Text\PinkSystem.Text.csproj" />
     <ProjectReference Include="..\PinkSystem\PinkSystem.csproj" />
   </ItemGroup>
 </Project>
