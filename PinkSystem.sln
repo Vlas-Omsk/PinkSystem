@@ -11,7 +11,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PinkSystem.Net", "PinkSyste
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PinkSystem.IO", "PinkSystem.IO\PinkSystem.IO.csproj", "{DD3E8426-CF93-498F-9175-4F9612D77205}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PinkSystem.RegularExpressions", "PinkSystem.RegularExpressions\PinkSystem.RegularExpressions.csproj", "{31FEADC1-7C03-4368-8F3F-1C5F09D54FD0}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PinkSystem.Text", "PinkSystem.Text\PinkSystem.Text.csproj", "{31FEADC1-7C03-4368-8F3F-1C5F09D54FD0}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
