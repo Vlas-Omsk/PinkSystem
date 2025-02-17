@@ -1,7 +1,15 @@
 ﻿using System;
+using System.Buffers;
 using System.Diagnostics.CodeAnalysis;
+using System.IO;
 using System.Net;
+using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
+using System.Threading;
+using PinkSystem.Net.Sockets;
+using System.Net.Sockets;
+using PinkSystem.Runtime;
 
 namespace PinkSystem.Net
 {
@@ -131,6 +139,143 @@ namespace PinkSystem.Net
         public override int GetHashCode()
         {
             return GetUri(useCredentials: true).GetHashCode();
+        }
+
+        public async Task<Stream> EstablishConnection(ISocket socket, string host, int port, CancellationToken cancellationToken)
+        {
+            const string userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:135.0) Gecko/20100101 Firefox/135.0";
+
+            await socket.ConnectAsync(
+                new DnsEndPoint(Host, Port),
+                cancellationToken
+            ).ConfigureAwait(false);
+
+            var networkStream = socket.GetStream();
+
+            switch (Scheme)
+            {
+                case ProxyScheme.Http:
+                case ProxyScheme.Https:
+                    await EstablishHttpTunnel(
+                        networkStream,
+                        host,
+                        port,
+                        userAgent,
+                        cancellationToken
+                    );
+                    break;
+                case ProxyScheme.Socks4:
+                case ProxyScheme.Socks4a:
+                case ProxyScheme.Socks5:
+                    await EstablishSocksTunnel(
+                        networkStream,
+                        host,
+                        port,
+                        cancellationToken
+                    );
+                    break;
+            }
+
+            return networkStream;
+        }
+
+        private async Task EstablishSocksTunnel(Stream stream, string host, int port, CancellationToken cancellationToken)
+        {
+            var socksHelperType = Type.GetType("System.Net.Http.SocksHelper, System.Net.Http")!;
+            var socksHelperAccessor = ObjectAccessor.CreateStatic(socksHelperType);
+
+            await (ValueTask)socksHelperAccessor.CallMethod(
+                "EstablishSocksTunnelAsync",
+                stream,
+                host,
+                port,
+                new Uri(GetUri(useCredentials: false)),
+                HasCredentials ?
+                    new NetworkCredential(Username, Password) :
+                    null,
+                true /* async */,
+                cancellationToken
+            )!;
+        }
+
+        private async Task EstablishHttpTunnel(Stream stream, string host, int port, string userAgent, CancellationToken cancellationToken)
+        {
+            var dataBuilder = new StringBuilder();
+
+            dataBuilder.Append($"CONNECT {host}:{port} HTTP/1.1").AppendHttpLine();
+
+            dataBuilder.Append($"User-Agent: {userAgent}").AppendHttpLine();
+            dataBuilder.Append($"Host: {host}:443").AppendHttpLine();
+            dataBuilder.Append($"Connection: keep-alive").AppendHttpLine();
+
+            if (HasCredentials)
+            {
+                dataBuilder.Append($"Proxy-Authorization: Basic {Convert.ToBase64String(Encoding.UTF8.GetBytes($"{Username}:{Password}"))}").AppendHttpLine();
+            }
+
+            dataBuilder.AppendHttpLine();
+
+            var data = dataBuilder.ToString();
+
+            var buffer = ArrayPool<byte>.Shared.Rent(
+                Math.Max(Encoding.UTF8.GetByteCount(data), 8192)
+            );
+
+            try
+            {
+                var length = Encoding.UTF8.GetBytes(data, buffer);
+
+                await stream.WriteAsync(buffer.AsMemory(0, length), cancellationToken);
+                await stream.FlushAsync(cancellationToken);
+
+                var lineBuffer = new StringBuilder();
+                var completed = false;
+
+                while (!completed)
+                {
+                    length = await stream.ReadAsync(buffer, cancellationToken);
+
+                    if (length == 0)
+                        throw new Exception("Connection closed");
+
+                    for (var i = 0; i < length; i++)
+                    {
+                        if (i < length - 1 &&
+                            buffer[i] == '\r' &&
+                            buffer[i + 1] == '\n')
+                        {
+                            var line = lineBuffer.ToString();
+
+                            if (line.StartsWith("HTTP/1.1", StringComparison.OrdinalIgnoreCase))
+                            {
+                                var parts = line.Split(' ');
+
+                                var statusCode = int.Parse(parts[1]);
+
+                                if (statusCode != 200)
+                                    throw new Exception($"Error when connecting to proxy: {statusCode} {string.Join(' ', parts[2..])}");
+                            }
+                            else if (line.Length == 0)
+                            {
+                                completed = true;
+                                break;
+                            }
+
+                            lineBuffer.Clear();
+
+                            i++;
+                        }
+                        else
+                        {
+                            lineBuffer.Append((char)buffer[i]);
+                        }
+                    }
+                }
+            }
+            finally
+            {
+                ArrayPool<byte>.Shared.Return(buffer);
+            }
         }
 
         public static int GetDefaultPort(ProxyScheme scheme)
