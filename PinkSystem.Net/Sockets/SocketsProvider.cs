@@ -2,7 +2,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace PinkSystem.Net.Http.Sockets
+namespace PinkSystem.Net.Sockets
 {
     public sealed class SocketsProvider : ISocketsProvider
     {

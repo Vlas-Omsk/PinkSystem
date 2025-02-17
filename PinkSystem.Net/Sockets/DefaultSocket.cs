@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using System.IO;
 using System;
 
-namespace PinkSystem.Net.Http.Sockets
+namespace PinkSystem.Net.Sockets
 {
     public class DefaultSocket : ISocket
     {

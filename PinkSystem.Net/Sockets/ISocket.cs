@@ -5,7 +5,7 @@ using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace PinkSystem.Net.Http.Sockets
+namespace PinkSystem.Net.Sockets
 {
     public interface ISocket : IDisposable
     {

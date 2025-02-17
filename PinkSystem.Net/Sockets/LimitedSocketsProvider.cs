@@ -5,7 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Linq;
 
-namespace PinkSystem.Net.Http.Sockets
+namespace PinkSystem.Net.Sockets
 {
     public sealed class LimitedSocketsProvider : ISocketsProvider
     {
