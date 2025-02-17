@@ -1,5 +1,5 @@
 ﻿using PinkSystem.IO.Content;
-using PinkSystem.Net.Http.Sockets;
+using PinkSystem.Net.Sockets;
 using System;
 using System.IO;
 using System.Net;

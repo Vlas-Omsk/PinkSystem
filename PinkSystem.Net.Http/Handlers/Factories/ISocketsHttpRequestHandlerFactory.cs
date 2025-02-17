@@ -1,4 +1,4 @@
-﻿using PinkSystem.Net.Http.Sockets;
+﻿using PinkSystem.Net.Sockets;
 
 namespace PinkSystem.Net.Http.Handlers.Factories
 {

@@ -1,4 +1,4 @@
-﻿using PinkSystem.Net.Http.Sockets;
+﻿using PinkSystem.Net.Sockets;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Concurrent;
