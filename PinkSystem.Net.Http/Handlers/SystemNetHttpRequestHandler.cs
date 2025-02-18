@@ -48,7 +48,7 @@ namespace PinkSystem.Net.Http.Handlers
         {
             using var requestMessage = SystemNetHttpUtils.CreateNetRequestFromRequest(request);
 
-            using var responseMessage = await _httpClient.SendAsync(requestMessage, cancellationToken).ConfigureAwait(false);
+            using var responseMessage = await _httpClient.SendWithExceptionWrappingAsync(requestMessage, cancellationToken).ConfigureAwait(false);
 
             return await SystemNetHttpUtils.CreateResponseFromNetResponse(responseMessage, cancellationToken).ConfigureAwait(false);
         }

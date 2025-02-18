@@ -40,7 +40,7 @@ namespace PinkSystem.Net.Http.Handlers
                 Timeout = _timeout,
             };
 
-            using var responseMessage = await httpClient.SendAsync(requestMessage, cancellationToken).ConfigureAwait(false);
+            using var responseMessage = await httpClient.SendWithExceptionWrappingAsync(requestMessage, cancellationToken).ConfigureAwait(false);
 
             return await SystemNetHttpUtils.CreateResponseFromNetResponse(responseMessage, cancellationToken).ConfigureAwait(false);
         }
