@@ -40,20 +40,12 @@ namespace PinkSystem.Net.Sockets
 
         public int MaxAvailableSockets { get; }
         public int CurrentAvailableSockets => _socketsLock.CurrentCount;
-        public bool NoDelay { get; set; } = true;
-        public LingerOption? LingerState { get; set; }
 
         public async Task<ISocket> Create(SocketType socketType, ProtocolType protocolType, CancellationToken cancellationToken)
         {
             await _socketsLock.WaitAsync(cancellationToken);
 
-            var socket = new LimitedSocket(new(socketType, protocolType), _socketsLock)
-            {
-                NoDelay = NoDelay
-            };
-
-            if (LingerState != null)
-                socket.LingerState = LingerState;
+            var socket = new LimitedSocket(new(socketType, protocolType), _socketsLock);
 
             return socket;
         }
