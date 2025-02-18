@@ -6,16 +6,13 @@ namespace PinkSystem.Net.Http.Handlers.Factories
 {
     public sealed class SharedPooledHttpRequestHandlerFactory : ISocketsHttpRequestHandlerFactory, IDisposable
     {
-        private readonly IHttpRequestHandlerWrapper _httpRequestHandlerWrapper;
         private readonly SharedPooledHttpRequestHandler.Pool _pool;
 
         public SharedPooledHttpRequestHandlerFactory(
             ISocketsHttpRequestHandlerFactory httpRequestHandlerFactory,
-            IHttpRequestHandlerWrapper httpRequestHandlerWrapper,
             ILoggerFactory loggerFactory
         )
         {
-            _httpRequestHandlerWrapper = httpRequestHandlerWrapper;
             _pool = new SharedPooledHttpRequestHandler.Pool(
                 new SharedPooledHttpRequestHandler.PoolConnections(
                     httpRequestHandlerFactory,
@@ -31,7 +28,7 @@ namespace PinkSystem.Net.Http.Handlers.Factories
         {
             IHttpRequestHandler handler = new SharedPooledHttpRequestHandler(_pool, options);
 
-            return _httpRequestHandlerWrapper.Wrap(handler);
+            return handler;
         }
 
         public void Dispose()
