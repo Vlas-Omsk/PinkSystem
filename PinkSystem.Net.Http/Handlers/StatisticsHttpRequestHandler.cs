@@ -1,7 +1,6 @@
-﻿using PinkSystem.Net.Sockets;
-using Microsoft.Extensions.Logging;
-using System;
+﻿using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Net.Http;
@@ -15,7 +14,7 @@ namespace PinkSystem.Net.Http.Handlers
         private readonly IHttpRequestHandler _handler;
         private readonly Storage _storage;
 
-        private enum FailType
+        public enum FailType
         {
             Timeout,
             Proxy,
@@ -24,73 +23,21 @@ namespace PinkSystem.Net.Http.Handlers
 
         public sealed class Storage
         {
-            private readonly StatisticsSocketsProvider _socketsProvider;
             private long _sent = 0;
-            private long _success = 0;
-            private readonly ConcurrentDictionary<FailType, long> _failed = new();
+            private long _successRequestsAmount = 0;
+            private readonly ConcurrentDictionary<FailType, long> _failedRequestsAmount = new();
             private long _timeElapsed = 0;
             private long _sentBytes = 0;
             private long _receivedBytes = 0;
-            private ILogger<Storage> _logger;
-            private Task? _task;
 
-            public Storage(StatisticsSocketsProvider socketsProvider, ILogger<Storage> logger)
-            {
-                _socketsProvider = socketsProvider;
-                _logger = logger;
+            public long SentRequests => _sent;
+            public long SuccessResponsesAmount => _successRequestsAmount;
+            public IReadOnlyDictionary<FailType, long> FailedResponsesAmount => _failedRequestsAmount;
+            public long TimeElapsed => _timeElapsed;
+            public long SentBytes => _sentBytes;
+            public long ReceivedBytes => _receivedBytes;
 
-                _task = Task.Run(
-                    async () =>
-                    {
-                        while (true)
-                        {
-                            try
-                            {
-                                var ping = 0L;
-                                var sentSpeed = "?";
-                                var receiveSpeed = "?";
-                                var sent = _sent;
-                                var timeElapsed = _timeElapsed;
-
-                                if (sent > 0)
-                                    ping = timeElapsed / sent;
-
-                                if (timeElapsed > 0)
-                                {
-                                    sentSpeed = (_sentBytes / (timeElapsed / 1000)).FormatBytes();
-                                    receiveSpeed = (_receivedBytes / (timeElapsed / 1000)).FormatBytes();
-                                }
-
-                                _logger.LogInformation(
-                                    "Http statistics" + Environment.NewLine +
-                                    "    Success: {success}" + Environment.NewLine +
-                                    "    Failed: {failed}" + Environment.NewLine +
-                                    "    Ping: {ping} ms" + Environment.NewLine +
-                                    "    Sent: {sent} ({sentSpeed}/s), Socket: {sentSocket}" + Environment.NewLine +
-                                    "    Receive: {receive} ({receiveSpeed}/s), Socket: {receiveSocket}",
-                                    _success,
-                                    string.Join(", ", _failed.Select(x => $"{x.Key}: {x.Value}")),
-                                    ping,
-                                    _sentBytes.FormatBytes(),
-                                    sentSpeed,
-                                     _socketsProvider.WriteBytes.FormatBytes(),
-                                    _receivedBytes.FormatBytes(),
-                                    receiveSpeed,
-                                     _socketsProvider.ReadBytes.FormatBytes()
-                                );
-                            }
-                            catch (Exception ex)
-                            {
-                                _logger.LogError(ex, "Error when counting http statistics");
-                            }
-
-                            await Task.Delay(5_000);
-                        }
-                    }
-                );
-            }
-
-            public void AddRequest(HttpRequest request)
+            public void AddNewRequest(HttpRequest request)
             {
                 var headersLength = request.Headers.Sum(x => x.Key.Length + x.Value.Sum(x => x.Length) + 2);
                 var methodLength = request.Method.Length + 1 + request.Uri.AbsoluteUri.Length;
@@ -104,7 +51,7 @@ namespace PinkSystem.Net.Http.Handlers
                 }
             }
 
-            public void AddSuccess(HttpResponse response, long timeElapsed)
+            public void AddSuccessResponse(HttpResponse response, long timeElapsed)
             {
                 var headersLength = response.Headers.Sum(x => x.Key.Length + x.Value.Sum(x => x.Length) + 2);
                 var contentLength = response.Content?.Length ?? 0;
@@ -112,13 +59,13 @@ namespace PinkSystem.Net.Http.Handlers
 
                 unchecked
                 {
-                    Interlocked.Increment(ref _success);
+                    Interlocked.Increment(ref _successRequestsAmount);
                     Interlocked.Add(ref _receivedBytes, responseLength);
                     Interlocked.Add(ref _timeElapsed, timeElapsed);
                 }
             }
 
-            public void AddError(Exception ex, long timeElapsed)
+            public void AddErrorResponse(Exception ex, long timeElapsed)
             {
                 FailType type;
 
@@ -141,7 +88,7 @@ namespace PinkSystem.Net.Http.Handlers
 
                 unchecked
                 {
-                    _failed.AddOrUpdate(type, 1, (x, c) => c + 1);
+                    _failedRequestsAmount.AddOrUpdate(type, 1, (x, c) => c + 1);
                     Interlocked.Add(ref _timeElapsed, timeElapsed);
                 }
             }
@@ -165,8 +112,8 @@ namespace PinkSystem.Net.Http.Handlers
 
                 stopwatch.Stop();
 
-                _storage.AddRequest(request);
-                _storage.AddSuccess(response, stopwatch.ElapsedMilliseconds);
+                _storage.AddNewRequest(request);
+                _storage.AddSuccessResponse(response, stopwatch.ElapsedMilliseconds);
 
                 return response;
             }
@@ -177,8 +124,8 @@ namespace PinkSystem.Net.Http.Handlers
 
                 stopwatch.Stop();
 
-                _storage.AddRequest(request);
-                _storage.AddError(ex, stopwatch.ElapsedMilliseconds);
+                _storage.AddNewRequest(request);
+                _storage.AddErrorResponse(ex, stopwatch.ElapsedMilliseconds);
 
                 throw;
             }

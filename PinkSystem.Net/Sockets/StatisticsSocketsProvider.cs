@@ -10,18 +10,17 @@ namespace PinkSystem.Net.Sockets
     public sealed class StatisticsSocketsProvider : ISocketsProvider
     {
         private readonly ISocketsProvider _provider;
-        private long _readBytes;
-        private long _writeBytes;
+        private readonly Storage _storage;
 
         private sealed class StatisticsStream : Stream
         {
             private readonly Stream _stream;
-            private readonly StatisticsSocketsProvider _provider;
+            private readonly Storage _storage;
 
-            public StatisticsStream(Stream stream, StatisticsSocketsProvider provider)
+            public StatisticsStream(Stream stream, Storage storage)
             {
                 _stream = stream;
-                _provider = provider;
+                _storage = storage;
             }
 
             public override bool CanRead => _stream.CanRead;
@@ -52,7 +51,7 @@ namespace PinkSystem.Net.Sockets
             {
                 var amount = _stream.Read(buffer, offset, count);
 
-                AddReadBytes(amount);
+                _storage.AddReadBytes(amount);
 
                 return amount;
             }
@@ -61,7 +60,7 @@ namespace PinkSystem.Net.Sockets
             {
                 var amount = _stream.Read(buffer);
 
-                AddReadBytes(amount);
+                _storage.AddReadBytes(amount);
 
                 return amount;
             }
@@ -70,7 +69,7 @@ namespace PinkSystem.Net.Sockets
             {
                 var amount = await _stream.ReadAsync(buffer, offset, count, cancellationToken);
 
-                AddReadBytes(amount);
+                _storage.AddReadBytes(amount);
 
                 return amount;
             }
@@ -79,7 +78,7 @@ namespace PinkSystem.Net.Sockets
             {
                 var amount = await _stream.ReadAsync(buffer, cancellationToken);
 
-                AddReadBytes(amount);
+                _storage.AddReadBytes(amount);
 
                 return amount;
             }
@@ -89,50 +88,42 @@ namespace PinkSystem.Net.Sockets
                 var result = _stream.ReadByte();
 
                 if (result >= 0)
-                {
-                    unchecked
-                    {
-                        Interlocked.Increment(ref _provider._readBytes);
-                    }
-                }
+                    _storage.AddReadByte();
 
                 return result;
             }
 
             public override void Write(byte[] buffer, int offset, int count)
             {
-                AddWriteBytes(count);
+                _storage.AddWriteBytes(count);
 
                 _stream.Write(buffer, offset, count);
             }
 
             public override void Write(ReadOnlySpan<byte> buffer)
             {
-                AddWriteBytes(buffer.Length);
+                _storage.AddWriteBytes(buffer.Length);
 
                 _stream.Write(buffer);
             }
 
             public override Task WriteAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
             {
-                AddWriteBytes(count);
+                _storage.AddWriteBytes(count);
 
                 return _stream.WriteAsync(buffer, offset, count, cancellationToken);
             }
 
             public override ValueTask WriteAsync(ReadOnlyMemory<byte> buffer, CancellationToken cancellationToken = default)
             {
-                AddWriteBytes(buffer.Length);
+                _storage.AddWriteBytes(buffer.Length);
 
                 return _stream.WriteAsync(buffer, cancellationToken);
             }
 
             public override void WriteByte(byte value)
             {
-                unchecked
-                {
-                    Interlocked.Increment(ref _provider._writeBytes);
-                }
+                _storage.AddWriteByte();
 
                 _stream.WriteByte(value);
             }
@@ -186,33 +177,17 @@ namespace PinkSystem.Net.Sockets
             {
                 _stream.SetLength(value);
             }
-
-            private void AddReadBytes(int amount)
-            {
-                unchecked
-                {
-                    Interlocked.Add(ref _provider._readBytes, amount);
-                }
-            }
-
-            private void AddWriteBytes(int amount)
-            {
-                unchecked
-                {
-                    Interlocked.Add(ref _provider._writeBytes, amount);
-                }
-            }
         }
 
         private sealed class StatisticsSocket : ISocket
         {
             private readonly ISocket _socket;
-            private readonly StatisticsSocketsProvider _provider;
+            private readonly Storage _storage;
 
-            public StatisticsSocket(ISocket socket, StatisticsSocketsProvider provider)
+            public StatisticsSocket(ISocket socket, Storage storage)
             {
                 _socket = socket;
-                _provider = provider;
+                _storage = storage;
             }
 
             public bool NoDelay
@@ -236,7 +211,7 @@ namespace PinkSystem.Net.Sockets
             {
                 return new StatisticsStream(
                     _socket.GetStream(),
-                    _provider
+                    _storage
                 );
             }
 
@@ -266,21 +241,61 @@ namespace PinkSystem.Net.Sockets
             }
         }
 
-        public StatisticsSocketsProvider(ISocketsProvider provider)
+        public sealed class Storage
+        {
+            private long _readBytes;
+            private long _writeBytes;
+
+            public long ReadBytes => _readBytes;
+            public long WriteBytes => _writeBytes;
+
+            public void AddReadBytes(int amount)
+            {
+                unchecked
+                {
+                    Interlocked.Add(ref _readBytes, amount);
+                }
+            }
+
+            public void AddReadByte()
+            {
+                unchecked
+                {
+                    Interlocked.Increment(ref _readBytes);
+                }
+            }
+
+            public void AddWriteBytes(int amount)
+            {
+                unchecked
+                {
+                    Interlocked.Add(ref _writeBytes, amount);
+                }
+            }
+
+            public void AddWriteByte()
+            {
+                unchecked
+                {
+                    Interlocked.Increment(ref _writeBytes);
+                }
+            }
+        }
+
+        public StatisticsSocketsProvider(ISocketsProvider provider, Storage storage)
         {
             _provider = provider;
+            _storage = storage;
         }
 
         public int MaxAvailableSockets => _provider.MaxAvailableSockets;
         public int CurrentAvailableSockets => _provider.CurrentAvailableSockets;
-        public long ReadBytes => _readBytes;
-        public long WriteBytes => _writeBytes;
 
         public async Task<ISocket> Create(SocketType socketType, ProtocolType protocolType, CancellationToken cancellationToken)
         {
             return new StatisticsSocket(
                 await _provider.Create(socketType, protocolType, cancellationToken),
-                this
+                _storage
             );
         }
     }
