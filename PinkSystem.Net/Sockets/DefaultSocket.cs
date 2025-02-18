@@ -185,6 +185,11 @@ namespace PinkSystem.Net.Sockets
             set => Socket.LingerState = value;
         }
 
+        public virtual void Bind(EndPoint localEndPoint)
+        {
+            Socket.Bind(localEndPoint);
+        }
+
         public virtual ValueTask ConnectAsync(EndPoint endPoint, CancellationToken cancellationToken)
         {
             return Socket.ConnectAsync(endPoint, cancellationToken);

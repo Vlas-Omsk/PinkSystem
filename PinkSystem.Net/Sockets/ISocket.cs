@@ -16,6 +16,7 @@ namespace PinkSystem.Net.Sockets
         void SetSocketOption(SocketOptionLevel level, SocketOptionName name, int value);
         void SetSocketOption(SocketOptionLevel level, SocketOptionName name, byte[] value);
         void SetSocketOption(SocketOptionLevel level, SocketOptionName name, bool value);
+        void Bind(EndPoint localEndPoint);
         ValueTask ConnectAsync(EndPoint endPoint, CancellationToken cancellationToken);
         Stream GetStream();
     }
