@@ -25,14 +25,14 @@ namespace PinkSystem.Net.Http
                 (ex is TaskCanceledException && !cancellationToken.IsCancellationRequested)
             ))
             {
-                throw new HttpConnectionRefusedException();
+                throw new HttpConnectionRefusedException("Http connection refused", ex);
             }
             catch (Exception ex) when (ex.CheckAny(ex =>
                 ex is HttpRequestException &&
                     ex.Message.Contains("proxy", StringComparison.OrdinalIgnoreCase)
             ))
             {
-                throw new ProxyConnectionRefusedException();
+                throw new ProxyConnectionRefusedException("Proxy connection refused", ex);
             }
         }
     }

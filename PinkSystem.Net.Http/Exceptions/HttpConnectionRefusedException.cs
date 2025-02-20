@@ -5,7 +5,7 @@ namespace PinkSystem.Net.Http
 {
     public class HttpConnectionRefusedException : HttpException
     {
-        public HttpConnectionRefusedException() : this("Proxy connection refused")
+        public HttpConnectionRefusedException() : this("Http connection refused")
         {
         }
 
