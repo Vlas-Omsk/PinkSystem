@@ -6,6 +6,8 @@ namespace PinkSystem.Net.Http.Handlers.Factories
 {
     public sealed class SharedPooledHttpRequestHandlerFactory : ISocketsHttpRequestHandlerFactory, IDisposable
     {
+        private readonly ISocketsHttpRequestHandlerFactory _httpRequestHandlerFactory;
+        private readonly SharedPooledHttpRequestHandler.PoolConnections _poolConnections;
         private readonly SharedPooledHttpRequestHandler.Pool _pool;
 
         public SharedPooledHttpRequestHandlerFactory(
@@ -13,16 +15,19 @@ namespace PinkSystem.Net.Http.Handlers.Factories
             ILoggerFactory loggerFactory
         )
         {
-            _pool = new SharedPooledHttpRequestHandler.Pool(
-                new SharedPooledHttpRequestHandler.PoolConnections(
-                    httpRequestHandlerFactory,
-                    loggerFactory.CreateLogger<SharedPooledHttpRequestHandler.PoolConnections>()
-                )
+            _poolConnections = new SharedPooledHttpRequestHandler.PoolConnections(
+                httpRequestHandlerFactory,
+                loggerFactory.CreateLogger<SharedPooledHttpRequestHandler.PoolConnections>()
             );
-            SocketsProvider = httpRequestHandlerFactory.SocketsProvider;
+            _pool = new SharedPooledHttpRequestHandler.Pool(
+                _poolConnections
+            );
+            _httpRequestHandlerFactory = httpRequestHandlerFactory;
         }
 
-        public ISocketsProvider SocketsProvider { get; }
+        public int HandlersInUseAmount => _poolConnections.InUseAmount;
+        public int HandlersAmount => _poolConnections.Amount;
+        public ISocketsProvider SocketsProvider => _httpRequestHandlerFactory.SocketsProvider;
 
         public IHttpRequestHandler Create(HttpRequestHandlerOptions options)
         {

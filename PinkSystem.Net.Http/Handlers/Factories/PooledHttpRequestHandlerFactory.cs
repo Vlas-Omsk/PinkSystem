@@ -7,7 +7,7 @@ namespace PinkSystem.Net.Http.Handlers.Factories
     public sealed class PooledHttpRequestHandlerFactory : ISocketsHttpRequestHandlerFactory, IDisposable
     {
         private readonly ISocketsHttpRequestHandlerFactory _httpRequestHandlerFactory;
-        private readonly PooledHttpRequestHandler.PoolConnections _pool;
+        private readonly PooledHttpRequestHandler.PoolConnections _poolConnections;
 
         public PooledHttpRequestHandlerFactory(
             ISocketsHttpRequestHandlerFactory httpRequestHandlerFactory,
@@ -15,24 +15,26 @@ namespace PinkSystem.Net.Http.Handlers.Factories
         )
         {
             _httpRequestHandlerFactory = httpRequestHandlerFactory;
-            _pool = new PooledHttpRequestHandler.PoolConnections(
+            _poolConnections = new PooledHttpRequestHandler.PoolConnections(
                 httpRequestHandlerFactory,
                 loggerFactory.CreateLogger<PooledHttpRequestHandler.PoolConnections>()
             );
         }
 
+        public int HandlersInUseAmount => _poolConnections.InUseAmount;
+        public int HandlersAmount => _poolConnections.Amount;
         public ISocketsProvider SocketsProvider => _httpRequestHandlerFactory.SocketsProvider;
 
         public IHttpRequestHandler Create(HttpRequestHandlerOptions options)
         {
-            IHttpRequestHandler handler = new PooledHttpRequestHandler(_pool, options);
+            IHttpRequestHandler handler = new PooledHttpRequestHandler(_poolConnections, options);
 
             return handler;
         }
 
         public void Dispose()
         {
-            _pool.Dispose();
+            _poolConnections.Dispose();
         }
     }
 }

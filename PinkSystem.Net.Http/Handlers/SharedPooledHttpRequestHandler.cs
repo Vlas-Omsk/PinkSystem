@@ -28,6 +28,9 @@ namespace PinkSystem.Net.Http
                 _ = HandleBackground();
             }
 
+            public int InUseAmount => _connections.Where(x => x.Key.RentsAmount > 0).Sum(x => 1);
+            public int Amount => _connections.Count;
+
             public WeakReference<PoolConnection> CreateNew(HttpRequestHandlerOptions options)
             {
                 var connection = new PoolConnection(
@@ -45,16 +48,23 @@ namespace PinkSystem.Net.Http
                 {
                     try
                     {
-                        _logger.LogInformation(
-                            "Http request handlers pool (In use: {rents}, Cached handlers: {amount}, Connections: {current} / {maximum})",
-                            _connections.Sum(x => x.Key.RentsAmount),
-                            _connections.Count,
-                            _factory.SocketsProvider.MaxAvailableSockets - _factory.SocketsProvider.CurrentAvailableSockets,
-                            _factory.SocketsProvider.MaxAvailableSockets
-                        );
+                        try
+                        {
+                            DisposeUnusedItems();
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogError(ex, "Error when disposing unused http request handlers");
+                        }
 
-                        DisposeUnusedItems();
-                        DisposeTimeOutedItems();
+                        try
+                        {
+                            DisposeTimeOutedItems();
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogError(ex, "Error when disposing timeouted http request handlers");
+                        }
                     }
                     catch (Exception ex)
                     {
