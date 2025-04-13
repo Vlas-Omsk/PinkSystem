@@ -151,7 +151,10 @@ namespace PinkSystem.Runtime
                 if (method.ReturnType == typeof(void))
                 {
                     exArrayItems = exArrayItems.Prepend(
-                        Expression.Constant(null)
+                        Expression.Block(
+                            exResult,
+                            Expression.Constant(null)
+                        )
                     );
                 }
                 else
