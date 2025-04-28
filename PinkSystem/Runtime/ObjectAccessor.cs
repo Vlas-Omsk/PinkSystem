@@ -145,6 +145,26 @@ namespace PinkSystem.Runtime
             );
         }
 
+        private int CalculateAssignWeight(Type assigningType, Type type)
+        {
+            var weight = 0;
+            var currentType = assigningType;
+
+            while (currentType != null)
+            {
+                if (currentType == type)
+                    return weight;
+
+                if (currentType.GetInterfaces().Any(x => x == type))
+                    return weight;
+
+                currentType = currentType.BaseType;
+                weight++;
+            }
+
+            throw new Exception($"Cannot assign from {assigningType} to {type}");
+        }
+
         private MemberAccessor GetMethodAccessor(string name, Type[] genericTypes, Type?[] argTypes)
         {
             return Memoizer<ObjectAccessor>.Shared.GetOrAddMemoizedValue(
@@ -159,6 +179,12 @@ namespace PinkSystem.Runtime
                             .GetParameters()
                             .Select((c, i) => (c, i))
                             .All(c => argTypes[c.i] == null || c.c.ParameterType.IsAssignableFrom(argTypes[c.i]) || (argTypes[c.i] != null && c.c.ParameterType.IsPointer && argTypes[c.i]! == typeof(Pointer)))
+                        )
+                        .OrderBy(x => x
+                            .GetParameters()
+                            .Select((c, i) => (Parameter: c, Weight: argTypes[i] == null ? 0 : CalculateAssignWeight(argTypes[i]!, c.ParameterType)))
+                            .Sum(c => c.Weight) +
+                            (x.IsPublic ? 1 : 0)
                         )
                         .FirstOrDefault() ??
                         throw new Exception($"Method with name {name}, generic types {string.Join(", ", genericTypes.Select(x => x.Name))} and arg types {string.Join(", ", argTypes.Select(x => x?.Name ?? "null"))} not found");
