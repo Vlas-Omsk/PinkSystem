@@ -1,31 +1,26 @@
-﻿using System.Net;
-using System.Threading;
+﻿using System.Threading;
 using System.Threading.Tasks;
 
 namespace PinkSystem.Net.Http.Handlers
 {
-    public sealed class ConcurrentHttpRequestHandler : IHttpRequestHandler
+    public sealed class ConcurrentHttpRequestHandler : ExtensionHttpRequestHandler
     {
         private readonly SemaphoreSlim _semaphore;
         private readonly int _concurrency;
-        private readonly IHttpRequestHandler _handler;
 
-        public ConcurrentHttpRequestHandler(IHttpRequestHandler handler, int concurrency)
+        public ConcurrentHttpRequestHandler(IHttpRequestHandler handler, int concurrency) : base(handler)
         {
             _semaphore = new(concurrency, concurrency);
             _concurrency = concurrency;
-            _handler = handler;
         }
 
-        public HttpRequestHandlerOptions Options => _handler.Options;
-
-        public async Task<HttpResponse> SendAsync(HttpRequest request, CancellationToken cancellationToken)
+        public override async Task<HttpResponse> SendAsync(HttpRequest request, CancellationToken cancellationToken)
         {
             await _semaphore.WaitAsync(cancellationToken);
 
             try
             {
-                return await _handler.SendAsync(request, cancellationToken);
+                return await Handler.SendAsync(request, cancellationToken);
             }
             finally
             {
@@ -33,14 +28,15 @@ namespace PinkSystem.Net.Http.Handlers
             }
         }
 
-        public IHttpRequestHandler Clone()
+        public override IHttpRequestHandler Clone()
         {
-            return new ConcurrentHttpRequestHandler(_handler.Clone(), _concurrency);
+            return new ConcurrentHttpRequestHandler(Handler.Clone(), _concurrency);
         }
 
-        public void Dispose()
+        public override void Dispose()
         {
-            _handler.Dispose();
+            base.Dispose();
+
             _semaphore.Dispose();
         }
     }

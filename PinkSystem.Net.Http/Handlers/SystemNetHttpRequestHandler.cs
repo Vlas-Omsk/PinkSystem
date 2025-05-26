@@ -9,40 +9,66 @@ namespace PinkSystem.Net.Http.Handlers
 {
     public sealed class SystemNetHttpRequestHandler : IHttpRequestHandler
     {
+        private readonly SocketsHttpHandler _handler;
         private readonly HttpClient _httpClient;
         private readonly ISocketsProvider _socketsProvider;
-        private readonly TimeSpan _timeout;
+        private Proxy? _proxy = null;
+        private bool _validateSsl = true;
+        private TimeSpan _timeout = HttpTimeout.Default;
 
-        public SystemNetHttpRequestHandler(HttpRequestHandlerOptions options, ISocketsProvider socketsProvider, TimeSpan timeout)
+        public SystemNetHttpRequestHandler(ISocketsProvider socketsProvider)
         {
-            var handler = new SocketsHttpHandler()
+            _handler = new SocketsHttpHandler()
             {
                 AutomaticDecompression = DecompressionMethods.None,
                 AllowAutoRedirect = false,
                 ConnectCallback = SystemNetHttpUtils.CreateConnectCallback(socketsProvider)
             };
-
-            if (options.Proxy != null)
-                handler.Proxy = options.Proxy.ToWebProxy();
-
-            if (!options.ValidateSsl)
-                handler.SslOptions = new()
-                {
-                    RemoteCertificateValidationCallback = delegate { return true; }
-                };
-
-            _httpClient = new HttpClient(handler)
+            _httpClient = new HttpClient(_handler)
             {
-                Timeout = timeout
+                Timeout = _timeout
             };
 
             _socketsProvider = socketsProvider;
-            _timeout = timeout;
-
-            Options = options;
         }
-        
-        public HttpRequestHandlerOptions Options { get; }
+
+        public Proxy? Proxy
+        {
+            get => _proxy;
+            set
+            {
+                _proxy = value;
+                _handler.Proxy = value?.ToWebProxy();
+            }
+        }
+
+        public bool ValidateSsl
+        {
+            get => _validateSsl;
+            set
+            {
+                _validateSsl = value;
+
+                if (_validateSsl)
+                {
+                    _handler.SslOptions.RemoteCertificateValidationCallback = null;
+                }
+                else
+                {
+                    _handler.SslOptions.RemoteCertificateValidationCallback = delegate { return true; };
+                }
+            }
+        }
+
+        public TimeSpan Timeout
+        {
+            get => _timeout;
+            set
+            {
+                _timeout = value;
+                _httpClient.Timeout = value;
+            }
+        }
 
         public async Task<HttpResponse> SendAsync(HttpRequest request, CancellationToken cancellationToken)
         {
@@ -55,7 +81,11 @@ namespace PinkSystem.Net.Http.Handlers
 
         public IHttpRequestHandler Clone()
         {
-            return new SystemNetHttpRequestHandler(Options, _socketsProvider, _timeout);
+            var handler = new SystemNetHttpRequestHandler(_socketsProvider);
+
+            this.CopySettingsTo(handler);
+
+            return handler;
         }
 
         public void Dispose()

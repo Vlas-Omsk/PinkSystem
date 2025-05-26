@@ -4,27 +4,23 @@ using System.Threading.Tasks;
 
 namespace PinkSystem.Net.Http.Handlers
 {
-    public sealed class CookiesHttpRequestHandler : IHttpRequestHandler
+    public sealed class CookiesHttpRequestHandler : ExtensionHttpRequestHandler
     {
-        private readonly IHttpRequestHandler _handler;
         private readonly CookieContainer _cookieContainer;
 
-        public CookiesHttpRequestHandler(IHttpRequestHandler handler, CookieContainer cookieContainer)
+        public CookiesHttpRequestHandler(IHttpRequestHandler handler, CookieContainer cookieContainer) : base(handler)
         {
-            _handler = handler;
             _cookieContainer = cookieContainer;
         }
 
-        public HttpRequestHandlerOptions Options => _handler.Options;
-
-        public async Task<HttpResponse> SendAsync(HttpRequest request, CancellationToken cancellationToken)
+        public override async Task<HttpResponse> SendAsync(HttpRequest request, CancellationToken cancellationToken)
         {
             var cookieHeaderValue = _cookieContainer.GetCookieHeader(request.Uri);
 
             if (!string.IsNullOrEmpty(cookieHeaderValue))
                 request.Headers.Add("Cookie", cookieHeaderValue);
 
-            var response = await _handler.SendAsync(request, cancellationToken).ConfigureAwait(false);
+            var response = await Handler.SendAsync(request, cancellationToken).ConfigureAwait(false);
 
             if (response.Headers.TryGetValues("Set-Cookie", out var setCookieHeaders))
                 foreach (var setCookieHeader in setCookieHeaders)
@@ -33,14 +29,29 @@ namespace PinkSystem.Net.Http.Handlers
             return response;
         }
 
-        public IHttpRequestHandler Clone()
+        public override IHttpRequestHandler Clone()
         {
-            return new CookiesHttpRequestHandler(_handler.Clone(), _cookieContainer);
-        }
+            var cookieContainerClone = new CookieContainer();
 
-        public void Dispose()
-        {
-            _handler.Dispose();
+            foreach (Cookie cookie in _cookieContainer.GetAllCookies())
+                cookieContainerClone.Add(new Cookie()
+                {
+                    Comment = cookie.Comment,
+                    CommentUri = cookie.CommentUri,
+                    Discard = cookie.Discard,
+                    Domain = cookie.Domain,
+                    Expired = cookie.Expired,
+                    Expires = cookie.Expires,
+                    HttpOnly = cookie.HttpOnly,
+                    Name = cookie.Name,
+                    Path = cookie.Path,
+                    Port = cookie.Port,
+                    Secure = cookie.Secure,
+                    Value = cookie.Value,
+                    Version = cookie.Version,
+                });
+
+            return new CookiesHttpRequestHandler(Handler.Clone(), cookieContainerClone);
         }
     }
 }

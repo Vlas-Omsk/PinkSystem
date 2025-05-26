@@ -2,6 +2,6 @@
 {
     public interface IHttpRequestHandlerFactory
     {
-        IHttpRequestHandler Create(HttpRequestHandlerOptions options);
+        IHttpRequestHandler Create();
     }
 }

@@ -1,40 +1,30 @@
 ﻿using PinkSystem.Net.Sockets;
-using Microsoft.Extensions.Logging;
 using System;
+using PinkSystem.Net.Http.Handlers.Pooling;
 
 namespace PinkSystem.Net.Http.Handlers.Factories
 {
     public sealed class PooledHttpRequestHandlerFactory : ISocketsHttpRequestHandlerFactory, IDisposable
     {
-        private readonly ISocketsHttpRequestHandlerFactory _httpRequestHandlerFactory;
-        private readonly PooledHttpRequestHandler.PoolConnections _poolConnections;
+        private readonly IPool _pool;
 
-        public PooledHttpRequestHandlerFactory(
-            ISocketsHttpRequestHandlerFactory httpRequestHandlerFactory,
-            ILoggerFactory loggerFactory
-        )
+        public PooledHttpRequestHandlerFactory(IPool pool)
         {
-            _httpRequestHandlerFactory = httpRequestHandlerFactory;
-            _poolConnections = new PooledHttpRequestHandler.PoolConnections(
-                httpRequestHandlerFactory,
-                loggerFactory.CreateLogger<PooledHttpRequestHandler.PoolConnections>()
-            );
+            _pool = pool;
         }
 
-        public int HandlersInUseAmount => _poolConnections.InUseAmount;
-        public int HandlersAmount => _poolConnections.Amount;
-        public ISocketsProvider SocketsProvider => _httpRequestHandlerFactory.SocketsProvider;
+        public ISocketsProvider SocketsProvider => _pool.Connections.HttpRequestHandlerFactory.SocketsProvider;
 
-        public IHttpRequestHandler Create(HttpRequestHandlerOptions options)
+        public IHttpRequestHandler Create()
         {
-            IHttpRequestHandler handler = new PooledHttpRequestHandler(_poolConnections, options);
+            var handler = new PooledHttpRequestHandler(_pool);
 
             return handler;
         }
 
         public void Dispose()
         {
-            _poolConnections.Dispose();
+            _pool.Dispose();
         }
     }
 }

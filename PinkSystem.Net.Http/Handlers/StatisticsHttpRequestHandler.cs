@@ -9,9 +9,8 @@ using System.Threading.Tasks;
 
 namespace PinkSystem.Net.Http.Handlers
 {
-    public sealed class StatisticsHttpRequestHandler : IHttpRequestHandler
+    public sealed class StatisticsHttpRequestHandler : ExtensionHttpRequestHandler
     {
-        private readonly IHttpRequestHandler _handler;
         private readonly Storage _storage;
 
         public enum FailType
@@ -94,21 +93,18 @@ namespace PinkSystem.Net.Http.Handlers
             }
         }
 
-        public StatisticsHttpRequestHandler(IHttpRequestHandler handler, Storage storage)
+        public StatisticsHttpRequestHandler(IHttpRequestHandler handler, Storage storage) : base(handler)
         {
-            _handler = handler;
             _storage = storage;
         }
 
-        public HttpRequestHandlerOptions Options => _handler.Options;
-
-        public async Task<HttpResponse> SendAsync(HttpRequest request, CancellationToken cancellationToken)
+        public override async Task<HttpResponse> SendAsync(HttpRequest request, CancellationToken cancellationToken)
         {
             var stopwatch = Stopwatch.StartNew();
 
             try
             {
-                var response = await _handler.SendAsync(request, cancellationToken);
+                var response = await Handler.SendAsync(request, cancellationToken);
 
                 stopwatch.Stop();
 
@@ -131,14 +127,9 @@ namespace PinkSystem.Net.Http.Handlers
             }
         }
 
-        public IHttpRequestHandler Clone()
+        public override IHttpRequestHandler Clone()
         {
-            return new StatisticsHttpRequestHandler(_handler.Clone(), _storage);
-        }
-
-        public void Dispose()
-        {
-            _handler.Dispose();
+            return new StatisticsHttpRequestHandler(Handler.Clone(), _storage);
         }
     }
 }

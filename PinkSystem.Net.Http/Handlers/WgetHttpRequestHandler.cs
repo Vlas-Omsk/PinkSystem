@@ -17,17 +17,17 @@ namespace PinkSystem.Net.Http.Handlers
         private readonly ILogger<WgetHttpRequestHandler> _logger;
 
         public WgetHttpRequestHandler(
-            HttpRequestHandlerOptions options,
             int retryAmount,
             ILogger<WgetHttpRequestHandler> logger
         )
         {
-            Options = options;
             _retryAmount = retryAmount;
             _logger = logger;
         }
 
-        public HttpRequestHandlerOptions Options { get; }
+        public Proxy? Proxy { get; set; } = null;
+        public bool ValidateSsl { get; set; } = true;
+        public TimeSpan Timeout { get; set; } = HttpTimeout.Default;
 
         public async Task<HttpResponse> SendAsync(HttpRequest request, CancellationToken cancellationToken)
         {
@@ -61,12 +61,12 @@ namespace PinkSystem.Net.Http.Handlers
                     process.StartInfo.ArgumentList.Add($"--body-file={tempFileName}");
                 }
 
-                if (Options.Proxy != null)
+                if (Proxy != null)
                 {
                     process.StartInfo.ArgumentList.Add("--execute");
                     process.StartInfo.ArgumentList.Add("use_proxy=yes");
                     process.StartInfo.ArgumentList.Add("--execute");
-                    process.StartInfo.ArgumentList.Add($"http_proxy={Options.Proxy.GetUri(useCredentials: true)}");
+                    process.StartInfo.ArgumentList.Add($"http_proxy={Proxy.GetUri(useCredentials: true)}");
                 }
 
                 foreach (var header in request.Headers)
@@ -197,7 +197,11 @@ namespace PinkSystem.Net.Http.Handlers
 
         public IHttpRequestHandler Clone()
         {
-            return new WgetHttpRequestHandler(Options, _retryAmount, _logger);
+            var handler = new WgetHttpRequestHandler(_retryAmount, _logger);
+
+            this.CopySettingsTo(handler);
+
+            return handler;
         }
 
         public void Dispose()

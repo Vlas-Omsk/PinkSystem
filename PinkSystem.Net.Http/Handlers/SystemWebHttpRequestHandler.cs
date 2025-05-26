@@ -14,11 +14,6 @@ namespace PinkSystem.Net.Http.Handlers
     {
         private static readonly Dictionary<string, PropertyInfo> _optionProperties = new(StringComparer.OrdinalIgnoreCase);
 
-        public SystemWebHttpRequestHandler(HttpRequestHandlerOptions options)
-        {
-            Options = options;
-        }
-
         static SystemWebHttpRequestHandler()
         {
             Type type = typeof(HttpWebRequest);
@@ -27,7 +22,9 @@ namespace PinkSystem.Net.Http.Handlers
                 _optionProperties[property.Name] = property;
         }
 
-        public HttpRequestHandlerOptions Options { get; }
+        public Proxy? Proxy { get; set; } = null;
+        public bool ValidateSsl { get; set; } = true;
+        public TimeSpan Timeout { get; set; } = HttpTimeout.Default;
 
         public async Task<HttpResponse> SendAsync(HttpRequest request, CancellationToken cancellationToken)
         {
@@ -35,8 +32,10 @@ namespace PinkSystem.Net.Http.Handlers
             var webRequest = WebRequest.CreateHttp(request.Uri);
 #pragma warning restore SYSLIB0014 // Type or member is obsolete
 
-            if (Options.Proxy != null)
-                webRequest.Proxy = Options.Proxy.ToWebProxy();
+            if (Proxy != null)
+                webRequest.Proxy = Proxy.ToWebProxy();
+
+            webRequest.Timeout = Timeout.Milliseconds;
 
             webRequest.ProtocolVersion = HttpVersion.Version11;
             webRequest.Method = request.Method;
@@ -92,7 +91,11 @@ namespace PinkSystem.Net.Http.Handlers
 
         public IHttpRequestHandler Clone()
         {
-            return new SystemWebHttpRequestHandler(Options);
+            var handler = new SystemWebHttpRequestHandler();
+
+            this.CopySettingsTo(handler);
+
+            return handler;
         }
 
         public void Dispose()

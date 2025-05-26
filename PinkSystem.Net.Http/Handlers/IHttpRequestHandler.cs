@@ -6,7 +6,9 @@ namespace PinkSystem.Net.Http.Handlers
 {
     public interface IHttpRequestHandler : IDisposable
     {
-        HttpRequestHandlerOptions Options { get; }
+        Proxy? Proxy { get; set; }
+        bool ValidateSsl { get; set; }
+        TimeSpan Timeout { get; set; }
 
         Task<HttpResponse> SendAsync(HttpRequest request, CancellationToken cancellationToken);
 

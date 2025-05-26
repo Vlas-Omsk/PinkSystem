@@ -5,9 +5,8 @@ using System.Threading.Tasks;
 
 namespace PinkSystem.Net.Http.Handlers
 {
-    public sealed class RepeatHttpRequestHandler : IHttpRequestHandler
+    public sealed class RepeatHttpRequestHandler : ExtensionHttpRequestHandler
     {
-        private readonly IHttpRequestHandler _handler;
         private readonly int _retryAmount;
         private readonly TimeSpan _retryDelay;
         private readonly ILogger<RepeatHttpRequestHandler> _logger;
@@ -17,17 +16,14 @@ namespace PinkSystem.Net.Http.Handlers
             int retryAmount,
             TimeSpan retryDelay,
             ILogger<RepeatHttpRequestHandler> logger
-        )
+        ) : base(handler)
         {
-            _handler = handler;
             _retryAmount = retryAmount;
             _retryDelay = retryDelay;
             _logger = logger;
         }
 
-        public HttpRequestHandlerOptions Options => _handler.Options;
-
-        public async Task<HttpResponse> SendAsync(HttpRequest request, CancellationToken cancellationToken)
+        public override async Task<HttpResponse> SendAsync(HttpRequest request, CancellationToken cancellationToken)
         {
             Exception? exLast = null;
 
@@ -35,7 +31,7 @@ namespace PinkSystem.Net.Http.Handlers
             {
                 try
                 {
-                    return await _handler.SendAsync(request, cancellationToken).ConfigureAwait(false);
+                    return await Handler.SendAsync(request, cancellationToken).ConfigureAwait(false);
                 }
                 catch (Exception ex) when (ex is ProxyConnectionRefusedException or HttpConnectionRefusedException)
                 {
@@ -51,14 +47,9 @@ namespace PinkSystem.Net.Http.Handlers
             throw new Exception("The number of attempts has been exhausted", exLast!);
         }
 
-        public IHttpRequestHandler Clone()
+        public override IHttpRequestHandler Clone()
         {
-            return new RepeatHttpRequestHandler(_handler.Clone(), _retryAmount, _retryDelay, _logger);
-        }
-
-        public void Dispose()
-        {
-            _handler.Dispose();
+            return new RepeatHttpRequestHandler(Handler.Clone(), _retryAmount, _retryDelay, _logger);
         }
     }
 }

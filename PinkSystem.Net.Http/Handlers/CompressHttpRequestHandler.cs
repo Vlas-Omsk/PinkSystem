@@ -7,10 +7,8 @@ using System.Threading.Tasks;
 
 namespace PinkSystem.Net.Http.Handlers
 {
-    public sealed class CompressHttpRequestHandler : IHttpRequestHandler
+    public sealed class CompressHttpRequestHandler : ExtensionHttpRequestHandler
     {
-        private readonly IHttpRequestHandler _handler;
-
         private sealed class DecompressContentReader : IContentReader
         {
             private readonly IContentReader _contentReader;
@@ -41,18 +39,15 @@ namespace PinkSystem.Net.Http.Handlers
             }
         }
 
-        public CompressHttpRequestHandler(IHttpRequestHandler handler)
+        public CompressHttpRequestHandler(IHttpRequestHandler handler) : base(handler)
         {
-            _handler = handler;
         }
 
-        public HttpRequestHandlerOptions Options => _handler.Options;
-
-        public async Task<HttpResponse> SendAsync(HttpRequest request, CancellationToken cancellationToken)
+        public override async Task<HttpResponse> SendAsync(HttpRequest request, CancellationToken cancellationToken)
         {
             request.Headers.Replace("Accept-Encoding", "gzip, deflate, br");
 
-            var response = await _handler.SendAsync(request, cancellationToken).ConfigureAwait(false);
+            var response = await Handler.SendAsync(request, cancellationToken).ConfigureAwait(false);
 
             response = new HttpResponse(
                 response.Uri,
@@ -70,14 +65,9 @@ namespace PinkSystem.Net.Http.Handlers
             return response;
         }
 
-        public IHttpRequestHandler Clone()
+        public override IHttpRequestHandler Clone()
         {
-            return new CompressHttpRequestHandler(_handler.Clone());
-        }
-
-        public void Dispose()
-        {
-            _handler.Dispose();
+            return new CompressHttpRequestHandler(Handler.Clone());
         }
     }
 }
