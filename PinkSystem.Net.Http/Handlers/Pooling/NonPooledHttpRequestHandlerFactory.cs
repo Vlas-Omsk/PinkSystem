@@ -37,7 +37,8 @@ namespace PinkSystem.Net.Http.Handlers.Pooling
 
         public IHttpRequestHandler Create(IHttpRequestHandlerOptions? options)
         {
-            return new NonPoolingHttpRequestHandler(
+            return new NonPooledHttpRequestHandler(
+                options,
                 _handlerFactory
             );
         }

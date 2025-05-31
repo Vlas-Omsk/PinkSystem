@@ -29,12 +29,10 @@ namespace PinkSystem.Net.Http.Handlers
                         handler.Proxy = options.Proxy.ToWebProxy();
                 }
 
-                _httpClient = new HttpClient(handler);
-
-                if (options != null)
+                _httpClient = new HttpClient(handler)
                 {
-                    _httpClient.Timeout = options.Timeout;
-                }
+                    Timeout = options?.Timeout ?? HttpTimeout.Default
+                };
             }
 
             public async Task<HttpResponse> SendAsync(HttpRequest request, CancellationToken cancellationToken)

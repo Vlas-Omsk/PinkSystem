@@ -40,10 +40,9 @@ namespace PinkSystem.Net.Http.Handlers
                 {
                     if (_options.Proxy != null)
                         webRequest.Proxy = _options.Proxy.ToWebProxy();
-
-                    webRequest.Timeout = _options.Timeout.Milliseconds;
                 }
 
+                webRequest.Timeout = (_options?.Timeout ?? HttpTimeout.Default).Milliseconds;
                 webRequest.ProtocolVersion = HttpVersion.Version11;
                 webRequest.Method = request.Method;
 
