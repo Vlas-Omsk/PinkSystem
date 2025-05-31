@@ -12,7 +12,7 @@ namespace PinkSystem.Net.Http
             return new RepeatHttpRequestHandlerFactory(self, retryAmount, retryDelay, logger);
         }
 
-        public static IHttpRequestHandlerFactory WithStatisticsCollecting(this IHttpRequestHandlerFactory self, StatisticsStorage storage)
+        public static IHttpRequestHandlerFactory WithStatisticsCollecting(this IHttpRequestHandlerFactory self, HttpRequestHandlerStatisticsStorage storage)
         {
             return new StatisticsHttpRequestHandlerFactory(self, storage);
         }

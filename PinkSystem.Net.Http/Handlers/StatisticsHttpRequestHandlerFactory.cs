@@ -15,7 +15,7 @@ namespace PinkSystem.Net.Http.Handlers
         Other
     }
 
-    public sealed class StatisticsStorage
+    public sealed class HttpRequestHandlerStatisticsStorage
     {
         private long _sent = 0;
         private long _successRequestsAmount = 0;
@@ -87,13 +87,13 @@ namespace PinkSystem.Net.Http.Handlers
     public sealed class StatisticsHttpRequestHandlerFactory : IHttpRequestHandlerFactory
     {
         private readonly IHttpRequestHandlerFactory _handlerFactory;
-        private readonly StatisticsStorage _storage;
+        private readonly HttpRequestHandlerStatisticsStorage _storage;
 
         private sealed class StatisticsHttpRequestHandler : ExtensionHttpRequestHandler
         {
-            private readonly StatisticsStorage _storage;
+            private readonly HttpRequestHandlerStatisticsStorage _storage;
 
-            public StatisticsHttpRequestHandler(IHttpRequestHandler handler, StatisticsStorage storage) : base(handler)
+            public StatisticsHttpRequestHandler(IHttpRequestHandler handler, HttpRequestHandlerStatisticsStorage storage) : base(handler)
             {
                 _storage = storage;
             }
@@ -128,7 +128,7 @@ namespace PinkSystem.Net.Http.Handlers
             }
         }
 
-        public StatisticsHttpRequestHandlerFactory(IHttpRequestHandlerFactory handlerFactory, StatisticsStorage storage)
+        public StatisticsHttpRequestHandlerFactory(IHttpRequestHandlerFactory handlerFactory, HttpRequestHandlerStatisticsStorage storage)
         {
             _handlerFactory = handlerFactory;
             _storage = storage;
