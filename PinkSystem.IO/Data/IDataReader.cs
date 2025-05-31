@@ -2,17 +2,12 @@
 
 namespace PinkSystem.IO.Data
 {
-    public interface IDataReader : IDisposable
+    public interface IDataReader<out T> : IDisposable
     {
         int? Length { get; }
         int Index { get; }
 
-        object? Read();
+        T? Read();
         void Reset();
-    }
-
-    public interface IDataReader<out T> : IDataReader
-    {
-        new T? Read();
     }
 }

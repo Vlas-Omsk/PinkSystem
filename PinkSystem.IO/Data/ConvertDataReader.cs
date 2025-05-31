@@ -2,12 +2,12 @@
 
 namespace PinkSystem.IO.Data
 {
-    public class ConvertDataReader : IDataReader
+    public class ConvertDataReader<TIn, TOut> : IDataReader<TOut>
     {
-        private readonly IDataReader _reader;
-        private readonly Func<object, object> _converter;
+        private readonly IDataReader<TIn> _reader;
+        private readonly Func<TIn, TOut> _converter;
 
-        public ConvertDataReader(IDataReader reader, Func<object, object> converter)
+        public ConvertDataReader(IDataReader<TIn> reader, Func<TIn, TOut> converter)
         {
             _reader = reader;
             _converter = converter;
@@ -16,7 +16,7 @@ namespace PinkSystem.IO.Data
         public int? Length => _reader.Length;
         public int Index => _reader.Index;
 
-        public object? Read()
+        public TOut? Read()
         {
             var item = _reader.Read();
 
@@ -34,23 +34,6 @@ namespace PinkSystem.IO.Data
         public void Dispose()
         {
             _reader.Dispose();
-        }
-
-        object? IDataReader.Read()
-        {
-            return Read();
-        }
-    }
-
-    public sealed class ConvertDataReader<TIn, TOut> : ConvertDataReader, IDataReader<TOut>
-    {
-        public ConvertDataReader(IDataReader<TIn> reader, Func<TIn, TOut> converter) : base(reader, (obj) => converter((TIn)obj)!)
-        {
-        }
-
-        TOut? IDataReader<TOut>.Read()
-        {
-            return (TOut?)Read();
         }
     }
 }

@@ -40,11 +40,6 @@
             }
         }
 
-        object? IDataReader.Read()
-        {
-            return Read();
-        }
-
         public void Reset()
         {
             _reader.Reset();
