@@ -45,7 +45,7 @@ namespace PinkSystem.Net
 
         public static Regex UserPasswordAtHostPortFormat { get; } = new("(?<username>.*?):(?<password>.*?)@(?<host>.*?):(?<port>.*)", RegexOptions.Compiled);
         public static Regex HostPortUserPasswordFormat { get; } = new("(?<host>.*?):(?<port>.*?):(?<username>.*?):(?<password>.*)", RegexOptions.Compiled);
-        public static Regex ProtocolUserPasswordAtHostPortFormat { get; } = new("(?<protocol>)://(?<username>.*?):(?<password>.*?)@(?<host>.*?):(?<port>.*)", RegexOptions.Compiled);
+        public static Regex ProtocolUserPasswordAtHostPortFormat { get; } = new("(?<protocol>.*?)://(?<username>.*?):(?<password>.*?)@(?<host>.*?):(?<port>.*)", RegexOptions.Compiled);
 
         public bool HasCredentials => Username != null && Password != null;
 
