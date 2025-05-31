@@ -9,7 +9,7 @@ namespace PinkSystem.Net.Http.Cookies
     public sealed class NetscapeCookieProvider : ICookieProvider
     {
         public string? Domain { get; set; }
-        public bool UseExpirationTimestamp { get; set; }
+        public bool UseExpirationTimestamp { get; set; } = false;
 
         public bool IsSupported(IContentReader reader)
         {

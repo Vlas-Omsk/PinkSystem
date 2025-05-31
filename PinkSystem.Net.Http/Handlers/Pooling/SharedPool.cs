@@ -5,23 +5,21 @@ namespace PinkSystem.Net.Http.Handlers.Pooling
     public sealed class SharedPool : IPool
     {
         private readonly PoolConnections _connections;
-        private readonly ConcurrentDictionary<PoolSettings, SharedPoolMap> _maps = new();
+        private readonly SharedPoolMap _defaultMap;
+        private readonly ConcurrentDictionary<IHttpRequestHandlerOptions, SharedPoolMap> _maps = new();
 
         public SharedPool(PoolConnections connections)
         {
+            _defaultMap = new SharedPoolMap(options: null, connections);
             _connections = connections;
         }
 
-        public PoolConnections Connections => _connections;
-
-        public IPoolMap GetDefaultMap()
+        public IPoolMap GetMap(IHttpRequestHandlerOptions? options)
         {
-            return GetMap(_connections.DefaultSettings);
-        }
+            if (options == null)
+                return _defaultMap;
 
-        public IPoolMap GetMap(PoolSettings settings)
-        {
-            return _maps.GetOrAdd(settings, (_) => new SharedPoolMap(settings, _connections));
+            return _maps.GetOrAdd(options, (_) => new SharedPoolMap(options, _connections));
         }
 
         public void Dispose()

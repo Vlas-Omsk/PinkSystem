@@ -1,28 +1,25 @@
 ﻿using System.Collections.Concurrent;
-using PinkSystem.Net.Http.Handlers.Factories;
 
 namespace PinkSystem.Net.Http.Handlers.Pooling
 {
     public sealed class Pool : IPool
     {
         private readonly PoolConnections _connections;
-        private readonly ConcurrentDictionary<PoolSettings, PoolMap> _maps = new();
+        private readonly PoolMap _defaultMap;
+        private readonly ConcurrentDictionary<IHttpRequestHandlerOptions, PoolMap> _maps = new();
 
         public Pool(PoolConnections connections)
         {
+            _defaultMap = new PoolMap(options: null, connections);
             _connections = connections;
         }
 
-        public PoolConnections Connections => _connections;
-
-        public IPoolMap GetDefaultMap()
+        public IPoolMap GetMap(IHttpRequestHandlerOptions? options)
         {
-            return GetMap(_connections.DefaultSettings);
-        }
+            if (options == null)
+                return _defaultMap;
 
-        public IPoolMap GetMap(PoolSettings settings)
-        {
-            return _maps.GetOrAdd(settings, (_) => new PoolMap(settings, _connections));
+            return _maps.GetOrAdd(options, (_) => new PoolMap(options, _connections));
         }
 
         public void Dispose()

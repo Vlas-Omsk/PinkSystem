@@ -10,14 +10,14 @@ namespace PinkSystem.IO.Data
         private readonly IDataReader<string> _reader;
         private int _index;
 
-        public ProxyDataReader(IDataReader<string> reader, ProxyScheme scheme, Regex format)
+        public ProxyDataReader(IDataReader<string> reader, ProxyProtocol scheme, Regex format)
         {
             _reader = reader;
             Scheme = scheme;
             Format = format;
         }
 
-        public ProxyScheme Scheme { get; set; }
+        public ProxyProtocol Scheme { get; set; }
         public Regex Format { get; set; }
         public int? Length { get; } = null;
         public int Index => _index;

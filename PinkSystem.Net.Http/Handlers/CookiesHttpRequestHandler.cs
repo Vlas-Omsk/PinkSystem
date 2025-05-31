@@ -28,30 +28,5 @@ namespace PinkSystem.Net.Http.Handlers
 
             return response;
         }
-
-        public override IHttpRequestHandler Clone()
-        {
-            var cookieContainerClone = new CookieContainer();
-
-            foreach (Cookie cookie in _cookieContainer.GetAllCookies())
-                cookieContainerClone.Add(new Cookie()
-                {
-                    Comment = cookie.Comment,
-                    CommentUri = cookie.CommentUri,
-                    Discard = cookie.Discard,
-                    Domain = cookie.Domain,
-                    Expired = cookie.Expired,
-                    Expires = cookie.Expires,
-                    HttpOnly = cookie.HttpOnly,
-                    Name = cookie.Name,
-                    Path = cookie.Path,
-                    Port = cookie.Port,
-                    Secure = cookie.Secure,
-                    Value = cookie.Value,
-                    Version = cookie.Version,
-                });
-
-            return new CookiesHttpRequestHandler(Handler.Clone(), cookieContainerClone);
-        }
     }
 }

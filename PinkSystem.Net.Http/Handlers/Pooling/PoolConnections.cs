@@ -3,7 +3,7 @@ using System.Collections.Concurrent;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using PinkSystem.Net.Http.Handlers.Factories;
+using PinkSystem.Net.Sockets;
 
 namespace PinkSystem.Net.Http.Handlers.Pooling
 {
@@ -12,36 +12,26 @@ namespace PinkSystem.Net.Http.Handlers.Pooling
         // if available sockets more than 20%
         private const double _safeFreePercent = 0.2;
         private static readonly TimeSpan _disposeTimeout = TimeSpan.FromMinutes(3);
+        private readonly IHttpRequestHandlerFactory _handlerFactory;
+        private readonly ISocketsProvider _socketsProvider;
         private readonly ILogger<PoolConnections> _logger;
         private readonly ConcurrentDictionary<PoolConnection, bool> _connections = new();
 
-        public PoolConnections(ISocketsHttpRequestHandlerFactory factory, ILogger<PoolConnections> logger)
+        public PoolConnections(IHttpRequestHandlerFactory handlerFactory, ISocketsProvider socketsProvider, ILogger<PoolConnections> logger)
         {
-            HttpRequestHandlerFactory = factory;
+            _handlerFactory = handlerFactory;
+            _socketsProvider = socketsProvider;
             _logger = logger;
-
-            using var handler = HttpRequestHandlerFactory.Create();
-
-            DefaultSettings = new()
-            {
-                Proxy = handler.Proxy,
-                ValidateSsl = handler.ValidateSsl,
-                Timeout = handler.Timeout,
-            };
 
             _ = HandleBackground();
         }
 
-        public ISocketsHttpRequestHandlerFactory HttpRequestHandlerFactory { get; }
-
         public int InUseAmount => _connections.Where(x => x.Key.CurrentRentsAmount > 0).Sum(x => 1);
         public int Amount => _connections.Count;
 
-        internal PoolSettings DefaultSettings { get; }
-
-        internal WeakReference<PoolConnection> CreateNew()
+        internal WeakReference<PoolConnection> CreateNew(IHttpRequestHandlerOptions? options)
         {
-            var handler = HttpRequestHandlerFactory.Create();
+            var handler = _handlerFactory.Create(options);
             var connection = new PoolConnection(handler);
 
             if (!_connections.TryAdd(connection, true))
@@ -94,10 +84,10 @@ namespace PinkSystem.Net.Http.Handlers.Pooling
 
         private void DisposeUnusedItems()
         {
-            if (_connections.Count < HttpRequestHandlerFactory.SocketsProvider.MaxAvailableSockets * 2)
+            if (_connections.Count < _socketsProvider.MaxAvailableSockets * 2)
                 return;
 
-            var amountToDispose = _connections.Count - HttpRequestHandlerFactory.SocketsProvider.MaxAvailableSockets;
+            var amountToDispose = _connections.Count - _socketsProvider.MaxAvailableSockets;
             var disposedAmount = 0;
 
             foreach (var (connection, _) in _connections.ToArray().OrderBy(x => x.Key.LastRent))
@@ -117,10 +107,10 @@ namespace PinkSystem.Net.Http.Handlers.Pooling
 
         private void DisposeUnusedSockets()
         {
-            if (HttpRequestHandlerFactory.SocketsProvider.CurrentAvailableSockets > HttpRequestHandlerFactory.SocketsProvider.MaxAvailableSockets * _safeFreePercent)
+            if (_socketsProvider.CurrentAvailableSockets > _socketsProvider.MaxAvailableSockets * _safeFreePercent)
                 return;
 
-            var amountToDispose = HttpRequestHandlerFactory.SocketsProvider.MaxAvailableSockets * _safeFreePercent - HttpRequestHandlerFactory.SocketsProvider.CurrentAvailableSockets;
+            var amountToDispose = _socketsProvider.MaxAvailableSockets * _safeFreePercent - _socketsProvider.CurrentAvailableSockets;
             var disposedAmount = 0;
 
             foreach (var (connection, _) in _connections.ToArray().OrderBy(x => x.Key.LastRent))

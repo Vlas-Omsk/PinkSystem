@@ -6,12 +6,10 @@ namespace PinkSystem.Net.Http.Handlers
     public sealed class ConcurrentHttpRequestHandler : ExtensionHttpRequestHandler
     {
         private readonly SemaphoreSlim _semaphore;
-        private readonly int _concurrency;
 
         public ConcurrentHttpRequestHandler(IHttpRequestHandler handler, int concurrency) : base(handler)
         {
             _semaphore = new(concurrency, concurrency);
-            _concurrency = concurrency;
         }
 
         public override async Task<HttpResponse> SendAsync(HttpRequest request, CancellationToken cancellationToken)
@@ -26,11 +24,6 @@ namespace PinkSystem.Net.Http.Handlers
             {
                 _semaphore.Release();
             }
-        }
-
-        public override IHttpRequestHandler Clone()
-        {
-            return new ConcurrentHttpRequestHandler(Handler.Clone(), _concurrency);
         }
 
         public override void Dispose()

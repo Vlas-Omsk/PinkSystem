@@ -1,14 +1,28 @@
-﻿using PinkSystem.Net.Http.Handlers;
+﻿using System.Net;
+using PinkSystem.Net.Http.Handlers;
 
 namespace PinkSystem.Net.Http
 {
     public static class IHttpRequestHandlerExtensions
     {
-        public static void CopySettingsTo(this IHttpRequestHandler self, IHttpRequestHandler target)
+        public static IHttpRequestHandler WithCompression(this IHttpRequestHandler self)
         {
-            target.Proxy = self.Proxy;
-            target.ValidateSsl = self.ValidateSsl;
-            target.Timeout = self.Timeout;
+            return new CompressHttpRequestHandler(self);
+        }
+
+        public static IHttpRequestHandler WithConcurrency(this IHttpRequestHandler self, int concurrency)
+        {
+            return new ConcurrentHttpRequestHandler(self, concurrency);
+        }
+
+        public static IHttpRequestHandler WithCookies(this IHttpRequestHandler self, CookieContainer cookieContainer)
+        {
+            return new CookiesHttpRequestHandler(self, cookieContainer);
+        }
+
+        public static IHttpRequestHandler WithRedirectionFollowing(this IHttpRequestHandler self)
+        {
+            return new RedirectHttpRequestHandler(self);
         }
     }
 }

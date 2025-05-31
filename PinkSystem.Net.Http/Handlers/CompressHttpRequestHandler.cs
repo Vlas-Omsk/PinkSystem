@@ -64,10 +64,5 @@ namespace PinkSystem.Net.Http.Handlers
 
             return response;
         }
-
-        public override IHttpRequestHandler Clone()
-        {
-            return new CompressHttpRequestHandler(Handler.Clone());
-        }
     }
 }

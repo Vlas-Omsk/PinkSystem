@@ -5,24 +5,19 @@ namespace PinkSystem.Net.Http.Handlers.Pooling
 {
     public sealed class SharedPoolMap : IPoolMap
     {
+        private readonly IHttpRequestHandlerOptions? _options;
         private readonly PoolConnections _connections;
         private WeakReference<PoolConnection> _sharedConnectionRef;
         private readonly object _sharedConnectionRefLock = new();
         private readonly Dictionary<IHttpRequestHandler, WeakReference<PoolConnection>> _map = new();
         private readonly object _mapLock = new();
 
-        public SharedPoolMap(PoolSettings settings, PoolConnections connections)
+        public SharedPoolMap(IHttpRequestHandlerOptions? options, PoolConnections connections)
         {
-            Settings = settings;
-
+            _options = options;
             _connections = connections;
-            _sharedConnectionRef = _connections.CreateNew();
-
-            if (_sharedConnectionRef.TryGetTarget(out var sharedConnection))
-                Settings.ApplyTo(sharedConnection.Handler);
+            _sharedConnectionRef = _connections.CreateNew(options);
         }
-
-        public PoolSettings Settings { get; }
 
         public PoolConnection RentConnection(IHttpRequestHandler handler)
         {
@@ -44,10 +39,7 @@ namespace PinkSystem.Net.Http.Handlers.Pooling
                     sharedConnection.TryRent(handler))
                     return sharedConnection;
 
-                _sharedConnectionRef = _connections.CreateNew();
-
-                if (_sharedConnectionRef.TryGetTarget(out sharedConnection))
-                    Settings.ApplyTo(sharedConnection.Handler);
+                _sharedConnectionRef = _connections.CreateNew(_options);
 
                 if (_sharedConnectionRef.TryGetTarget(out sharedConnection) &&
                     sharedConnection.TryRent(handler))
@@ -64,10 +56,7 @@ namespace PinkSystem.Net.Http.Handlers.Pooling
                 if (_map.TryGetValue(handler, out _))
                     return;
 
-                var connectionRef = _connections.CreateNew();
-
-                if (connectionRef.TryGetTarget(out var connection))
-                    Settings.ApplyTo(connection.Handler);
+                var connectionRef = _connections.CreateNew(_options);
 
                 _map.Add(handler, connectionRef);
             }

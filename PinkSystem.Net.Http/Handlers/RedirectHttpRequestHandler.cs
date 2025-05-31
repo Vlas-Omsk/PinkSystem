@@ -43,10 +43,5 @@ namespace PinkSystem.Net.Http.Handlers
                 request = nextRequest;
             }
         }
-
-        public override IHttpRequestHandler Clone()
-        {
-            return new RedirectHttpRequestHandler(Handler.Clone());
-        }
     }
 }

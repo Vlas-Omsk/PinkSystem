@@ -5,18 +5,16 @@ namespace PinkSystem.Net.Http.Handlers.Pooling
 {
     public sealed class PoolMap : IPoolMap
     {
+        private readonly IHttpRequestHandlerOptions? _options;
         private readonly PoolConnections _connections;
         private readonly Dictionary<IHttpRequestHandler, WeakReference<PoolConnection>> _map = new();
         private readonly object _mapLock = new();
 
-        public PoolMap(PoolSettings settings, PoolConnections connections)
+        public PoolMap(IHttpRequestHandlerOptions? options, PoolConnections connections)
         {
-            Settings = settings;
-
+            _options = options;
             _connections = connections;
         }
-
-        public PoolSettings Settings { get; }
 
         public PoolConnection RentConnection(IHttpRequestHandler handler)
         {
@@ -28,10 +26,7 @@ namespace PinkSystem.Net.Http.Handlers.Pooling
 
                     if (!_map.TryGetValue(handler, out var connectionRef))
                     {
-                        connectionRef = _connections.CreateNew();
-
-                        if (connectionRef.TryGetTarget(out connection))
-                            Settings.ApplyTo(connection.Handler);
+                        connectionRef = _connections.CreateNew(_options);
 
                         _map.Add(handler, connectionRef);
                     }

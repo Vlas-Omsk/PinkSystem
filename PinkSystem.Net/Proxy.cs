@@ -8,7 +8,6 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Threading;
 using PinkSystem.Net.Sockets;
-using System.Net.Sockets;
 using PinkSystem.Runtime;
 
 namespace PinkSystem.Net
@@ -19,25 +18,25 @@ namespace PinkSystem.Net
         private string? _uri;
         private string? _uriWithCredentials;
 
-        public Proxy(ProxyScheme scheme, string host) : this(scheme, host, GetDefaultPort(scheme))
+        public Proxy(ProxyProtocol scheme, string host) : this(scheme, host, GetDefaultPort(scheme))
         {
             IsDefaultPort = true;
         }
 
-        public Proxy(ProxyScheme scheme, string host, int port) : this(scheme, host, port, null, null)
+        public Proxy(ProxyProtocol scheme, string host, int port) : this(scheme, host, port, null, null)
         {
         }
 
-        public Proxy(ProxyScheme scheme, string host, int port, string? username, string? password)
+        public Proxy(ProxyProtocol scheme, string host, int port, string? username, string? password)
         {
-            Scheme = scheme;
+            Protocol = scheme;
             Host = host;
             Port = port;
             Username = username;
             Password = password;
         }
 
-        public ProxyScheme Scheme { get; }
+        public ProxyProtocol Protocol { get; }
         public string Host { get; }
         public int Port { get; }
         public string? Username { get; }
@@ -91,17 +90,17 @@ namespace PinkSystem.Net
 
         public string GetSchemeName()
         {
-            switch (Scheme)
+            switch (Protocol)
             {
-                case ProxyScheme.Http:
+                case ProxyProtocol.Http:
                     return "http";
-                case ProxyScheme.Https:
+                case ProxyProtocol.Https:
                     return "https";
-                case ProxyScheme.Socks4:
+                case ProxyProtocol.Socks4:
                     return "socks4";
-                case ProxyScheme.Socks4a:
+                case ProxyProtocol.Socks4a:
                     return "socks4a";
-                case ProxyScheme.Socks5:
+                case ProxyProtocol.Socks5:
                     return "socks5";
                 default:
                     throw new NotSupportedException();
@@ -152,10 +151,10 @@ namespace PinkSystem.Net
 
             var networkStream = socket.GetStream();
 
-            switch (Scheme)
+            switch (Protocol)
             {
-                case ProxyScheme.Http:
-                case ProxyScheme.Https:
+                case ProxyProtocol.Http:
+                case ProxyProtocol.Https:
                     await EstablishHttpTunnel(
                         networkStream,
                         host,
@@ -164,9 +163,9 @@ namespace PinkSystem.Net
                         cancellationToken
                     );
                     break;
-                case ProxyScheme.Socks4:
-                case ProxyScheme.Socks4a:
-                case ProxyScheme.Socks5:
+                case ProxyProtocol.Socks4:
+                case ProxyProtocol.Socks4a:
+                case ProxyProtocol.Socks5:
                     await EstablishSocksTunnel(
                         networkStream,
                         host,
@@ -278,22 +277,22 @@ namespace PinkSystem.Net
             }
         }
 
-        public static int GetDefaultPort(ProxyScheme scheme)
+        public static int GetDefaultPort(ProxyProtocol scheme)
         {
             switch (scheme)
             {
-                case ProxyScheme.Http:
+                case ProxyProtocol.Http:
                     return 80;
-                case ProxyScheme.Socks4:
+                case ProxyProtocol.Socks4:
                     return 1080;
-                case ProxyScheme.Socks5:
+                case ProxyProtocol.Socks5:
                     return 1080;
                 default:
                     throw new NotSupportedException();
             }
         }
 
-        public static Proxy Parse(string str, ProxyScheme scheme)
+        public static Proxy Parse(string str, ProxyProtocol scheme)
         {
             if (TryParse(str, scheme, UserPasswordAtHostPortFormat, out var proxy))
                 return proxy;
@@ -303,7 +302,7 @@ namespace PinkSystem.Net
                 throw new Exception("Cannot parse proxy using default formats");
         }
 
-        public static bool TryParse(string str, ProxyScheme scheme, Regex format, [NotNullWhen(true)] out Proxy? proxy)
+        public static bool TryParse(string str, ProxyProtocol scheme, Regex format, [NotNullWhen(true)] out Proxy? proxy)
         {
             var match = format.Match(str);
 
@@ -363,7 +362,7 @@ namespace PinkSystem.Net
             return true;
         }
 
-        public static Proxy Parse(string str, ProxyScheme scheme, Regex format)
+        public static Proxy Parse(string str, ProxyProtocol scheme, Regex format)
         {
             var match = format.Match(str);
 
