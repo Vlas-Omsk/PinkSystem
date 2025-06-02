@@ -373,6 +373,11 @@ namespace PinkSystem.Net
 
                 host = hostGroup.Value;
             }
+            else
+            {
+                proxy = null;
+                return false;
+            }
 
             if (match.Groups.TryGetValue("port", out Group? portGroup))
             {
