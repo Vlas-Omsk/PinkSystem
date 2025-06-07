@@ -12,7 +12,7 @@ namespace PinkSystem.IO.Data
             _writer = writer;
         }
 
-        public void Write(T? data)
+        public void Write(T data)
         {
             lock (_lock)
             {
@@ -20,7 +20,7 @@ namespace PinkSystem.IO.Data
             }
         }
 
-        protected abstract string? WriteOverride(T? data);
+        protected abstract string WriteOverride(T data);
 
         public void Flush()
         {

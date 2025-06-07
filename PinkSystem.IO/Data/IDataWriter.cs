@@ -4,7 +4,7 @@ namespace PinkSystem.IO.Data
 {
     public interface IDataWriter<in T> : IDisposable
     {
-        void Write(T? data);
+        void Write(T data);
         void Flush();
     }
 }

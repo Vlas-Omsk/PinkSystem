@@ -12,7 +12,7 @@ namespace PinkSystem.IO.Data
         {
         }
 
-        protected override string? WriteOverride(string? data)
+        protected override string WriteOverride(string data)
         {
             return data;
         }
