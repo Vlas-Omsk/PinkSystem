@@ -49,11 +49,6 @@ namespace PinkSystem.IO.Data
             return ReadOverride(line);
         }
 
-        object? IDataReader.Read()
-        {
-            return Read();
-        }
-
         protected abstract T? ReadOverride(string? line);
 
         public void Reset()

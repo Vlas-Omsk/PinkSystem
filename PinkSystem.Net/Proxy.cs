@@ -8,7 +8,6 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Threading;
 using PinkSystem.Net.Sockets;
-using System.Net.Sockets;
 using PinkSystem.Runtime;
 
 namespace PinkSystem.Net
@@ -19,32 +18,34 @@ namespace PinkSystem.Net
         private string? _uri;
         private string? _uriWithCredentials;
 
-        public Proxy(ProxyScheme scheme, string host) : this(scheme, host, GetDefaultPort(scheme))
+        public Proxy(ProxyProtocol protocol, string host) : this(protocol, host, GetDefaultPort(protocol))
         {
             IsDefaultPort = true;
         }
 
-        public Proxy(ProxyScheme scheme, string host, int port) : this(scheme, host, port, null, null)
+        public Proxy(ProxyProtocol protocol, string host, int port) : this(protocol, host, port, null, null)
         {
         }
 
-        public Proxy(ProxyScheme scheme, string host, int port, string? username, string? password)
+        public Proxy(ProxyProtocol protocol, string host, int port, string? username, string? password)
         {
-            Scheme = scheme;
+            Protocol = protocol;
             Host = host;
             Port = port;
             Username = username;
             Password = password;
         }
 
-        public ProxyScheme Scheme { get; }
+        public ProxyProtocol Protocol { get; }
         public string Host { get; }
         public int Port { get; }
         public string? Username { get; }
         public string? Password { get; }
         public bool IsDefaultPort { get; }
+
         public static Regex UserPasswordAtHostPortFormat { get; } = new("(?<username>.*?):(?<password>.*?)@(?<host>.*?):(?<port>.*)", RegexOptions.Compiled);
         public static Regex HostPortUserPasswordFormat { get; } = new("(?<host>.*?):(?<port>.*?):(?<username>.*?):(?<password>.*)", RegexOptions.Compiled);
+        public static Regex ProtocolUserPasswordAtHostPortFormat { get; } = new("(?<protocol>.*?)://(?<username>.*?):(?<password>.*?)@(?<host>.*?):(?<port>.*)", RegexOptions.Compiled);
 
         public bool HasCredentials => Username != null && Password != null;
 
@@ -91,17 +92,17 @@ namespace PinkSystem.Net
 
         public string GetSchemeName()
         {
-            switch (Scheme)
+            switch (Protocol)
             {
-                case ProxyScheme.Http:
+                case ProxyProtocol.Http:
                     return "http";
-                case ProxyScheme.Https:
+                case ProxyProtocol.Https:
                     return "https";
-                case ProxyScheme.Socks4:
+                case ProxyProtocol.Socks4:
                     return "socks4";
-                case ProxyScheme.Socks4a:
+                case ProxyProtocol.Socks4a:
                     return "socks4a";
-                case ProxyScheme.Socks5:
+                case ProxyProtocol.Socks5:
                     return "socks5";
                 default:
                     throw new NotSupportedException();
@@ -152,10 +153,10 @@ namespace PinkSystem.Net
 
             var networkStream = socket.GetStream();
 
-            switch (Scheme)
+            switch (Protocol)
             {
-                case ProxyScheme.Http:
-                case ProxyScheme.Https:
+                case ProxyProtocol.Http:
+                case ProxyProtocol.Https:
                     await EstablishHttpTunnel(
                         networkStream,
                         host,
@@ -164,9 +165,9 @@ namespace PinkSystem.Net
                         cancellationToken
                     );
                     break;
-                case ProxyScheme.Socks4:
-                case ProxyScheme.Socks4a:
-                case ProxyScheme.Socks5:
+                case ProxyProtocol.Socks4:
+                case ProxyProtocol.Socks4a:
+                case ProxyProtocol.Socks5:
                     await EstablishSocksTunnel(
                         networkStream,
                         host,
@@ -278,39 +279,89 @@ namespace PinkSystem.Net
             }
         }
 
-        public static int GetDefaultPort(ProxyScheme scheme)
+        public static int GetDefaultPort(ProxyProtocol scheme)
         {
             switch (scheme)
             {
-                case ProxyScheme.Http:
+                case ProxyProtocol.Http:
+                case ProxyProtocol.Https:
                     return 80;
-                case ProxyScheme.Socks4:
+                case ProxyProtocol.Socks4:
+                case ProxyProtocol.Socks4a:
                     return 1080;
-                case ProxyScheme.Socks5:
+                case ProxyProtocol.Socks5:
                     return 1080;
                 default:
                     throw new NotSupportedException();
             }
         }
 
-        public static Proxy Parse(string str, ProxyScheme scheme)
+        public static Proxy Parse(string str, ProxyProtocol? defaultProtocol = null)
         {
-            if (TryParse(str, scheme, UserPasswordAtHostPortFormat, out var proxy))
+            if (TryParse(str, UserPasswordAtHostPortFormat, defaultProtocol, out var proxy))
                 return proxy;
-            else if (TryParse(str, scheme, HostPortUserPasswordFormat, out proxy))
+            else if (TryParse(str, HostPortUserPasswordFormat, defaultProtocol, out proxy))
                 return proxy;
-            else
-                throw new Exception("Cannot parse proxy using default formats");
+            else if (TryParse(str, ProtocolUserPasswordAtHostPortFormat, defaultProtocol, out proxy))
+                return proxy;
+            
+            throw new Exception("Cannot parse proxy using default formats");
         }
 
-        public static bool TryParse(string str, ProxyScheme scheme, Regex format, [NotNullWhen(true)] out Proxy? proxy)
+        public static Proxy Parse(string str, Regex format, ProxyProtocol? defaultProtocol = null)
+        {
+            if (TryParse(str, format, defaultProtocol, out var proxy))
+                return proxy;
+
+            throw new Exception("Cannot parse proxy using format");
+        }
+
+        public static bool TryParse(string str, Regex format, ProxyProtocol? defaultProtocol, [NotNullWhen(true)] out Proxy? proxy)
         {
             var match = format.Match(str);
 
+            ProxyProtocol protocol;
             string? host = null;
             int? port = null;
             string? username = null;
             string? password = null;
+
+            if (match.Groups.TryGetValue("protocol", out Group? protocolGroup))
+            {
+                if (!protocolGroup.Success)
+                {
+                    if (!defaultProtocol.HasValue)
+                    {
+                        proxy = null;
+                        return false;
+                    }
+
+                    protocol = defaultProtocol.Value;
+                }
+                else
+                {
+                    protocol = protocolGroup.Value switch
+                    {
+                        "http" => ProxyProtocol.Http,
+                        "https" => ProxyProtocol.Https,
+                        "socks" => ProxyProtocol.Socks5,
+                        "socks4" => ProxyProtocol.Socks4,
+                        "socks4a" => ProxyProtocol.Socks4a,
+                        "socks5" => ProxyProtocol.Socks5,
+                        _ => throw new NotSupportedException("Protocol not supported")
+                    };
+                }
+            }
+            else
+            {
+                if (!defaultProtocol.HasValue)
+                {
+                    proxy = null;
+                    return false;
+                }
+
+                protocol = defaultProtocol.Value;
+            }
 
             if (match.Groups.TryGetValue("host", out Group? hostGroup))
             {
@@ -322,6 +373,12 @@ namespace PinkSystem.Net
 
                 host = hostGroup.Value;
             }
+            else
+            {
+                proxy = null;
+                return false;
+            }
+
             if (match.Groups.TryGetValue("port", out Group? portGroup))
             {
                 if (!portGroup.Success || !int.TryParse(portGroup.Value, out var parsedPort))
@@ -332,6 +389,7 @@ namespace PinkSystem.Net
 
                 port = parsedPort;
             }
+
             if (match.Groups.TryGetValue("username", out Group? usernameGroup))
             {
                 if (!usernameGroup.Success)
@@ -342,6 +400,7 @@ namespace PinkSystem.Net
 
                 username = usernameGroup.Value;
             }
+
             if (match.Groups.TryGetValue("password", out Group? passwordGroup))
             {
                 if (!passwordGroup.Success)
@@ -354,40 +413,13 @@ namespace PinkSystem.Net
             }
 
             proxy = new Proxy(
-                scheme,
+                protocol,
                 host ?? throw new Exception("Host cannot be null"),
-                port ?? GetDefaultPort(scheme),
+                port ?? GetDefaultPort(protocol),
                 username,
                 password
             );
             return true;
-        }
-
-        public static Proxy Parse(string str, ProxyScheme scheme, Regex format)
-        {
-            var match = format.Match(str);
-
-            string? host = null;
-            int? port = null;
-            string? username = null;
-            string? password = null;
-
-            if (match.Groups.TryGetValue("host", out Group? hostGroup))
-                host = hostGroup.ThrowIfNotSuccuess().Value;
-            if (match.Groups.TryGetValue("port", out Group? portGroup))
-                port = int.Parse(portGroup.ThrowIfNotSuccuess().Value);
-            if (match.Groups.TryGetValue("username", out Group? usernameGroup))
-                username = usernameGroup.ThrowIfNotSuccuess().Value;
-            if (match.Groups.TryGetValue("password", out Group? passwordGroup))
-                password = passwordGroup.ThrowIfNotSuccuess().Value;
-
-            return new Proxy(
-                scheme,
-                host ?? throw new Exception("Host cannot be null"),
-                port ?? GetDefaultPort(scheme),
-                username,
-                password
-            );
         }
     }
 }

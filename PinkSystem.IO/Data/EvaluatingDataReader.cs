@@ -44,11 +44,6 @@ namespace PinkSystem.IO.Data
             return data;
         }
 
-        object? IDataReader.Read()
-        {
-            return Read();
-        }
-
         public void Reset()
         {
             _reader.Reset();

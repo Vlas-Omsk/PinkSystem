@@ -6,22 +6,17 @@ using System.Threading.Tasks;
 
 namespace PinkSystem.Net.Http.Handlers
 {
-    public sealed class RedirectHttpRequestHandler : IHttpRequestHandler
+    public sealed class RedirectHttpRequestHandler : ExtensionHttpRequestHandler
     {
-        private readonly IHttpRequestHandler _handler;
-
-        public RedirectHttpRequestHandler(IHttpRequestHandler handler)
+        public RedirectHttpRequestHandler(IHttpRequestHandler handler) : base(handler)
         {
-            _handler = handler;
         }
 
-        public HttpRequestHandlerOptions Options => _handler.Options;
-
-        public async Task<HttpResponse> SendAsync(HttpRequest request, CancellationToken cancellationToken)
+        public override async Task<HttpResponse> SendAsync(HttpRequest request, CancellationToken cancellationToken)
         {
             while (true)
             {
-                var response = await _handler.SendAsync(request, cancellationToken).ConfigureAwait(false);
+                var response = await Handler.SendAsync(request, cancellationToken).ConfigureAwait(false);
 
                 if (response.StatusCode is
                     not HttpStatusCode.Moved and
@@ -47,16 +42,6 @@ namespace PinkSystem.Net.Http.Handlers
 
                 request = nextRequest;
             }
-        }
-
-        public IHttpRequestHandler Clone()
-        {
-            return new RedirectHttpRequestHandler(_handler.Clone());
-        }
-
-        public void Dispose()
-        {
-            _handler.Dispose();
         }
     }
 }

@@ -1,27 +1,28 @@
-﻿using System.Collections.Generic;
-using System.Linq;
+﻿using System;
+using System.Collections.Generic;
 
 namespace PinkSystem.IO.Data
 {
     public sealed class EnumerableDataReader<T> : IDataReader<T>
     {
+        private readonly Func<int?> _lengthGetter = () => null;
         private readonly IEnumerable<T> _enumerable;
         private IEnumerator<T> _enumerator;
         private readonly object _lock = new();
         private int _index;
 
-        public EnumerableDataReader(IEnumerable<T> enumerable) : this(enumerable, enumerable.Count())
-        {
-        }
-
-        public EnumerableDataReader(IEnumerable<T> enumerable, int? length)
+        public EnumerableDataReader(IEnumerable<T> enumerable)
         {
             _enumerable = enumerable;
             _enumerator = enumerable.GetEnumerator();
-            Length = length;
+
+            if (enumerable is IReadOnlyList<T> list)
+            {
+                _lengthGetter = () => list.Count;
+            }
         }
 
-        public int? Length { get; }
+        public int? Length => _lengthGetter();
         public int Index => _index;
 
         public T? Read()
@@ -36,11 +37,6 @@ namespace PinkSystem.IO.Data
             }
 
             return default;
-        }
-
-        object? IDataReader.Read()
-        {
-            return Read();
         }
 
         public void Reset()

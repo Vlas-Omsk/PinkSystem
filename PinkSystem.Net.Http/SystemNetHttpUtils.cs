@@ -41,7 +41,7 @@ namespace PinkSystem.Net.Http
             {
                 Method = new HttpMethod(request.Method),
                 RequestUri = request.Uri,
-                Version = request.HttpVersion ?? HttpVersion.Version20,
+                Version = request.HttpVersion ?? HttpVersion.Version11,
                 VersionPolicy = HttpVersionPolicy.RequestVersionOrHigher
             };
 

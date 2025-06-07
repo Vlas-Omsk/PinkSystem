@@ -7,17 +7,58 @@ using System.Threading.Tasks;
 
 namespace PinkSystem.Net.Sockets
 {
+    public sealed class SocketStatisticsStorage
+    {
+        private long _readBytes;
+        private long _writeBytes;
+
+        public long ReadBytes => _readBytes;
+        public long WriteBytes => _writeBytes;
+
+        public void AddReadBytes(int amount)
+        {
+            unchecked
+            {
+                Interlocked.Add(ref _readBytes, amount);
+            }
+        }
+
+        public void AddReadByte()
+        {
+            unchecked
+            {
+                Interlocked.Increment(ref _readBytes);
+            }
+        }
+
+        public void AddWriteBytes(int amount)
+        {
+            unchecked
+            {
+                Interlocked.Add(ref _writeBytes, amount);
+            }
+        }
+
+        public void AddWriteByte()
+        {
+            unchecked
+            {
+                Interlocked.Increment(ref _writeBytes);
+            }
+        }
+    }
+
     public sealed class StatisticsSocketsProvider : ISocketsProvider
     {
         private readonly ISocketsProvider _provider;
-        private readonly Storage _storage;
+        private readonly SocketStatisticsStorage _storage;
 
         private sealed class StatisticsStream : Stream
         {
             private readonly Stream _stream;
-            private readonly Storage _storage;
+            private readonly SocketStatisticsStorage _storage;
 
-            public StatisticsStream(Stream stream, Storage storage)
+            public StatisticsStream(Stream stream, SocketStatisticsStorage storage)
             {
                 _stream = stream;
                 _storage = storage;
@@ -182,9 +223,9 @@ namespace PinkSystem.Net.Sockets
         private sealed class StatisticsSocket : ISocket
         {
             private readonly ISocket _socket;
-            private readonly Storage _storage;
+            private readonly SocketStatisticsStorage _storage;
 
-            public StatisticsSocket(ISocket socket, Storage storage)
+            public StatisticsSocket(ISocket socket, SocketStatisticsStorage storage)
             {
                 _socket = socket;
                 _storage = storage;
@@ -246,48 +287,7 @@ namespace PinkSystem.Net.Sockets
             }
         }
 
-        public sealed class Storage
-        {
-            private long _readBytes;
-            private long _writeBytes;
-
-            public long ReadBytes => _readBytes;
-            public long WriteBytes => _writeBytes;
-
-            public void AddReadBytes(int amount)
-            {
-                unchecked
-                {
-                    Interlocked.Add(ref _readBytes, amount);
-                }
-            }
-
-            public void AddReadByte()
-            {
-                unchecked
-                {
-                    Interlocked.Increment(ref _readBytes);
-                }
-            }
-
-            public void AddWriteBytes(int amount)
-            {
-                unchecked
-                {
-                    Interlocked.Add(ref _writeBytes, amount);
-                }
-            }
-
-            public void AddWriteByte()
-            {
-                unchecked
-                {
-                    Interlocked.Increment(ref _writeBytes);
-                }
-            }
-        }
-
-        public StatisticsSocketsProvider(ISocketsProvider provider, Storage storage)
+        public StatisticsSocketsProvider(ISocketsProvider provider, SocketStatisticsStorage storage)
         {
             _provider = provider;
             _storage = storage;

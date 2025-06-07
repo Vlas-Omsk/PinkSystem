@@ -1,6 +1,6 @@
 namespace PinkSystem.Net
 {
-    public enum ProxyScheme
+    public enum ProxyProtocol
     {
         Http,
         Https,

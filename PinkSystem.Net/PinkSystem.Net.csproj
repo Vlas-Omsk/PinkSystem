@@ -8,4 +8,7 @@
     <ProjectReference Include="..\PinkSystem.Text\PinkSystem.Text.csproj" />
     <ProjectReference Include="..\PinkSystem\PinkSystem.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="IO\Data\" />
+  </ItemGroup>
 </Project>

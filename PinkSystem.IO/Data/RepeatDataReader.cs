@@ -1,11 +1,11 @@
 ﻿namespace PinkSystem.IO.Data
 {
-    public class RepeatDataReader : IDataReader
+    public sealed class RepeatDataReader<T> : IDataReader<T>
     {
-        private readonly IDataReader _reader;
+        private readonly IDataReader<T> _reader;
         private readonly object _lock = new();
 
-        public RepeatDataReader(IDataReader reader)
+        public RepeatDataReader(IDataReader<T> reader)
         {
             _reader = reader;
         }
@@ -13,9 +13,9 @@
         public int? Length { get; } = null;
         public int Index => _reader.Index;
 
-        public object? Read()
+        public T? Read()
         {
-            object? data;
+            T? data;
 
             lock (_lock)
             {
@@ -41,18 +41,6 @@
         public void Dispose()
         {
             _reader.Dispose();
-        }
-    }
-
-    public sealed class RepeatDataReader<T> : RepeatDataReader, IDataReader<T>
-    {
-        public RepeatDataReader(IDataReader<T> reader) : base(reader)
-        {
-        }
-
-        public new T? Read()
-        {
-            return (T?)base.Read();
         }
     }
 }
