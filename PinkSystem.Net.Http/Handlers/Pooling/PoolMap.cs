@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace PinkSystem.Net.Http.Handlers.Pooling
 {
-    public sealed class PoolMap : IPoolMap
+    internal sealed class PoolMap : IPoolMap
     {
         private readonly IHttpRequestHandlerOptions? _options;
         private readonly PoolConnections _connections;

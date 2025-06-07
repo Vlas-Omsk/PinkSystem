@@ -29,7 +29,7 @@ namespace PinkSystem.Net.Http.Handlers.Pooling
         public int InUseAmount => _connections.Where(x => x.Key.CurrentRentsAmount > 0).Sum(x => 1);
         public int Amount => _connections.Count;
 
-        internal WeakReference<PoolConnection> CreateNew(IHttpRequestHandlerOptions? options)
+        public WeakReference<PoolConnection> CreateNew(IHttpRequestHandlerOptions? options)
         {
             var handler = _handlerFactory.Create(options);
             var connection = new PoolConnection(handler);
@@ -146,7 +146,7 @@ namespace PinkSystem.Net.Http.Handlers.Pooling
                 _logger.LogInformation("Disposed {amount} timeouted http request handlers", disposedAmount);
         }
 
-        internal bool TryDisposeItem(PoolConnection connection, bool ignoreNew)
+        public bool TryDisposeItem(PoolConnection connection, bool ignoreNew)
         {
             if (!connection.TryDispose(ignoreNew))
                 return false;
