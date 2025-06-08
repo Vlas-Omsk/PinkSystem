@@ -145,8 +145,11 @@ namespace PinkSystem.Runtime
             );
         }
 
-        private int CalculateAssignWeight(Type assigningType, Type type)
+        private static int CalculateAssignWeight(Type assigningType, Type type)
         {
+            if (type.IsPointer)
+                type = typeof(Pointer);
+
             var weight = 0;
             var currentType = assigningType;
 
