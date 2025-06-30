@@ -39,7 +39,7 @@ namespace PinkSystem.Text
             return PeekSpanUnsafe(amount).ToArray();
         }
 
-        public ReadOnlySpan<char> PeekSpanUnsafe(int amount)
+        internal ReadOnlySpan<char> PeekSpanUnsafe(int amount)
         {
             ArgumentOutOfRangeException.ThrowIfNegative(amount, nameof(amount));
 

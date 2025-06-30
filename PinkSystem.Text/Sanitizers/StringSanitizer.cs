@@ -1,5 +1,6 @@
 ﻿using System.Collections.Immutable;
 using System.IO;
+using PinkSystem.Text.Sanitizers;
 using PinkSystem.Text.Sanitizers.Rules;
 using PinkSystem.Text.Sanitizing.Rules;
 
@@ -7,6 +8,7 @@ namespace PinkSystem.Text.Sanitizing
 {
     public sealed class StringSanitizer
     {
+        private static readonly EscapeCharsMap _defaultEscapeCharsMap = EscapeCharsMap.CreateDefault();
         private readonly ImmutableArray<IStringSanitizerRule> _rules;
 
         public StringSanitizer(ImmutableArray<IStringSanitizerRule> rules)
@@ -15,10 +17,10 @@ namespace PinkSystem.Text.Sanitizing
         }
 
         public static StringSanitizer DefaultEscaper { get; } = new([
-            new EscapeStringSanitizerRule([], [])
+            new EscapeStringSanitizerRule(_defaultEscapeCharsMap)
         ]);
         public static StringSanitizer DefaultUnescaper { get; } = new([
-            new UnescapeStringSanitizerRule()
+            new UnescapeStringSanitizerRule(_defaultEscapeCharsMap)
         ]);
         public static StringSanitizer DefaultUnicoder { get; } = new([
             new UnicodeStringSanitizerRule()
