@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
-namespace PinkSystem.IO.Evaluating
+namespace PinkSystem.Text.Evaluating.Functions
 {
-    public sealed class ChoiceEvaluator : IEvaluator
+    public sealed class ChoiceStringFunctionEvaluator : IStringFunctionEvaluator
     {
         public bool TryEvaluate(IReadOnlyList<string> args, [NotNullWhen(true)] out string? result)
         {

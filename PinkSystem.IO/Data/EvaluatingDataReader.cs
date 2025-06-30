@@ -1,21 +1,16 @@
-﻿using PinkSystem.IO.Evaluating;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text.RegularExpressions;
+﻿using PinkSystem.Text.Evaluating;
 
 namespace PinkSystem.IO.Data
 {
     public sealed class EvaluatingDataReader : IDataReader<string>
     {
-        private static readonly Regex _functionRegex = new("{(.*?)}", RegexOptions.Compiled);
         private readonly IDataReader<string> _reader;
-        private readonly IEvaluator[] _evaluators;
+        private readonly StringEvaluator _stringEvaluator;
 
-        public EvaluatingDataReader(IDataReader<string> reader, IEnumerable<IEvaluator> evaluators)
+        public EvaluatingDataReader(IDataReader<string> reader, StringEvaluator stringEvaluator)
         {
             _reader = reader;
-            _evaluators = evaluators.ToArray();
+            _stringEvaluator = stringEvaluator;
         }
 
         public int? Length => _reader.Length;
@@ -28,20 +23,7 @@ namespace PinkSystem.IO.Data
             if (data == null)
                 return null;
 
-            data = _functionRegex.Replace(data, x =>
-            {
-                var args = x.Groups[1].Value.Split(',');
-
-                foreach (var evaluator in _evaluators)
-                {
-                    if (evaluator.TryEvaluate(args, out var result))
-                        return result;
-                }
-
-                throw new Exception($"Function '{args[0]}' not supported");
-            });
-
-            return data;
+            return _stringEvaluator.Evaluate(data);
         }
 
         public void Reset()
@@ -52,17 +34,6 @@ namespace PinkSystem.IO.Data
         public void Dispose()
         {
             _reader.Dispose();
-        }
-
-        public static EvaluatingDataReader CreateDefault(IDataReader<string> reader)
-        {
-            return new EvaluatingDataReader(
-                reader,
-                [
-                    new RandomEvaluator(),
-                    new ChoiceEvaluator()
-                ]
-            );
         }
     }
 }

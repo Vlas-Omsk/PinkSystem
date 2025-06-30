@@ -5,5 +5,6 @@
 	</PropertyGroup>
 	<ItemGroup>
 	  <ProjectReference Include="..\PinkSystem\PinkSystem.csproj" />
+	  <ProjectReference Include="..\PinkSystem.Text\PinkSystem.Text.csproj" />
 	</ItemGroup>
 </Project>

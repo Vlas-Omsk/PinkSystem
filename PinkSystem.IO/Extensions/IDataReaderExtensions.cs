@@ -1,5 +1,5 @@
 ﻿using PinkSystem.IO.Data;
-using PinkSystem.IO.Evaluating;
+using PinkSystem.Text.Evaluating;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -18,14 +18,9 @@ namespace PinkSystem
             return new ConvertDataReader<TIn, TOut>(self, converter);
         }
 
-        public static IDataReader<string> Evaluate(this IDataReader<string> self)
+        public static IDataReader<string> Evaluate(this IDataReader<string> self, StringEvaluator stringEvaluator)
         {
-            return EvaluatingDataReader.CreateDefault(self);
-        }
-
-        public static IDataReader<string> Evaluate(this IDataReader<string> self, IEnumerable<IEvaluator> evaluators)
-        {
-            return new EvaluatingDataReader(self, evaluators);
+            return new EvaluatingDataReader(self, stringEvaluator);
         }
 
         public static IDataReader<T> Randomize<T>(this IDataReader<T> self)

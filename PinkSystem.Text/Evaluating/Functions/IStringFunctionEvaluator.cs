@@ -1,9 +1,9 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 
-namespace PinkSystem.IO.Evaluating
+namespace PinkSystem.Text.Evaluating.Functions
 {
-    public interface IEvaluator
+    public interface IStringFunctionEvaluator
     {
         bool TryEvaluate(IReadOnlyList<string> args, [NotNullWhen(true)] out string? result);
     }

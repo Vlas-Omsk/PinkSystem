@@ -1,4 +1,4 @@
-﻿namespace PinkSystem.IO.Data
+﻿namespace PinkSystem.IO.Data.Limiters
 {
     public sealed class UsageLimitedDataReader<T> : IDataReader<T>
     {

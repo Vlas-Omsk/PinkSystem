@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
-namespace PinkSystem.IO.Evaluating
+namespace PinkSystem.Text.Evaluating.Functions
 {
-    public sealed class RandomEvaluator : IEvaluator
+    public sealed class RandomStringFunctionEvaluator : IStringFunctionEvaluator
     {
         private static readonly string _numbers = "0123456789";
         private static readonly string _numbersWithoutZero = "123456789";
