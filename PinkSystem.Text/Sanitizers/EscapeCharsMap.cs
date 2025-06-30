@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 
@@ -8,22 +7,28 @@ namespace PinkSystem.Text.Sanitizers
     public sealed class EscapeCharsMap : IEscapeCharsMap
     {
         private readonly Dictionary<char, string> _unescapedEscapedMap = new();
-        private readonly Dictionary<char, (char? @Char, IDictionary Next)> _escapedUnescapedMap = new();
+        private readonly EscapedUnescapedNode _escapedUnescapedNode = new();
         private readonly List<char> _unicodeChars = new();
         private int _maxSequenceLength;
+
+        private sealed class EscapedUnescapedNode
+        {
+            public char? @Char { get; set; }
+            public Dictionary<char, EscapedUnescapedNode> Next { get; } = new();
+        }
 
         public void Add(char unescaped, string escaped)
         {
             _unescapedEscapedMap.Add(unescaped, escaped);
 
-            (char? @Char, IDictionary Next) node = (null, _escapedUnescapedMap);
+            var node = _escapedUnescapedNode;
 
             foreach (var escapedChar in escaped)
             {
-                var next = (Dictionary<char, (char? @Char, IDictionary Next)>)node.Next;
+                if (!node.Next.TryGetValue(escapedChar, out var nextNode))
+                    node.Next.Add(escapedChar, nextNode = new());
 
-                if (!next.TryGetValue(escapedChar, out node))
-                    next.Add(escapedChar, node = (null, new Dictionary<char, object>()));
+                node = nextNode;
             }
 
             if (node.Char.HasValue)
@@ -77,17 +82,18 @@ namespace PinkSystem.Text.Sanitizers
                 return true;
             }
 
-            (char? @Char, IDictionary Next) node = (null, _escapedUnescapedMap);
-
+            var node = _escapedUnescapedNode;
             var sequenceLength = 0;
 
             for (; sequenceLength < _maxSequenceLength; sequenceLength++)
             {
-                var next = (Dictionary<char, (char? @Char, IDictionary Next)>)node.Next;
-
-                if (!next.TryGetValue(chars[sequenceLength], out node))
+                if (chars.Length != sequenceLength + 1)
                     break;
 
+                if (!node.Next.TryGetValue(chars[sequenceLength], out var nextNode))
+                    break;
+
+                node = nextNode;
                 chars = reader.PeekSpanUnsafe(chars.Length + 1);
             }
 
