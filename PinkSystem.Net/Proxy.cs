@@ -305,7 +305,7 @@ namespace PinkSystem.Net
             else if (TryParse(str, ProtocolUserPasswordAtHostPortFormat, defaultProtocol, out proxy))
                 return proxy;
             
-            throw new Exception("Cannot parse proxy using default formats");
+            throw new FormatException("Cannot parse proxy using default formats");
         }
 
         public static Proxy Parse(string str, Regex format, ProxyProtocol? defaultProtocol = null)
@@ -313,7 +313,7 @@ namespace PinkSystem.Net
             if (TryParse(str, format, defaultProtocol, out var proxy))
                 return proxy;
 
-            throw new Exception("Cannot parse proxy using format");
+            throw new FormatException("Cannot parse proxy");
         }
 
         public static bool TryParse(string str, Regex format, ProxyProtocol? defaultProtocol, [NotNullWhen(true)] out Proxy? proxy)
