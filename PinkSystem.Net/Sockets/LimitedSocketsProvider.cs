@@ -4,6 +4,7 @@ using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Linq;
+using PinkSystem.Text;
 
 namespace PinkSystem.Net.Sockets
 {
@@ -74,7 +75,7 @@ namespace PinkSystem.Net.Sockets
                 var split = output.Trim().Split('\t', StringSplitOptions.RemoveEmptyEntries);
 
                 if (split.Length != 2)
-                    throw new Exception("Cannot parse sysctl output '" + output.EscapeString() + "'. Parts mismatch: " + string.Join(", ", split.Select(x => $"'{x}'")));
+                    throw new Exception("Cannot parse sysctl output '" + output.Excape() + "'. Parts mismatch: " + string.Join(", ", split.Select(x => $"'{x}'")));
 
                 return (int.Parse(split[0]), int.Parse(split[1]));
             }
@@ -91,12 +92,12 @@ namespace PinkSystem.Net.Sockets
                     .GetEnumerator())
                 {
                     if (!valueLines.MoveNext())
-                        throw new Exception("Cannot parse netsh output '" + output.EscapeString() + "'. Unexpected end");
+                        throw new Exception("Cannot parse netsh output '" + output.Excape() + "'. Unexpected end");
 
                     startPort = valueLines.Current;
 
                     if (!valueLines.MoveNext())
-                        throw new Exception("Cannot parse netsh output '" + output.EscapeString() + "'. Unexpected end");
+                        throw new Exception("Cannot parse netsh output '" + output.Excape() + "'. Unexpected end");
 
                     numberOfPorts = valueLines.Current;
                 }
