@@ -5,9 +5,9 @@ namespace PinkSystem.Text.Sanitizers.Rules
 {
     public sealed class UnescapeStringSanitizerRule : IStringSanitizerRule
     {
-        private readonly IEscapeCharsMap _map;
+        private readonly IEscapeSequenceEncoder _map;
 
-        public UnescapeStringSanitizerRule(IEscapeCharsMap map)
+        public UnescapeStringSanitizerRule(IEscapeSequenceEncoder map)
         {
             _map = map;
         }
@@ -21,7 +21,7 @@ namespace PinkSystem.Text.Sanitizers.Rules
 
             reader.Read();
 
-            if (_map.TryUnescape(reader, writer))
+            if (_map.TryDecode(reader, writer))
                 return true;
             
             writer.Write(chars[1]);

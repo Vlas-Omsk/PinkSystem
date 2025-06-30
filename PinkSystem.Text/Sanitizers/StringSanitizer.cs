@@ -8,7 +8,7 @@ namespace PinkSystem.Text.Sanitizing
 {
     public sealed class StringSanitizer
     {
-        private static readonly EscapeCharsMap _defaultEscapeCharsMap = EscapeCharsMap.CreateDefault();
+        private static readonly EscapeSequenceEncoder _defaultEscapeSequenceEncoder = EscapeSequenceEncoder.CreateDefault();
         private readonly ImmutableArray<IStringSanitizerRule> _rules;
 
         public StringSanitizer(ImmutableArray<IStringSanitizerRule> rules)
@@ -17,10 +17,10 @@ namespace PinkSystem.Text.Sanitizing
         }
 
         public static StringSanitizer DefaultEscaper { get; } = new([
-            new EscapeStringSanitizerRule(_defaultEscapeCharsMap)
+            new EscapeStringSanitizerRule(_defaultEscapeSequenceEncoder)
         ]);
         public static StringSanitizer DefaultUnescaper { get; } = new([
-            new UnescapeStringSanitizerRule(_defaultEscapeCharsMap)
+            new UnescapeStringSanitizerRule(_defaultEscapeSequenceEncoder)
         ]);
         public static StringSanitizer DefaultUnicoder { get; } = new([
             new UnicodeStringSanitizerRule()

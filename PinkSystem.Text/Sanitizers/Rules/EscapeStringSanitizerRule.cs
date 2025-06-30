@@ -7,7 +7,7 @@ namespace PinkSystem.Text.Sanitizers.Rules
 {
     public sealed class EscapeStringSanitizerRule : IStringSanitizerRule
     {
-        private readonly IEscapeCharsMap _map;
+        private readonly IEscapeSequenceEncoder _encoder;
 
         private sealed class PrefixedTextWriter : TextWriter
         {
@@ -52,14 +52,17 @@ namespace PinkSystem.Text.Sanitizers.Rules
             }
         }
 
-        public EscapeStringSanitizerRule(IEscapeCharsMap map)
+        public EscapeStringSanitizerRule(IEscapeSequenceEncoder encoder)
         {
-            _map = map;
+            _encoder = encoder;
         }
 
         public bool TrySanitize(BufferedTextReader reader, TextWriter writer)
         {
-            return _map.TryEscape(reader, new PrefixedTextWriter(writer));
+            return _encoder.TryEncode(
+                reader,
+                new PrefixedTextWriter(writer)
+            );
         }
     }
 }
