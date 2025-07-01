@@ -16,7 +16,7 @@ namespace PinkSystem.Text.Sanitizers.Rules
         {
             var chars = reader.PeekSpanUnsafe(2);
 
-            if (chars.Length == 0 || chars[0] != '\\')
+            if (chars.Length < 2 || chars[0] != '\\')
                 return false;
 
             reader.Read();
