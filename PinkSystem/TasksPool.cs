@@ -252,7 +252,7 @@ namespace PinkSystem
             {
                 await WaitAll().ConfigureAwait(false);
             }
-            catch (Exception ex) when (ex.CheckAll(x => x is OperationCanceledException))
+            catch (Exception ex) when (ex.Enumerate().All(x => x is OperationCanceledException))
             {
             }
 
