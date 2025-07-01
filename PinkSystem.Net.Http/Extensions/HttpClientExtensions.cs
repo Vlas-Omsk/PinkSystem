@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -17,7 +18,7 @@ namespace PinkSystem.Net.Http
             {
                 throw new TimeoutException(ex.Message, ex.InnerException?.InnerException);
             }
-            catch (Exception ex) when (ex.CheckAny(ex =>
+            catch (Exception ex) when (ex.Enumerate().Any(ex =>
                 (ex is HttpRequestException &&
                     (ex.InnerException != null ||
                         ex.Message.Contains("The server shut down the connection", StringComparison.OrdinalIgnoreCase) ||
@@ -27,7 +28,7 @@ namespace PinkSystem.Net.Http
             {
                 throw new HttpConnectionRefusedException("Http connection refused", ex);
             }
-            catch (Exception ex) when (ex.CheckAny(ex =>
+            catch (Exception ex) when (ex.Enumerate().Any(ex =>
                 ex is HttpRequestException &&
                     ex.Message.Contains("proxy", StringComparison.OrdinalIgnoreCase)
             ))
