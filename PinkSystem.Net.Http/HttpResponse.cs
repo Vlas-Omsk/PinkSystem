@@ -1,4 +1,5 @@
 ﻿using PinkSystem.IO.Content;
+using PinkSystem.Net.Http.Exceptions;
 using System;
 using System.Net;
 
@@ -32,7 +33,7 @@ namespace PinkSystem.Net.Http
         public void EnsureSuccessStatusCode()
         {
             if (!IsSuccessStatusCode)
-                throw new Exception($"Status code does not indicate success {StatusCode} ({(int)StatusCode}, {ReasonPhrase}). Response: \"{Content.ReadAsString()}\"");
+                throw new HttpErrorStatusCodeException(StatusCode, ReasonPhrase);
         }
     }
 }
