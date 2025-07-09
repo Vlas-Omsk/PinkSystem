@@ -187,7 +187,11 @@ namespace PinkSystem.Net.Http.Callbacks
 
         private void HandleRequest(HttpListenerContext context)
         {
-            var request = new HttpRequest(context.Request.HttpMethod, context.Request.Url!);
+            var requestBuilder = new HttpRequestBuilder()
+            {
+                Method = context.Request.HttpMethod,
+                Uri = context.Request.Url!
+            };
 
             if (context.Request.HasEntityBody)
             {
@@ -202,7 +206,7 @@ namespace PinkSystem.Net.Http.Callbacks
                     while ((read = context.Request.InputStream.Read(buffer, 0, buffer.Length)) > 0)
                         memoryStream.Write(buffer, 0, read);
 
-                    request.Content = new ByteArrayContentReader(
+                    requestBuilder.Content = new ByteArrayContentReader(
                         memoryStream.ToReadOnlyMemory(),
                         context.Request.ContentType ?? "application/octet-stream"
                     );
@@ -214,14 +218,14 @@ namespace PinkSystem.Net.Http.Callbacks
             }
 
             foreach (string key in context.Request.Headers.Keys)
-                request.Headers.Add(key, context.Request.Headers[key] ?? "");
+                requestBuilder.Headers.Add(key, context.Request.Headers[key] ?? "");
 
             foreach (var (path, handler) in _handlers)
             {
-                if (!request.Uri.AbsolutePath.StartsWith(path))
+                if (!requestBuilder.Uri.AbsolutePath.StartsWith(path))
                     continue;
 
-                handler.ProcessRequest(request);
+                handler.ProcessRequest(requestBuilder.Build());
                 break;
             }
 

@@ -5,19 +5,22 @@ namespace PinkSystem.Net.Http
 {
     public sealed class HttpRequest
     {
-        public HttpRequest(string method, Uri uri)
-        {
-            Method = method;
-            Uri = uri;
-        }
+        public required string Method { get; init; }
+        public required Uri Uri { get; init; }
+        public IReadOnlyHttpHeaders Headers { get; init; } = HttpHeaders.Empty;
+        public IContentReader? Content { get; init; }
+        public Version? Version { get; init; }
+    }
 
-        public string Method { get; }
-        public Uri Uri { get; }
-        public HttpHeaders Headers { get; } = new();
+    public sealed class HttpRequestBuilder
+    {
+        public required string Method { get; init; }
+        public required Uri Uri { get; init; }
+        public HttpHeaders Headers { get; set; } = new();
         public IContentReader? Content { get; set; }
-        public Version? HttpVersion { get; set; }
+        public Version? Version { get; set; }
 
-        public HttpRequest SetContentWithHeader(IContentReader contentReader)
+        public HttpRequestBuilder SetContentWithHeader(IContentReader contentReader)
         {
             Headers.Replace("Content-Type", contentReader.MimeType);
 
@@ -27,6 +30,18 @@ namespace PinkSystem.Net.Http
             Content = contentReader;
 
             return this;
+        }
+
+        public HttpRequest Build()
+        {
+            return new HttpRequest()
+            {
+                Method = Method,
+                Uri = Uri,
+                Headers = Headers,
+                Content = Content,
+                Version = Version
+            };
         }
     }
 }

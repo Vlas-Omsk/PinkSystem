@@ -45,22 +45,36 @@ namespace PinkSystem.Net.Http.Handlers
 
         public override async Task<HttpResponse> SendAsync(HttpRequest request, CancellationToken cancellationToken)
         {
-            request.Headers.Replace("Accept-Encoding", "gzip, deflate, br");
+            var newHeaders = new HttpHeaders();
+
+            request.Headers.CopyTo(newHeaders);
+
+            newHeaders.Replace("Accept-Encoding", "gzip, deflate, br");
+
+            request = new HttpRequest()
+            {
+                Uri = request.Uri,
+                Method = request.Method,
+                Content = request.Content,
+                Version = request.Version,
+                Headers = newHeaders
+            };
 
             var response = await Handler.SendAsync(request, cancellationToken).ConfigureAwait(false);
 
-            response = new HttpResponse(
-                response.Uri,
-                response.StatusCode,
-                response.ReasonPhrase,
-                response.Headers,
-                new DecompressContentReader(
+            response = new HttpResponse()
+            {
+                Uri = response.Uri,
+                StatusCode = response.StatusCode,
+                ReasonPhrase = response.ReasonPhrase,
+                Headers = response.Headers,
+                Content = new DecompressContentReader(
                     response.Content,
                     response.Headers.TryGetValues("Content-Encoding", out var values) ?
                         values.Single() :
                         string.Empty
                 )
-            );
+            };
 
             return response;
         }

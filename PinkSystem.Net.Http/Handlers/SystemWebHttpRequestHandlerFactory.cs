@@ -83,16 +83,17 @@ namespace PinkSystem.Net.Http.Handlers
                 foreach (var key in webResponse.Headers.AllKeys)
                     headers.Add(key, webResponse.Headers.Get(key) ?? throw new Exception($"Response header value of '{key}' cannot be null"));
 
-                return new HttpResponse(
-                    webResponse.ResponseUri,
-                    webResponse.StatusCode,
-                    null,
-                    headers,
-                    new ByteArrayContentReader(
+                return new HttpResponse()
+                {
+                    Uri = webResponse.ResponseUri,
+                    StatusCode = webResponse.StatusCode,
+                    ReasonPhrase = null,
+                    Headers = headers,
+                    Content = new ByteArrayContentReader(
                         bytes,
                         webResponse.ContentType
                     )
-                );
+                };
             }
 
             public void Dispose()

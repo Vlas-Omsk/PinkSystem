@@ -41,7 +41,7 @@ namespace PinkSystem.Net.Http
             {
                 Method = new HttpMethod(request.Method),
                 RequestUri = request.Uri,
-                Version = request.HttpVersion ?? HttpVersion.Version11,
+                Version = request.Version ?? HttpVersion.Version11,
                 VersionPolicy = HttpVersionPolicy.RequestVersionOrHigher
             };
 
@@ -98,16 +98,17 @@ namespace PinkSystem.Net.Http
                 contentBytes = memoryStream2.ToReadOnlyMemory();
             }
 
-            return new HttpResponse(
-                responseMessage.RequestMessage?.RequestUri!,
-                responseMessage.StatusCode,
-                responseMessage.ReasonPhrase,
-                headers,
-                new ByteArrayContentReader(
+            return new HttpResponse()
+            {
+                Uri = responseMessage.RequestMessage?.RequestUri!,
+                StatusCode = responseMessage.StatusCode,
+                ReasonPhrase = responseMessage.ReasonPhrase,
+                Headers = headers,
+                Content = new ByteArrayContentReader(
                     contentBytes,
                     responseMessage.Content.Headers.ContentType?.MediaType ?? "application/octet-stream"
                 )
-            );
+            };
         }
     }
 }

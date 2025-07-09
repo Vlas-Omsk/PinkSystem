@@ -18,7 +18,22 @@ namespace PinkSystem.Net.Http.Handlers
             var cookieHeaderValue = _cookieContainer.GetCookieHeader(request.Uri);
 
             if (!string.IsNullOrEmpty(cookieHeaderValue))
-                request.Headers.Replace("Cookie", cookieHeaderValue);
+            {
+                var newHeaders = new HttpHeaders();
+
+                request.Headers.CopyTo(newHeaders);
+
+                newHeaders.Replace("Cookie", cookieHeaderValue);
+
+                request = new()
+                {
+                    Method = request.Method,
+                    Uri = request.Uri,
+                    Headers = newHeaders,
+                    Content = request.Content,
+                    Version = request.Version
+                };
+            }
 
             var response = await Handler.SendAsync(request, cancellationToken).ConfigureAwait(false);
 

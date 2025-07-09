@@ -170,16 +170,17 @@ namespace PinkSystem.Net.Http.Handlers
                     if (!statusCode.HasValue)
                         throw new Exception(errorsLog.ToString());
 
-                    return new HttpResponse(
-                        request.Uri,
-                        statusCode.Value,
-                        reasonPhrase,
-                        headers,
-                        new ByteArrayContentReader(
+                    return new HttpResponse()
+                    {
+                        Uri = request.Uri,
+                        StatusCode = statusCode.Value,
+                        ReasonPhrase = reasonPhrase,
+                        Headers = headers,
+                        Content = new ByteArrayContentReader(
                             contentBytes!.Value,
                             headers.TryGetValues("Content-Type", out var values) ? values.Single() : "application/octet-stream"
                         )
-                    );
+                    };
                 }
                 finally
                 {

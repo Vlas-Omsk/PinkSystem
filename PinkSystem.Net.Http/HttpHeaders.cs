@@ -6,7 +6,14 @@ using System.Linq;
 
 namespace PinkSystem.Net.Http
 {
-    public sealed class HttpHeaders : IEnumerable<KeyValuePair<string, IEnumerable<string>>>
+    public interface IReadOnlyHttpHeaders : IEnumerable<KeyValuePair<string, IEnumerable<string>>>
+    {
+        IEnumerable<string> GetValues(string key);
+        bool TryGetValues(string key, [NotNullWhen(true)] out IEnumerable<string>? values);
+        void CopyTo(HttpHeaders headers);
+    }
+
+    public sealed class HttpHeaders : IReadOnlyHttpHeaders
     {
         private readonly Dictionary<string, List<string>> _dictionary;
 
@@ -19,6 +26,8 @@ namespace PinkSystem.Net.Http
         {
             _dictionary = new(StringComparer.OrdinalIgnoreCase);
         }
+
+        public static IReadOnlyHttpHeaders Empty { get; } = new HttpHeaders();
 
         public void Add(string key, string value)
         {

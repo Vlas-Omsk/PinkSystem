@@ -30,15 +30,16 @@ namespace PinkSystem.Net.Http.Handlers
 
                 var location = locationValues.Single();
 
-                var nextRequest = new HttpRequest(
-                    request.Method,
-                    new Uri(response.Uri, location)
-                )
-                {
-                    Content = request.Content
-                };
+                var headers = new HttpHeaders();
 
-                request.Headers.CopyTo(nextRequest.Headers);
+                var nextRequest = new HttpRequest()
+                {
+                    Uri = new Uri(response.Uri, location),
+                    Method = request.Method,
+                    Content = request.Content,
+                    Headers = request.Headers,
+                    Version = request.Version,
+                };
 
                 request = nextRequest;
             }
