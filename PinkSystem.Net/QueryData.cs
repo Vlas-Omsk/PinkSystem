@@ -6,7 +6,14 @@ using System.Web;
 
 namespace PinkSystem.Net
 {
-    public sealed class QueryData : IEnumerable<KeyValuePair<string, string>>, IEnumerable<KeyValuePair<string, IEnumerable<string>>>
+    public interface IReadOnlyQueryData : IEnumerable<KeyValuePair<string, string>>, IEnumerable<KeyValuePair<string, IEnumerable<string>>>
+    {
+        string this[string key] { get; }
+
+        string ToString();
+    }
+
+    public sealed class QueryData : IReadOnlyQueryData
     {
         private readonly Dictionary<string, List<string>> _dictionary;
         private string? _stringPresentation;
@@ -21,7 +28,7 @@ namespace PinkSystem.Net
             _dictionary = new();
         }
 
-        public static QueryData Empty { get; } = new();
+        public static IReadOnlyQueryData Empty { get; } = new QueryData();
 
         public string this[string key]
         {
