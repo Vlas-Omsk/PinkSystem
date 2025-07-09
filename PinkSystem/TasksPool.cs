@@ -3,7 +3,9 @@ using PinkSystem.Runtime;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -79,22 +81,24 @@ namespace PinkSystem
 
         public async Task<T?> WaitAny()
         {
-            var task = await _tasksPool.WaitAny().ConfigureAwait(false);
+            var result = await _tasksPool.WaitAny().ConfigureAwait(false);
 
-            if (task == Task.CompletedTask)
+            if (result == null)
                 return default;
 
-            if (_tasksPool.IsCancelled && task.IsCanceled)
-                return default;
-
-            return (T?)new ObjectAccessor(task, task.GetType()).GetProperty("Result");
+            return (T?)result;
         }
 
         public async Task<IEnumerable<T?>> WaitAll()
         {
             return (await _tasksPool.WaitAll().ConfigureAwait(false))
-                .Where(x => x != Task.CompletedTask)
-                .Select(x => (T?)new ObjectAccessor(x, x.GetType()).GetProperty("Result"));
+                .Select(x =>
+                {
+                    if (x == null)
+                        return default;
+
+                    return (T?)x;
+                });
         }
 
         public async Task CancelAll()
@@ -115,25 +119,30 @@ namespace PinkSystem
 
     internal sealed class TasksPoolCore : IDisposable, IAsyncDisposable
     {
-        private readonly Task[] _tasks;
-        private readonly Queue<int> _emptyIndexes;
-        private readonly ConcurrentQueue<(int, Task)> _completedTasks;
-        private readonly SemaphoreSlim _taskCompletedEvent;
+        private readonly Slot[] _slots;
+        private readonly Queue<int> _freeIndexes = new();
+        private readonly Queue<int> _completedIndexes = new();
+        private readonly object _lock = new();
         private CancellationTokenSource _cancellationTokenSource;
         private readonly CancellationToken _cancellationToken;
+        private int _disposed;
+
+        private sealed class Slot
+        {
+            public Task Task { get; set; } = null!;
+            public object? Result { get; set; }
+            public Exception? Exception { get; set; }
+        }
 
         public TasksPoolCore(int count, CancellationToken cancellationToken)
         {
             Count = count;
 
-            _completedTasks = new(
-                Enumerable.Range(0, count).Select(x => (x, Task.CompletedTask))
-            );
-            _tasks = _completedTasks.Select(x => x.Item2).ToArray();
-            _emptyIndexes = new(
-                _completedTasks.Select(x => x.Item1)
-            );
-            _taskCompletedEvent = new(count, count);
+            _slots = Enumerable.Range(0, count).Select(_ => new Slot()
+            {
+                Task = Task.CompletedTask
+            }).ToArray();
+            _freeIndexes = new(Enumerable.Range(0, count));
 
             _cancellationToken = cancellationToken;
             _cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(_cancellationToken);
@@ -145,116 +154,202 @@ namespace PinkSystem
         }
 
         public int Count { get; }
-        public bool IsCancelled => _cancellationTokenSource.IsCancellationRequested;
 
         public void StartNew(Func<Task> func)
         {
+            ArgumentNullException.ThrowIfNull(func);
+
             StartNew(_ => func());
         }
 
         public void StartNew(Func<CancellationToken, Task> func)
         {
-            if (func == null)
-                throw new ArgumentNullException(nameof(func));
+            ArgumentNullException.ThrowIfNull(func);
 
-            if (!_emptyIndexes.TryDequeue(out var index))
-                throw new Exception("All tasks are in progress");
+            ThrowIfDisposedOrCancelled();
 
-            var task = StartNewTask(func);
-
-            _tasks[index] = task;
-
-            task.ContinueWith((_) =>
+            lock (_lock)
             {
-                _completedTasks.Enqueue((index, task));
+                if (!_freeIndexes.TryDequeue(out var freeIndex))
+                    throw new InvalidOperationException("All slots busy");
 
-                _taskCompletedEvent.Release();
-            }, TaskContinuationOptions.ExecuteSynchronously);
+                var slot = new Slot();
+
+                slot.Task = StartTask(func, slot, freeIndex, _cancellationTokenSource.Token);
+
+                _slots[freeIndex] = slot;
+            }
         }
 
-        private async Task<object?> StartNewTask(Func<CancellationToken, Task> func)
+        private async Task StartTask(Func<CancellationToken, Task> func, Slot item, int index, CancellationToken cancellationToken)
         {
-            var task = func(_cancellationTokenSource.Token);
+            Task? task = null;
 
             try
             {
+                task = func(cancellationToken);
+
                 await task;
+
+                var taskType = task.GetType();
+
+                if (taskType.IsGenericType)
+                    item.Result = new ObjectAccessor(task, taskType).GetProperty("Result");
             }
             catch (Exception ex)
             {
-                if (_cancellationTokenSource.IsCancellationRequested && task.IsCanceled)
-                    throw new TaskCanceledException("Task cancelled", ex, _cancellationTokenSource.Token);
-                    
-                throw new TaskFaultedException(ex);
-            }
-
-            var taskType = task.GetType();
-
-            if (taskType.IsGenericType)
-                return new ObjectAccessor(task, taskType).GetProperty("Result");
-
-            return null;
-        }
-
-        public async Task<Task> WaitAny()
-        {
-            await _taskCompletedEvent.WaitAsync();
-
-            if (!_completedTasks.TryDequeue(out var tuple))
-                throw new InvalidOperationException("Completed tasks collection empty");
-
-            _emptyIndexes.Enqueue(tuple.Item1);
-
-            if (tuple.Item2.IsFaulted)
-                await WaitAll().ConfigureAwait(false);
-
-            return tuple.Item2;
-        }
-
-        public async Task<IEnumerable<Task>> WaitAll()
-        {
-            try
-            {
-                await Task.WhenAll(_tasks).ConfigureAwait(false);
-
-                return _tasks;
-            }
-            catch
-            {
-                var exceptions = _tasks
-                    .Where(t => t.Exception != null)
-                    .Select(t => t.Exception!)
-                    .ToArray();
-
-                if (exceptions.Length == 1)
-                    throw new Exception("Exception ocurrend when executing task on pool", exceptions[0]);
+                if (cancellationToken.IsCancellationRequested && task?.IsCanceled == true)
+                    item.Exception = new TaskCanceledException("Task cancelled", ex, cancellationToken);
                 else
-                    throw new AggregateException("Exception ocurrend when executing task on pool", exceptions);
+                    item.Exception = new TaskFaultedException(ex);
             }
-            finally
+
+            lock (_lock)
             {
-                _completedTasks.Clear();
+                _completedIndexes.Enqueue(index);
+            }
+        }
+
+        public async Task<object?> WaitAny()
+        {
+            ThrowIfDisposedOrCancelled();
+
+            var slot = await WaitAnySlot();
+
+            if (slot == null)
+                return null;
+
+            if (slot.Exception != null)
+                await WaitAllInternal([slot]);
+
+            return slot.Result;
+        }
+
+        private async Task<Slot?> WaitAnySlot()
+        {
+            while (true)
+            {
+                int completedIndex;
+                ImmutableArray<Task>? tasks = null;
+                Slot? slot = null;
+
+                lock (_lock)
+                {
+                    if (_freeIndexes.Count > 0)
+                        return null;
+
+                    if (_completedIndexes.TryDequeue(out completedIndex))
+                    {
+                        slot = _slots[completedIndex];
+
+                        _freeIndexes.Enqueue(completedIndex);
+                    }
+                    else
+                    {
+                        completedIndex = -1;
+
+                        tasks = _slots.Select(x => x!.Task).ToImmutableArray();
+                    }
+                }
+
+                if (completedIndex == -1)
+                {
+                    await Task.WhenAny(tasks!.Value);
+                    continue;
+                }
+
+                return slot!;
+            }
+        }
+
+        public Task<IEnumerable<object?>> WaitAll()
+        {
+            ThrowIfDisposedOrCancelled();
+
+            return WaitAllInternal([]);
+        }
+
+        private async Task<IEnumerable<object?>> WaitAllInternal(IEnumerable<Slot> externallyCompletedSlots)
+        {
+            var exceptions = new List<Exception>();
+            var results = new List<object?>();
+
+            foreach (var item in externallyCompletedSlots)
+            {
+                if (item.Exception != null)
+                    exceptions.Add(item.Exception);
+
+                results.Add(item.Result);
+            }
+
+            await foreach (var slot in WaitAllSlots())
+            {
+                if (slot.Exception != null)
+                    exceptions.Add(slot.Exception);
+
+                results.Add(slot.Result);
+            }
+
+            var nonCancelationExceptions = exceptions.Where(x => x is not TaskCanceledException).ToImmutableArray();
+
+            if (nonCancelationExceptions.Length > 1)
+                throw new AggregateException("Exception ocurrend when executing tasks on pool", nonCancelationExceptions);
+            else if (nonCancelationExceptions.Length == 1)
+                throw new Exception("Exception ocurrend when executing task on pool", nonCancelationExceptions[0]);
+
+            return results;
+        }
+
+        private async IAsyncEnumerable<Slot> WaitAllSlots()
+        {
+            while (true)
+            {
+                bool hasBusyItems = false;
+                ImmutableArray<Task>? tasks = null;
+                Slot? slot = null;
+
+                lock (_lock)
+                {
+                    while (_completedIndexes.TryDequeue(out var completedIndex))
+                    {
+                        slot = _slots[completedIndex];
+
+                        _freeIndexes.Enqueue(completedIndex);
+
+                        yield return slot;
+                    }
+
+                    hasBusyItems = _freeIndexes.Count != Count;
+
+                    tasks = hasBusyItems ?
+                        _slots.Select(x => x!.Task).ToImmutableArray() :
+                        null;
+                }
+
+                if (hasBusyItems)
+                {
+                    await Task.WhenAll(tasks!.Value);
+                    continue;
+                }
+
+                break;
             }
         }
 
         public async Task CancelAll()
         {
-            await CancelAllInternal().ConfigureAwait(false);
+            ThrowIfDisposedOrCancelled();
+
+            await CancelAllOnce().ConfigureAwait(false);
 
             _cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(_cancellationToken);
         }
 
-        private async Task CancelAllInternal()
+        private async Task CancelAllOnce()
         {
             _cancellationTokenSource.Cancel();
 
-            try
-            {
-                await WaitAll().ConfigureAwait(false);
-            }
-            catch (Exception ex) when (ex.Enumerate().All(x => x is OperationCanceledException))
-            {
-            }
+            await WaitAllInternal([]).ConfigureAwait(false);
 
             _cancellationTokenSource.Dispose();
         }
@@ -263,14 +358,28 @@ namespace PinkSystem
         {
             GC.SuppressFinalize(this);
 
-            CancelAllInternal().ConfigureAwait(false).GetAwaiter().GetResult();
+            if (Interlocked.Exchange(ref _disposed, 1) == 1)
+                return;
+
+            CancelAllOnce().ConfigureAwait(false).GetAwaiter().GetResult();
         }
 
         public async ValueTask DisposeAsync()
         {
             GC.SuppressFinalize(this);
 
-            await CancelAllInternal().ConfigureAwait(false);
+            if (Interlocked.Exchange(ref _disposed, 1) == 1)
+                return;
+
+            await CancelAllOnce().ConfigureAwait(false);
+        }
+
+        private void ThrowIfDisposedOrCancelled()
+        {
+            ObjectDisposedException.ThrowIf(_disposed == 1, this);
+
+            if (_cancellationTokenSource.IsCancellationRequested)
+                throw new OperationCanceledException("Cancellation was requested", _cancellationToken);
         }
     }
 }
