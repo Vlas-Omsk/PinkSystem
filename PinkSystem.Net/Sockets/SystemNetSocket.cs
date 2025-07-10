@@ -4,17 +4,18 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.IO;
 using System;
+using PinkSystem.Net.Interop;
 
 namespace PinkSystem.Net.Sockets
 {
-    public class DefaultSocket : ISocket
+    public class SystemNetSocket : ISocket
     {
         private sealed class StreamWrapper : Stream
         {
             private readonly Stream _stream;
-            private readonly DefaultSocket _socket;
+            private readonly SystemNetSocket _socket;
 
-            public StreamWrapper(Stream stream, DefaultSocket socket)
+            public StreamWrapper(Stream stream, SystemNetSocket socket)
             {
                 _stream = stream;
                 _socket = socket;
@@ -166,7 +167,7 @@ namespace PinkSystem.Net.Sockets
             }
         }
 
-        public DefaultSocket(Socket socket)
+        public SystemNetSocket(Socket socket)
         {
             Socket = socket;
         }
@@ -188,6 +189,18 @@ namespace PinkSystem.Net.Sockets
         public virtual void Bind(EndPoint localEndPoint)
         {
             Socket.Bind(localEndPoint);
+        }
+
+        public void BindToDevice(string interfaceName)
+        {
+            if (OperatingSystem.IsLinux())
+            {
+                Linux.BindSocketToDevice(Socket, interfaceName);
+            }
+            else
+            {
+                throw new PlatformNotSupportedException("Device binding not supported on Windows");
+            }
         }
 
         public virtual ValueTask ConnectAsync(EndPoint endPoint, CancellationToken cancellationToken)

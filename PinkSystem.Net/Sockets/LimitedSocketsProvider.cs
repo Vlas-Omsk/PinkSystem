@@ -12,7 +12,7 @@ namespace PinkSystem.Net.Sockets
     {
         private readonly SemaphoreSlim _socketsLock;
 
-        private sealed class LimitedSocket : DefaultSocket
+        private sealed class LimitedSocket : SystemNetSocket
         {
             private readonly SemaphoreSlim _socketsLock;
             private int _disposed;

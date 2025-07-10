@@ -248,6 +248,11 @@ namespace PinkSystem.Net.Sockets
                 _socket.Bind(localEndPoint);
             }
 
+            public void BindToDevice(string interfaceName)
+            {
+                _socket.BindToDevice(interfaceName);
+            }
+
             public ValueTask ConnectAsync(EndPoint endPoint, CancellationToken cancellationToken)
             {
                 return _socket.ConnectAsync(endPoint, cancellationToken);
