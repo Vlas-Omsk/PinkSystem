@@ -1,7 +1,7 @@
 ﻿using System.Net.Sockets;
-using System;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.ComponentModel;
 
 namespace PinkSystem.Net.Interop
 {
@@ -27,11 +27,7 @@ namespace PinkSystem.Net.Interop
             );
 
             if (result != 0)
-            {
-                var error = Marshal.GetLastWin32Error();
-
-                throw new InvalidOperationException($"setsockopt failed with errno {error}");
-            }
+                throw new Win32Exception($"setsockopt(SO_BINDTODEVICE) failed with result {result}");
         }
     }
 }
