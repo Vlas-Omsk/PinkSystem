@@ -53,242 +53,45 @@ namespace PinkSystem.Net.Sockets
         private readonly ISocketsProvider _provider;
         private readonly SocketStatisticsStorage _storage;
 
-        private sealed class StatisticsStream : Stream
+        private sealed class StatisticsSocket : ExtensionSocket
         {
-            private readonly Stream _stream;
             private readonly SocketStatisticsStorage _storage;
 
-            public StatisticsStream(Stream stream, SocketStatisticsStorage storage)
+            public StatisticsSocket(ISocket socket, SocketStatisticsStorage storage) : base(socket)
             {
-                _stream = stream;
                 _storage = storage;
             }
 
-            public override bool CanRead => _stream.CanRead;
-            public override bool CanSeek => _stream.CanSeek;
-            public override bool CanTimeout => _stream.CanTimeout;
-            public override bool CanWrite => _stream.CanWrite;
-            public override long Length => _stream.Length;
-
-            public override int ReadTimeout
+            public override async ValueTask<int> ReceiveAsync(Memory<byte> buffer, SocketFlags socketFlags, CancellationToken cancellationToken)
             {
-                get => _stream.ReadTimeout;
-                set => _stream.ReadTimeout = value;
-            }
-
-            public override int WriteTimeout
-            {
-                get => _stream.WriteTimeout;
-                set => _stream.WriteTimeout = value;
-            }
-
-            public override long Position
-            {
-                get => _stream.Position;
-                set => _stream.Position = value;
-            }
-
-            public override int Read(byte[] buffer, int offset, int count)
-            {
-                var amount = _stream.Read(buffer, offset, count);
+                var amount = await base.ReceiveAsync(buffer, socketFlags, cancellationToken);
 
                 _storage.AddReadBytes(amount);
 
                 return amount;
             }
 
-            public override int Read(Span<byte> buffer)
+            public override async ValueTask<SocketReceiveFromResult> ReceiveFromAsync(Memory<byte> buffer, SocketFlags socketFlags, EndPoint remoteEndPoint, CancellationToken cancellationToken)
             {
-                var amount = _stream.Read(buffer);
+                var result = await base.ReceiveFromAsync(buffer, socketFlags, remoteEndPoint, cancellationToken);
 
-                _storage.AddReadBytes(amount);
-
-                return amount;
-            }
-
-            public override async Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
-            {
-                var amount = await _stream.ReadAsync(buffer, offset, count, cancellationToken);
-
-                _storage.AddReadBytes(amount);
-
-                return amount;
-            }
-
-            public override async ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken cancellationToken = default)
-            {
-                var amount = await _stream.ReadAsync(buffer, cancellationToken);
-
-                _storage.AddReadBytes(amount);
-
-                return amount;
-            }
-
-            public override int ReadByte()
-            {
-                var result = _stream.ReadByte();
-
-                if (result >= 0)
-                    _storage.AddReadByte();
+                _storage.AddReadBytes(result.ReceivedBytes);
 
                 return result;
             }
 
-            public override void Write(byte[] buffer, int offset, int count)
-            {
-                _storage.AddWriteBytes(count);
-
-                _stream.Write(buffer, offset, count);
-            }
-
-            public override void Write(ReadOnlySpan<byte> buffer)
+            public override ValueTask<int> SendAsync(ReadOnlyMemory<byte> buffer, SocketFlags socketFlags, CancellationToken cancellationToken)
             {
                 _storage.AddWriteBytes(buffer.Length);
 
-                _stream.Write(buffer);
+                return base.SendAsync(buffer, socketFlags, cancellationToken);
             }
 
-            public override Task WriteAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
-            {
-                _storage.AddWriteBytes(count);
-
-                return _stream.WriteAsync(buffer, offset, count, cancellationToken);
-            }
-
-            public override ValueTask WriteAsync(ReadOnlyMemory<byte> buffer, CancellationToken cancellationToken = default)
+            public override ValueTask<int> SendToAsync(ReadOnlyMemory<byte> buffer, SocketFlags socketFlags, EndPoint remoteEndPoint, CancellationToken cancellationToken)
             {
                 _storage.AddWriteBytes(buffer.Length);
 
-                return _stream.WriteAsync(buffer, cancellationToken);
-            }
-
-            public override void WriteByte(byte value)
-            {
-                _storage.AddWriteByte();
-
-                _stream.WriteByte(value);
-            }
-
-            public override void Close()
-            {
-                _stream.Close();
-
-                base.Close();
-            }
-
-            public override void CopyTo(Stream destination, int bufferSize)
-            {
-                _stream.CopyTo(destination, bufferSize);
-            }
-
-            public override Task CopyToAsync(Stream destination, int bufferSize, CancellationToken cancellationToken)
-            {
-                return _stream.CopyToAsync(destination, bufferSize, cancellationToken);
-            }
-
-            protected override void Dispose(bool disposing)
-            {
-                if (disposing)
-                    _stream.Dispose();
-
-                base.Dispose(disposing);
-            }
-
-            public override ValueTask DisposeAsync()
-            {
-                return _stream.DisposeAsync();
-            }
-
-            public override void Flush()
-            {
-                _stream.Flush();
-            }
-
-            public override Task FlushAsync(CancellationToken cancellationToken)
-            {
-                return _stream.FlushAsync(cancellationToken);
-            }
-
-            public override long Seek(long offset, SeekOrigin origin)
-            {
-                return _stream.Seek(offset, origin);
-            }
-
-            public override void SetLength(long value)
-            {
-                _stream.SetLength(value);
-            }
-        }
-
-        private sealed class StatisticsSocket : ISocket
-        {
-            private readonly ISocket _socket;
-            private readonly SocketStatisticsStorage _storage;
-
-            public StatisticsSocket(ISocket socket, SocketStatisticsStorage storage)
-            {
-                _socket = socket;
-                _storage = storage;
-            }
-
-            public bool NoDelay
-            {
-                get => _socket.NoDelay;
-                set => _socket.NoDelay = value;
-            }
-
-            public LingerOption LingerState
-            {
-                get => _socket.LingerState;
-                set => _socket.LingerState = value;
-            }
-
-            public void Bind(EndPoint localEndPoint)
-            {
-                _socket.Bind(localEndPoint);
-            }
-
-            public void BindToDevice(string interfaceName)
-            {
-                _socket.BindToDevice(interfaceName);
-            }
-
-            public ValueTask ConnectAsync(EndPoint endPoint, CancellationToken cancellationToken)
-            {
-                return _socket.ConnectAsync(endPoint, cancellationToken);
-            }
-
-            public Stream GetStream()
-            {
-                return new StatisticsStream(
-                    _socket.GetStream(),
-                    _storage
-                );
-            }
-
-            public void SetSocketOption(SocketOptionLevel level, SocketOptionName name, object value)
-            {
-                _socket.SetSocketOption(level, name, value);
-            }
-
-            public void SetSocketOption(SocketOptionLevel level, SocketOptionName name, int value)
-            {
-                _socket.SetSocketOption(level, name, value);
-            }
-
-            public void SetSocketOption(SocketOptionLevel level, SocketOptionName name, byte[] value)
-            {
-                _socket.SetSocketOption(level, name, value);
-            }
-
-            public void SetSocketOption(SocketOptionLevel level, SocketOptionName name, bool value)
-            {
-                _socket.SetSocketOption(level, name, value);
-            }
-
-            public void Dispose()
-            {
-                _socket.Dispose();
+                return base.SendToAsync(buffer, socketFlags, remoteEndPoint, cancellationToken);
             }
         }
 
