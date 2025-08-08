@@ -1,5 +1,5 @@
-﻿using MimeTypes;
-using System.IO;
+﻿using System.IO;
+using MimeTypes;
 
 namespace PinkSystem.IO.Content
 {

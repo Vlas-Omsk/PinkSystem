@@ -1,9 +1,9 @@
-﻿using System.Net.NetworkInformation;
-using System;
+﻿using System;
+using System.Linq;
+using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Linq;
 using PinkSystem.Text;
 
 namespace PinkSystem.Net.Sockets

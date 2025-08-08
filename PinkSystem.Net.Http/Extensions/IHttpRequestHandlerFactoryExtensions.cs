@@ -1,8 +1,8 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using System;
+using Microsoft.Extensions.Logging;
 using PinkSystem.Net.Http.Handlers;
 using PinkSystem.Net.Http.Handlers.Pooling;
 using PinkSystem.Net.Sockets;
-using System;
 
 namespace PinkSystem.Net.Http
 {

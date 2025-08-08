@@ -1,9 +1,9 @@
-﻿using PinkSystem.IO.Content;
-using System.IO;
+﻿using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using PinkSystem.IO.Content;
 
 namespace PinkSystem.Net.Http.Handlers
 {

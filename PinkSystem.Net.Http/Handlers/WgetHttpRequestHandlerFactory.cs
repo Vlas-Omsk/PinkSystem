@@ -1,6 +1,4 @@
-﻿using PinkSystem.IO.Content;
-using Microsoft.Extensions.Logging;
-using System;
+﻿using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -8,6 +6,8 @@ using System.Net;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
+using PinkSystem.IO.Content;
 
 namespace PinkSystem.Net.Http.Handlers
 {

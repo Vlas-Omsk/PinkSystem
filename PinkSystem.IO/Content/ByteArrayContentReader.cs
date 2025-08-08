@@ -1,6 +1,6 @@
-﻿using CommunityToolkit.HighPerformance;
-using System;
+﻿using System;
 using System.IO;
+using CommunityToolkit.HighPerformance;
 
 namespace PinkSystem.IO.Content
 {

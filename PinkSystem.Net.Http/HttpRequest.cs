@@ -1,5 +1,5 @@
-﻿using PinkSystem.IO.Content;
-using System;
+﻿using System;
+using PinkSystem.IO.Content;
 
 namespace PinkSystem.Net.Http
 {

@@ -1,6 +1,6 @@
-﻿using PinkSystem.IO.Content;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Net;
+using PinkSystem.IO.Content;
 
 namespace PinkSystem.Net.Http.Cookies
 {

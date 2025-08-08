@@ -1,8 +1,8 @@
-﻿using PinkSystem.IO.Data;
-using PinkSystem.Text.Evaluating;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using PinkSystem.IO.Data;
+using PinkSystem.Text.Evaluating;
 
 namespace PinkSystem
 {

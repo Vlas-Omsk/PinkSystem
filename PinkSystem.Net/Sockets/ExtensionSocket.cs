@@ -16,7 +16,7 @@ namespace PinkSystem.Net.Sockets
         }
 
         public virtual int Available => _socket.Available;
-        
+
         public virtual bool Blocking
         {
             get => _socket.Blocking;
@@ -56,7 +56,7 @@ namespace PinkSystem.Net.Sockets
         public virtual bool Connected => _socket.Connected;
         public virtual bool ExclusiveAddressUse => _socket.ExclusiveAddressUse;
         public virtual bool IsBound => _socket.IsBound;
-        
+
         public virtual bool MulticastLoopback
         {
             get => _socket.MulticastLoopback;

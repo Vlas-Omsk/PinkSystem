@@ -23,7 +23,7 @@ namespace PinkSystem.Text.Sanitizers.Rules
 
             if (_map.TryDecode(reader, writer))
                 return true;
-            
+
             writer.Write(chars[1]);
             reader.Read();
             return true;

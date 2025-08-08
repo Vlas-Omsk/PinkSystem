@@ -1,6 +1,6 @@
-﻿using Newtonsoft.Json;
-using System;
+﻿using System;
 using System.IO;
+using Newtonsoft.Json;
 
 namespace PinkSystem.IO.Content
 {
@@ -9,7 +9,7 @@ namespace PinkSystem.IO.Content
         public JsonContentReader(object obj, JsonSerializer? serializer = null) :
             base(GetBytesFromData(obj, serializer), "application/json")
         {
-            
+
         }
 
         private static ReadOnlyMemory<byte> GetBytesFromData(object obj, JsonSerializer? serializer)

@@ -32,7 +32,7 @@ namespace PinkSystem.Text.Sanitizers.Rules
                 if (!_prefixWrited)
                 {
                     _writer.Write('\\');
-                    
+
                     _prefixWrited = true;
                 }
 

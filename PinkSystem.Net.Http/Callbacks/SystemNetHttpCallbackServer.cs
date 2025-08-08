@@ -1,6 +1,4 @@
-﻿using Microsoft.Extensions.Logging;
-using PinkSystem.IO.Content;
-using System;
+﻿using System;
 using System.Buffers;
 using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
@@ -9,6 +7,8 @@ using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
+using PinkSystem.IO.Content;
 
 namespace PinkSystem.Net.Http.Callbacks
 {
@@ -142,7 +142,7 @@ namespace PinkSystem.Net.Http.Callbacks
         {
             var path = '/' + Guid.NewGuid().ToString() + '/';
             var uri = new Uri(_uri, path);
-            var handler =  new SystemNetHttpCallbackHandler(uri);
+            var handler = new SystemNetHttpCallbackHandler(uri);
 
             _handlers.TryAdd(path, handler);
 

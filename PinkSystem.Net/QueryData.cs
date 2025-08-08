@@ -39,8 +39,8 @@ namespace PinkSystem.Net
         public IEnumerator<KeyValuePair<string, string>> GetEnumerator()
         {
             return _dictionary
-                .SelectMany(x => 
-                    x.Value.Select(c => 
+                .SelectMany(x =>
+                    x.Value.Select(c =>
                         new KeyValuePair<string, string>(x.Key, c)
                     )
                 )

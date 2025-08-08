@@ -28,7 +28,7 @@ namespace PinkSystem.States
                     return _dictionary;
                 }
             }
-                
+
         }
 
         public State(StateFactory factory)

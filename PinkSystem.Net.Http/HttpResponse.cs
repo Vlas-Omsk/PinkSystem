@@ -1,7 +1,7 @@
-﻿using PinkSystem.IO.Content;
-using PinkSystem.Net.Http.Exceptions;
-using System;
+﻿using System;
 using System.Net;
+using PinkSystem.IO.Content;
+using PinkSystem.Net.Http.Exceptions;
 
 namespace PinkSystem.Net.Http
 {

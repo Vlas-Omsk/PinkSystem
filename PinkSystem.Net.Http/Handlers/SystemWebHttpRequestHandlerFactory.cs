@@ -1,12 +1,12 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Reflection;
-using System.Threading.Tasks;
 using System.Threading;
-using System;
-using PinkSystem.Runtime;
+using System.Threading.Tasks;
 using PinkSystem.IO.Content;
+using PinkSystem.Runtime;
 
 namespace PinkSystem.Net.Http.Handlers
 {

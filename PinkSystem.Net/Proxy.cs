@@ -5,8 +5,8 @@ using System.IO;
 using System.Net;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using System.Threading;
+using System.Threading.Tasks;
 using PinkSystem.Net.Sockets;
 using PinkSystem.Runtime;
 
@@ -304,7 +304,7 @@ namespace PinkSystem.Net
                 return proxy;
             else if (TryParse(str, ProtocolUserPasswordAtHostPortFormat, defaultProtocol, out proxy))
                 return proxy;
-            
+
             throw new FormatException("Cannot parse proxy using default formats");
         }
 

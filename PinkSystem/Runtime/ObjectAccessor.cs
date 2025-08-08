@@ -245,7 +245,7 @@ namespace PinkSystem.Runtime
 
                         if (constructor == null)
                             throw new Exception($"Constructor on type {type} not found for arg types {string.Join(", ", argTypes.Select(x => x.Name))}");
-    
+
                         return MemberAccessorsCache.Shared.Create(constructor);
                     },
                     type,
